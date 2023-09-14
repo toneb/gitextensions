@@ -23,4 +23,8 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
     <PackageReference Include="Avalonia.ReactiveUI" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GitUI\GitUI.csproj" />
+  </ItemGroup>
 </Project>
