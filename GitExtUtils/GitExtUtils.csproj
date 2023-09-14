@@ -3,6 +3,9 @@
   <PropertyGroup>
     <!-- To be removed when NRT annotations are complete -->
     <Nullable>annotations</Nullable>
+
+    <TargetFramework>net6.0</TargetFramework>
+    <UseWindowsForms>false</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
