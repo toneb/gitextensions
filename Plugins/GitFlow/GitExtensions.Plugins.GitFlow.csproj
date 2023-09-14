@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GitCommands\GitCommands.csproj">
+    <ProjectReference Include="..\..\GitCommands.Forms\GitCommands.Forms.csproj">
       <PrivateAssets>build;buildTransitive;compile</PrivateAssets>
       <Private>false</Private>
     </ProjectReference>

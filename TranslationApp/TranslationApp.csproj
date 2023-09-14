@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BugReporter\BugReporter.csproj" />
-    <ProjectReference Include="..\GitCommands\GitCommands.csproj" />
+    <ProjectReference Include="..\GitCommands.Forms\GitCommands.Forms.csproj" />
     <ProjectReference Include="..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
     <ProjectReference Include="..\GitUI\GitUI.csproj" />
     <ProjectReference Include="..\Externals\NetSpell.SpellChecker\SpellChecker.csproj" />

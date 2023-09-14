@@ -27,7 +27,7 @@
     <ProjectReference Include="..\Externals\conemu-inside\ConEmuWinForms\ConEmuWinForms.csproj" />
     <ProjectReference Include="..\Externals\Git.hub\Git.hub\Git.hub.csproj" />
     <ProjectReference Include="..\Externals\ICSharpCode.TextEditor\Project\ICSharpCode.TextEditor.csproj" />
-    <ProjectReference Include="..\GitCommands\GitCommands.csproj" />
+    <ProjectReference Include="..\GitCommands.Forms\GitCommands.Forms.csproj" />
     <ProjectReference Include="..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
     <ProjectReference Include="..\Externals\NetSpell.SpellChecker\SpellChecker.csproj" />
     <ProjectReference Include="..\ResourceManager\ResourceManager.csproj" />
