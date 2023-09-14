@@ -4,20 +4,15 @@
 
     <!-- To be removed when NRT annotations are complete -->
     <Nullable>annotations</Nullable>
+
+    <TargetFramework>net6.0</TargetFramework>
+    <UseWindowsForms>false</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="..\GitExtUtils\Delimiters.cs" Link="Utils\Delimiters.cs" />
     <Compile Include="..\GitExtUtils\LazyStringSplit.cs" Link="Utils\LazyStringSplit.cs" />
     <Compile Include="..\GitExtUtils\Validates.cs" Link="Validates.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-
-    <!-- Settings -->
-    <None Update="Properties\Settings.settings" Generator="SettingsSingleFileGenerator" LastGenOutput="Settings.Designer.cs" />
-    <Compile Update="Properties\Settings.Designer.cs" AutoGen="True" DependentUpon="Settings.settings" />
-
   </ItemGroup>
 
   <ItemGroup>
@@ -29,8 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
-    <ProjectReference Include="..\Plugins\GitUIPluginInterfaces.Forms\GitUIPluginInterfaces.Forms.csproj" />
+    <ProjectReference Include="..\GitExtUtils\GitExtUtils.csproj" />
+    <ProjectReference Include="..\Plugins\GitUIPluginInterfaces\GitUIPluginInterfaces.csproj" />
   </ItemGroup>
+
+
 
 </Project>
