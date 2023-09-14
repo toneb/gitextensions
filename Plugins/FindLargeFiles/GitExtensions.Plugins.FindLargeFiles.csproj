@@ -9,7 +9,7 @@
       <PrivateAssets>build;buildTransitive;compile</PrivateAssets>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\GitUI\GitUI.csproj">
+    <ProjectReference Include="..\..\GitUI.Forms\GitUI.Forms.csproj">
       <PrivateAssets>build;buildTransitive;compile</PrivateAssets>
       <Private>false</Private>
     </ProjectReference>

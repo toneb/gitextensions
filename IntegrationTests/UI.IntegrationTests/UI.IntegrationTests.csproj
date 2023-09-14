@@ -12,7 +12,7 @@
     <ProjectReference Include="..\..\Externals\ICSharpCode.TextEditor\Project\ICSharpCode.TextEditor.csproj" />
     <ProjectReference Include="..\..\GitCommands.Forms\GitCommands.Forms.csproj" />
     <ProjectReference Include="..\..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
-    <ProjectReference Include="..\..\GitUI\GitUI.csproj" />
+    <ProjectReference Include="..\..\GitUI.Forms\GitUI.Forms.csproj" />
     <ProjectReference Include="..\..\Plugins\GitUIPluginInterfaces.Forms\GitUIPluginInterfaces.Forms.csproj" />
     <ProjectReference Include="..\..\ResourceManager\ResourceManager.csproj" />
     <ProjectReference Include="..\..\UnitTests\CommonTestUtils\CommonTestUtils.csproj" />
