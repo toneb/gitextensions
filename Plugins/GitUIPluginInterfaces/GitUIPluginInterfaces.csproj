@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Include="..\..\GitExtUtils\Validates.cs" Link="Validates.cs" />
   </ItemGroup>
@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GitExtUtils\GitExtUtils.csproj" />
+    <ProjectReference Include="..\..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
   </ItemGroup>
 
 </Project>

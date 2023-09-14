@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GitCommands\GitCommands.csproj" />
-    <ProjectReference Include="..\GitExtUtils\GitExtUtils.csproj" />
+    <ProjectReference Include="..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
     <ProjectReference Include="..\Plugins\GitUIPluginInterfaces\GitUIPluginInterfaces.csproj" />
   </ItemGroup>
 

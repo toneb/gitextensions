@@ -5,7 +5,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Externals\ICSharpCode.TextEditor\Project\ICSharpCode.TextEditor.csproj" />
-    <ProjectReference Include="..\..\GitExtUtils\GitExtUtils.csproj" />
+    <ProjectReference Include="..\..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
     <ProjectReference Include="..\CommonTestUtils\CommonTestUtils.csproj" />
   </ItemGroup>
 
