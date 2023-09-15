@@ -1,4 +1,6 @@
-﻿namespace GitUIPluginInterfaces
+﻿using System.Drawing;
+
+namespace GitUIPluginInterfaces
 {
     public interface IGitPlugin
     {

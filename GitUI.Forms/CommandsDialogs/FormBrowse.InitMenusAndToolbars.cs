@@ -42,7 +42,7 @@ namespace GitUI.CommandsDialogs
                 toolStripButtonPush,
                 pushToolStripMenuItem,
                 branchToolStripMenuItem,
-            }.ForEach(ColorHelper.AdaptImageLightness);
+            }.ForEach(FormsColorHelper.AdaptImageLightness);
 
             InsertFetchPullShortcuts();
 

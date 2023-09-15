@@ -15,6 +15,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
     <ProjectReference Include="..\GitUIPluginInterfaces\GitUIPluginInterfaces.csproj" />
+
+
+
   </ItemGroup>
 
 
