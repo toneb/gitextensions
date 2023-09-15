@@ -37,6 +37,7 @@
     <PackageReference Update="System.Reactive" Version="5.0.0" />
     <PackageReference Update="System.Reactive.Linq" Version="5.0.0" />
     <PackageReference Update="System.Reactive.Interfaces" Version="5.0.0" />
+    <PackageReference Update="System.Resources.Extensions" Version="6.0.0" />
     <PackageReference Update="System.ValueTuple" Version="4.5.0" /> <!-- Required by GitExtensions.Plugins.AutoCompileSubmodules -->
 
     <!-- Setup infra -->

@@ -1,4 +1,6 @@
-﻿namespace GitUI.Avatars
+﻿using System.Drawing;
+
+namespace GitUI.Avatars
 {
     /// <summary>
     /// An avatar provider that combines multiple avatar providers.

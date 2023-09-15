@@ -1,4 +1,6 @@
-﻿namespace GitUI.Avatars
+﻿using System.Drawing;
+
+namespace GitUI.Avatars
 {
     public sealed class StaticImageAvatarProvider : IAvatarProvider
     {

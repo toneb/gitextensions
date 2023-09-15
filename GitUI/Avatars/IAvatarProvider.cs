@@ -1,4 +1,6 @@
-﻿namespace GitUI.Avatars
+﻿using System.Drawing;
+
+namespace GitUI.Avatars
 {
     /// <summary>
     /// A source and cache agnostic provider for avatar images.

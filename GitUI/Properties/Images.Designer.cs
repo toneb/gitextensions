@@ -39,7 +39,7 @@ namespace GitUI.Properties {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("GitUI.Forms.Properties.Images", typeof(Images).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("GitUI.Properties.Images", typeof(Images).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

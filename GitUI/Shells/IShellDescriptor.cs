@@ -1,4 +1,6 @@
-﻿namespace GitUI.Shells
+﻿using System.Drawing;
+
+namespace GitUI.Shells
 {
     public interface IShellDescriptor
     {

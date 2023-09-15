@@ -1,4 +1,5 @@
-﻿using GitCommands;
+﻿using System.Drawing;
+using GitCommands;
 using GitExtUtils;
 
 namespace GitUI.Avatars

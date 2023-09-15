@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using System.Drawing;
+
 namespace GitUI
 {
     public static class BitmapExtensions

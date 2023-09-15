@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using System.Drawing;
+using System.Web;
 
 namespace GitUI.Avatars
 {

@@ -16,7 +16,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BugReporter\BugReporter.csproj" />
     <ProjectReference Include="..\Externals\conemu-inside\ConEmuWinForms\ConEmuWinForms.csproj" />
-    <ProjectReference Include="..\Externals\Git.hub\Git.hub\Git.hub.csproj" />
     <ProjectReference Include="..\Externals\ICSharpCode.TextEditor\Project\ICSharpCode.TextEditor.csproj" />
     <ProjectReference Include="..\GitCommands.Forms\GitCommands.Forms.csproj" />
     <ProjectReference Include="..\GitExtUtils.Forms\GitExtUtils.Forms.csproj" />
@@ -28,27 +27,17 @@
 
   <ItemGroup>
     <!-- Resources -->
-    <EmbeddedResource Update="Properties\Images.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Images.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Properties\Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
     <Compile Update="CommandsDialogs\Menus\StartToolStripMenuItem.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="UserControls\FilterToolBar.Designer.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="Properties\Images.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Images.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Properties\Resources.Designer.cs" AutoGen="True" DependentUpon="Resources.resx" DesignTime="True" />
-
-    <!-- Settings -->
-    <None Update="Properties\Settings.settings" Generator="SettingsSingleFileGenerator" LastGenOutput="Settings.Designer.cs" />
-    <Compile Update="Properties\Settings.Designer.cs" AutoGen="True" DependentUpon="Settings.settings" />
   </ItemGroup>
+
+
+
+
+
 
 </Project>
