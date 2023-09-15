@@ -1,4 +1,6 @@
-﻿namespace GitCommands.UserRepositoryHistory
+﻿using System.Drawing;
+
+namespace GitCommands.UserRepositoryHistory
 {
     public class RecentRepoInfo
     {

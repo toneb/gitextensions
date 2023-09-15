@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.IO.Abstractions;
 using GitUIPluginInterfaces;
 
