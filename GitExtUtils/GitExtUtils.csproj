@@ -12,6 +12,7 @@
     <PackageReference Include="AdysTech.CredentialManager" />
     <PackageReference Include="Ben.Demystifier" />
     <PackageReference Include="JetBrains.Annotations" />
+    <PackageReference Include="System.Drawing.Common" />
   </ItemGroup>
 
 </Project>

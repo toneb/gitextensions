@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace GitExtUtils.GitUI.Theming
 {
     public readonly struct HslColor

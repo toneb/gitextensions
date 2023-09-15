@@ -1,4 +1,6 @@
-﻿namespace GitExtUtils.GitUI.Theming
+﻿using System.Drawing;
+
+namespace GitExtUtils.GitUI.Theming
 {
     /// <summary>
     /// A set of values for .Net system colors and GitExtensions app-specific colors.
