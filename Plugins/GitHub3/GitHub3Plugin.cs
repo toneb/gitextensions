@@ -152,7 +152,7 @@ namespace GitExtensions.Plugins.GitHub3
             }
             else
             {
-                MessageBox.Show(args.OwnerForm, _tokenAlreadyExist.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(args.OwnerForm.GetFormsWindow(), _tokenAlreadyExist.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             return false;

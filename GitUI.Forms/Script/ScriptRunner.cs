@@ -109,7 +109,7 @@ namespace GitUI.Script
                     {
                         if (string.Equals(plugin.Name, command, StringComparison.CurrentCultureIgnoreCase))
                         {
-                            GitUIEventArgs eventArgs = new(owner, uiCommands);
+                            GitUIEventArgs eventArgs = new(owner.GetUiWindow(), uiCommands);
                             return new CommandStatus(executed: true, needsGridRefresh: plugin.Execute(eventArgs));
                         }
                     }

@@ -53,7 +53,7 @@ namespace GitExtensions.Plugins.Gource
         {
             if (!args.GitModule.IsValidGitWorkingDir())
             {
-                MessageBox.Show(args.OwnerForm, _currentDirectoryIsNotValidGit.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(args.OwnerForm.GetFormsWindow(), _currentDirectoryIsNotValidGit.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
@@ -62,7 +62,7 @@ namespace GitExtensions.Plugins.Gource
             if (!File.Exists(pathToGource))
             {
                 var result = MessageBox.Show(
-                    args.OwnerForm,
+                    args.OwnerForm.GetFormsWindow(),
                     string.Format(_resetConfigPath.Text, pathToGource), _gource.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
                 if (result == DialogResult.Yes)
@@ -75,14 +75,14 @@ namespace GitExtensions.Plugins.Gource
             if (string.IsNullOrEmpty(pathToGource))
             {
                 if (MessageBox.Show(
-                        args.OwnerForm, _doYouWantDownloadGource.Text, _download.Text,
+                        args.OwnerForm.GetFormsWindow(), _doYouWantDownloadGource.Text, _download.Text,
                         MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
                 {
                     var gourceUrl = SearchForGourceUrl();
 
                     if (string.IsNullOrEmpty(gourceUrl))
                     {
-                        MessageBox.Show(args.OwnerForm, _cannotFindGource.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(args.OwnerForm.GetFormsWindow(), _cannotFindGource.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return false;
                     }
 
@@ -98,13 +98,13 @@ namespace GitExtensions.Plugins.Gource
                         var newGourcePath = Path.Combine(downloadDir, "gource\\gource.exe");
                         if (File.Exists(newGourcePath))
                         {
-                            MessageBox.Show(args.OwnerForm, _gourceDownloadedAndUnzipped.Text, "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            MessageBox.Show(args.OwnerForm.GetFormsWindow(), _gourceDownloadedAndUnzipped.Text, "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                             pathToGource = newGourcePath;
                         }
                     }
                     else
                     {
-                        MessageBox.Show(args.OwnerForm, _downloadingFailed.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(args.OwnerForm.GetFormsWindow(), _downloadingFailed.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }

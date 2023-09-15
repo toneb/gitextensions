@@ -128,7 +128,7 @@ namespace GitUI.LeftPanel
 
         internal void PopupManageRemotesForm(string? remoteName)
         {
-            UICommands.StartRemotesDialog(TreeViewNode.TreeView, remoteName);
+            UICommands.StartRemotesDialog(TreeViewNode.TreeView.GetUiWindow(), remoteName);
         }
 
         internal bool FetchAll()

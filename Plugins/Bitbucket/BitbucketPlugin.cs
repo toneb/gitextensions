@@ -29,7 +29,7 @@ namespace GitExtensions.Plugins.Bitbucket
             Settings? settings = Bitbucket.Settings.Parse(args.GitModule, Settings, this);
             if (settings is null)
             {
-                MessageBox.Show(args.OwnerForm,
+                MessageBox.Show(args.OwnerForm.GetFormsWindow(),
                                 _yourRepositoryIsNotInBitbucket.Text,
                                 string.Empty,
                                 MessageBoxButtons.OK,

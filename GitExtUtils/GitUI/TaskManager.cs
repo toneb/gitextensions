@@ -57,7 +57,7 @@ namespace GitUI
         }
 
         /// <summary>
-        /// Asynchronously run <paramref name="asyncAction"/> on a background thread and forward all exceptions to <see cref="Application.OnThreadException"/> except for <see cref="OperationCanceledException"/>, which is ignored.
+        /// Asynchronously run <paramref name="asyncAction"/> on a background thread and forward all exceptions to <see cref="UiApplication.OnThreadException"/> except for <see cref="OperationCanceledException"/>, which is ignored.
         /// </summary>
         public void FileAndForget(Func<Task> asyncAction)
         {
@@ -69,7 +69,7 @@ namespace GitUI
         }
 
         /// <summary>
-        /// Asynchronously run <paramref name="action"/> on a background thread and forward all exceptions to <see cref="Application.OnThreadException"/> except for <see cref="OperationCanceledException"/>, which is ignored.
+        /// Asynchronously run <paramref name="action"/> on a background thread and forward all exceptions to <see cref="UiApplication.OnThreadException"/> except for <see cref="OperationCanceledException"/>, which is ignored.
         /// </summary>
         public void FileAndForget(Action action)
         {
@@ -81,7 +81,7 @@ namespace GitUI
         }
 
         /// <summary>
-        /// Asynchronously run <paramref name="task"/> on a background thread and forward all exceptions to <see cref="Application.OnThreadException"/> except for <see cref="OperationCanceledException"/>, which is ignored.
+        /// Asynchronously run <paramref name="task"/> on a background thread and forward all exceptions to <see cref="UiApplication.OnThreadException"/> except for <see cref="OperationCanceledException"/>, which is ignored.
         /// </summary>
         public void FileAndForget(Task task)
         {
@@ -103,13 +103,13 @@ namespace GitUI
         }
 
         /// <summary>
-        /// Forward the exception <paramref name="ex"/> to <see cref="Application.OnThreadException"/> on the main thread.
+        /// Forward the exception <paramref name="ex"/> to <see cref="UiApplication.OnThreadException"/> on the main thread.
         /// </summary>
         /// The readability of the callstack is improved by calling <see cref="ExceptionExtensions.Demystify"/>.
         internal async Task ReportExceptionOnMainThreadAsync(Exception ex)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
-            Application.OnThreadException(ex.Demystify());
+            UiApplication.OnThreadException(ex.Demystify());
         }
     }
 }

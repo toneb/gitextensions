@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Text;
+using GitUI;
 
 namespace GitCommands
 {
@@ -15,11 +16,11 @@ namespace GitCommands
             ShowException(null, e, info, canIgnore);
         }
 
-        public static void ShowException(IWin32Window? owner, Exception e, string info, bool canIgnore)
+        public static void ShowException(UiWindow? owner, Exception e, string info, bool canIgnore)
         {
             if (!(canIgnore && IsIgnorable(e)))
             {
-                MessageBox.Show(owner, string.Join(Environment.NewLine + Environment.NewLine, info, e.ToStringWithData()), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(owner, string.Join(Environment.NewLine + Environment.NewLine, info, e.ToStringWithData()), "Error");
             }
         }
 

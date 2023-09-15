@@ -25,6 +25,8 @@ namespace GitExtensions
         [STAThread]
         private static void Main()
         {
+            UiApplication.Instance = new FormsApplication();
+
             if (Environment.OSVersion.Version.Major >= 6)
             {
                 SetProcessDPIAware();
@@ -120,6 +122,7 @@ namespace GitExtensions
                 {
                     typeof(GitUI.GitExtensionsForm).Assembly,
                     typeof(GitCommands.GitModule).Assembly,
+                    typeof(GitCommands.AppTitleGenerator).Assembly,
                     typeof(ResourceManager.GitPluginBase).Assembly
                 },
                 AppSettings.UserPluginsPath);

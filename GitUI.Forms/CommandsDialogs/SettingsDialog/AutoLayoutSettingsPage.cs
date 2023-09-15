@@ -126,7 +126,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog
                 tableLayout.Controls.Add(label, 0, _currentRow);
             }
 
-            var control = controlBinding.GetControl();
+            var control = controlBinding.GetControl().GetFormsControl();
             control.Dock = DockStyle.Fill;
             tableLayout.Controls.Add(control, 1, _currentRow);
         }

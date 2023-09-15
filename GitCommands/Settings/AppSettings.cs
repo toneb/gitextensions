@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -17,12 +18,12 @@ namespace GitCommands
     {
         // semi-constants
         public static Version AppVersion => Assembly.GetCallingAssembly().GetName().Version;
-        public static string ProductVersion => Application.ProductVersion;
+        public static string ProductVersion => Assembly.GetCallingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
         public static readonly string ApplicationName = "Git Extensions";
         public static readonly string ApplicationId = ApplicationName.Replace(" ", "");
         public static readonly string SettingsFileName = ApplicationId + ".settings";
         public static readonly string UserPluginsDirectoryName = "UserPlugins";
-        private static string _applicationExecutablePath = Application.ExecutablePath;
+        private static string _applicationExecutablePath = Path.ChangeExtension(Assembly.GetEntryAssembly().Location, "exe");
         private static string? _documentationBaseUrl;
 
         public static Lazy<string?> ApplicationDataPath { get; private set; }
@@ -53,8 +54,7 @@ namespace GitCommands
                 }
 
                 // Make ApplicationDataPath version independent
-                return Application.UserAppDataPath.Replace(Application.ProductVersion, string.Empty)
-                                                  .Replace(ApplicationName, ApplicationId); // 'GitExtensions' has been changed to 'Git Extensions' in v3.0
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ApplicationId, ApplicationId);
             });
 
             LocalApplicationDataPath = new Lazy<string?>(() =>

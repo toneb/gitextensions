@@ -359,7 +359,7 @@ namespace GitUI.CommandsDialogs
                 return DialogResult.Cancel;
             }
 
-            if (UICommands.StartCommandLineProcessDialog(owner, new GitCheckoutBranchCmd(branchName, isRemote, localChanges, newBranchMode, newBranchName)))
+            if (UICommands.StartCommandLineProcessDialog(owner.GetUiWindow(), new GitCheckoutBranchCmd(branchName, isRemote, localChanges, newBranchMode, newBranchName)))
             {
                 if (stash)
                 {

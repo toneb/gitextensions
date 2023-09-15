@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using GitUI;
 
 namespace GitUIPluginInterfaces
 {
@@ -6,7 +7,7 @@ namespace GitUIPluginInterfaces
     {
         private readonly IFilteredGitRefsProvider _getRefs;
 
-        public GitUIEventArgs(IWin32Window? ownerForm, IGitUICommands gitUICommands, Lazy<IReadOnlyList<IGitRef>> getRefs = null)
+        public GitUIEventArgs(UiWindow? ownerForm, IGitUICommands gitUICommands, Lazy<IReadOnlyList<IGitRef>> getRefs = null)
             : base(cancel: false)
         {
             OwnerForm = ownerForm;
@@ -23,7 +24,7 @@ namespace GitUIPluginInterfaces
 
         public IGitUICommands GitUICommands { get; }
 
-        public IWin32Window? OwnerForm { get; }
+        public UiWindow? OwnerForm { get; }
 
         public IGitModule GitModule => GitUICommands.GitModule;
 

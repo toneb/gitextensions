@@ -167,5 +167,11 @@ namespace ResourceManager
         protected virtual void OnApplicationActivated()
         {
         }
+
+        /// <summary>
+        /// Implicit conversion from <see cref="GitExtensionsFormBase"/> to <see cref="UiWindow" />.
+        /// </summary>
+        public static implicit operator UiWindow(GitExtensionsFormBase form)
+            => form.GetUiWindow();
     }
 }

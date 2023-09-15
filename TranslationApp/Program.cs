@@ -30,6 +30,7 @@ namespace TranslationApp
             {
                 typeof(GitUI.GitExtensionsForm).Assembly,
                 typeof(GitCommands.GitModule).Assembly,
+                typeof(GitCommands.AppTitleGenerator).Assembly,
                 typeof(ResourceManager.GitPluginBase).Assembly
             });
 

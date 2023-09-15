@@ -231,7 +231,8 @@ namespace GitExtensions.UITests.Script
             ManagedExtensibility.Initialise(new[]
             {
                 typeof(GitUI.GitExtensionsForm).Assembly,
-                typeof(GitCommands.GitModule).Assembly
+                typeof(GitCommands.GitModule).Assembly,
+                typeof(GitCommands.AppTitleGenerator).Assembly
             });
 
             UITest.RunForm(

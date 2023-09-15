@@ -1,4 +1,5 @@
 using GitExtUtils;
+using GitUI;
 using GitUIPluginInterfaces;
 
 namespace GitCommands
@@ -50,7 +51,7 @@ namespace GitCommands
                 if (_current[gitIdentifiable] < LastVersionWithoutKnownLimitations)
                 {
                     // Report the last supported version rather than the last version without known issues
-                    MessageBox.Show(null, $"{_current[gitIdentifiable]} is lower than {LastSupportedVersion}. Some commands can fail.", "Unsupported Git version", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    UiApplication.ShowMessageBoxError(null, $"{_current[gitIdentifiable]} is lower than {LastSupportedVersion}. Some commands can fail.", "Unsupported Git version");
                 }
             }
 

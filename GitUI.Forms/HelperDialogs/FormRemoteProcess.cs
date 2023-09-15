@@ -43,7 +43,7 @@ Do you want to register the host's fingerprint and restart the process?");
             Commands = commands ?? throw new ArgumentNullException(nameof(commands));
         }
 
-        public static bool ShowDialog(IWin32Window? owner, GitUICommands commands, ArgumentString arguments)
+        public static bool ShowDialog(UiWindow? owner, GitUICommands commands, ArgumentString arguments)
         {
             using FormRemoteProcess formRemoteProcess = new(commands, arguments);
             formRemoteProcess.ShowDialog(owner);

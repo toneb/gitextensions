@@ -111,11 +111,11 @@ namespace GitUI
             }
         }
 
-        public bool StartCommandLineProcessDialog(IWin32Window? owner, IGitCommand command)
+        public bool StartCommandLineProcessDialog(UiWindow? owner, IGitCommand command)
         {
             bool success = command.AccessesRemote
                 ? FormRemoteProcess.ShowDialog(owner, this, command.Arguments)
-                : FormProcess.ShowDialog(owner, arguments: command.Arguments, Module.WorkingDir, input: null, useDialogSettings: true);
+                : FormProcess.ShowDialog(owner.GetFormsWindow(), arguments: command.Arguments, Module.WorkingDir, input: null, useDialogSettings: true);
 
             if (success && command.ChangesRepoState)
             {
@@ -125,9 +125,9 @@ namespace GitUI
             return success;
         }
 
-        public bool StartCommandLineProcessDialog(IWin32Window? owner, string? command, ArgumentString arguments)
+        public bool StartCommandLineProcessDialog(UiWindow? owner, string? command, ArgumentString arguments)
         {
-            return FormProcess.ShowDialog(owner, arguments, Module.WorkingDir, input: null, useDialogSettings: true, process: command);
+            return FormProcess.ShowDialog(owner.GetFormsWindow(), arguments, Module.WorkingDir, input: null, useDialogSettings: true, process: command);
         }
 
         public bool StartGitCommandProcessDialog(IWin32Window? owner, ArgumentString arguments)
@@ -975,7 +975,7 @@ namespace GitUI
         }
 
         /// <inheritdoc/>
-        public bool StartRemotesDialog(IWin32Window? owner, string? preselectRemote = null, string? preselectLocal = null)
+        public bool StartRemotesDialog(UiWindow? owner, string? preselectRemote = null, string? preselectLocal = null)
         {
             bool Action()
             {
@@ -988,7 +988,7 @@ namespace GitUI
                 return true;
             }
 
-            return DoActionOnRepo(owner, Action);
+            return DoActionOnRepo(owner.GetFormsWindow(), Action);
         }
 
         public bool StartRebase(IWin32Window? owner, string onto)
@@ -1244,7 +1244,7 @@ namespace GitUI
         {
             try
             {
-                GitUIEventArgs e = new(ownerForm, this);
+                GitUIEventArgs e = new(ownerForm.GetUiWindow(), this);
                 gitUIEventHandler?.Invoke(this, e);
                 return !e.Cancel;
             }
@@ -1260,7 +1260,7 @@ namespace GitUI
         {
             if (gitUIEventHandler is not null)
             {
-                GitUIPostActionEventArgs e = new(ownerForm, this, actionDone);
+                GitUIPostActionEventArgs e = new(ownerForm.GetUiWindow(), this, actionDone);
                 gitUIEventHandler(this, e);
             }
         }

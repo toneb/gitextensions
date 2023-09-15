@@ -72,7 +72,7 @@ namespace GitExtensions.Plugins.AutoCompileSubmodules
                 var solutionFile = solutionFiles[n];
 
                 var result =
-                    MessageBox.Show(args.OwnerForm,
+                    MessageBox.Show(args.OwnerForm.GetFormsWindow(),
                         string.Format(_doYouWantBuild.Text,
                                       solutionFile.Name,
                                       SolutionFilesToString(solutionFiles)),
@@ -92,7 +92,7 @@ namespace GitExtensions.Plugins.AutoCompileSubmodules
 
                 if (string.IsNullOrEmpty(msbuildPath) || !File.Exists(msbuildPath))
                 {
-                    MessageBox.Show(args.OwnerForm, _enterCorrectMsBuildPath.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(args.OwnerForm.GetFormsWindow(), _enterCorrectMsBuildPath.Text, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else
                 {

@@ -42,7 +42,8 @@ namespace GitExtensions.UITests
 #if GITUI
                 typeof(GitUI.GitExtensionsForm).Assembly,
 #endif
-                typeof(GitCommands.GitModule).Assembly
+                typeof(GitCommands.GitModule).Assembly,
+                typeof(GitCommands.AppTitleGenerator).Assembly
             });
 
             T form = null;

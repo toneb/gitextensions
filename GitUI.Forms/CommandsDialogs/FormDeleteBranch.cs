@@ -116,7 +116,7 @@ namespace GitUI.CommandsDialogs
             }
 
             GitDeleteBranchCmd cmd = new(selectedBranches, force: true);
-            bool success = UICommands.StartCommandLineProcessDialog(Owner, cmd);
+            bool success = UICommands.StartCommandLineProcessDialog(Owner.GetUiWindow(), cmd);
             if (success)
             {
                 Close();

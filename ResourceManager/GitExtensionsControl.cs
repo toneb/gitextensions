@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using GitExtUtils.GitUI.Theming;
+using GitUI;
 
 namespace ResourceManager
 {
@@ -165,5 +166,11 @@ namespace ResourceManager
         }
 
         #endregion
+
+        /// <summary>
+        /// Implicit conversion from <see cref="GitExtensionsControl"/> to <see cref="UiWindow"/>.
+        /// </summary>
+        public static implicit operator UiWindow(GitExtensionsControl control)
+            => control.GetUiWindow();
     }
 }
