@@ -10,7 +10,6 @@
     <PackageReference Update="Avalonia.Themes.Fluent" Version="11.0.2"/>
     <PackageReference Update="Avalonia.Fonts.Inter" Version="11.0.2"/>
     <PackageReference Update="Avalonia.Diagnostics" Version="11.0.2"/>
-    <PackageReference Update="Avalonia.ReactiveUI" Version="11.0.2"/>
     <PackageReference Update="Ben.Demystifier" Version="0.4.1" />
     <PackageReference Update="ConEmu.Core" Version="23.07.24" />
     <PackageReference Update="EnvDTE" Version="17.0.32112.339" />

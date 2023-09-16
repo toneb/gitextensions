@@ -7,7 +7,9 @@ using GitExtUtils;
 using GitUI.CommandsDialogs;
 using GitUI.CommandsDialogs.RepoHosting;
 using GitUI.CommandsDialogs.SettingsDialog;
+#if !AVALONIA
 using GitUI.HelperDialogs;
+#endif
 using GitUIPluginInterfaces;
 using GitUIPluginInterfaces.RepositoryHosts;
 using JetBrains.Annotations;
@@ -82,6 +84,7 @@ namespace GitUI
 
         private bool RequiresValidWorkingDir(object? owner)
         {
+#if !AVALONIA
             if (!Module.IsValidGitWorkingDir())
             {
                 MessageBoxes.NotValidGitDirectory(owner as IWin32Window);
@@ -89,10 +92,22 @@ namespace GitUI
             }
 
             return true;
+#else
+            // dummy, just to make code analysis happy
+            if (PreCheckoutRevision == null || PostCheckoutRevision == null || PreCheckoutBranch == null
+                || PostCheckoutBranch == null || PostEditGitIgnore == null || PostUpdateSubmodules == null
+                || PostSettings == null || PostCommit == null || PreCommit == null)
+            {
+                throw new NotImplementedException("TBD");
+            }
+
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public void StartBatchFileProcessDialog(string batchFile)
         {
+#if !AVALONIA
             var tempFile = Path.Combine(Path.GetTempPath(), $"GitExtensions-{Guid.NewGuid():N}.cmd");
 
             try
@@ -109,10 +124,14 @@ namespace GitUI
             {
                 File.Delete(tempFile);
             }
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCommandLineProcessDialog(IWin32Window? owner, IGitCommand command)
         {
+#if !AVALONIA
             bool success = command.AccessesRemote
                 ? FormRemoteProcess.ShowDialog(owner, this, command.Arguments)
                 : FormProcess.ShowDialog(owner, arguments: command.Arguments, Module.WorkingDir, input: null, useDialogSettings: true);
@@ -123,16 +142,27 @@ namespace GitUI
             }
 
             return success;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCommandLineProcessDialog(IWin32Window? owner, string? command, ArgumentString arguments)
         {
+#if !AVALONIA
             return FormProcess.ShowDialog(owner, arguments, Module.WorkingDir, input: null, useDialogSettings: true, process: command);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartGitCommandProcessDialog(IWin32Window? owner, ArgumentString arguments)
         {
+#if !AVALONIA
             return FormProcess.ShowDialog(owner, arguments, Module.WorkingDir, input: null, useDialogSettings: true);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartDeleteBranchDialog(IWin32Window? owner, string branch)
@@ -142,36 +172,49 @@ namespace GitUI
 
         public bool StartDeleteBranchDialog(IWin32Window? owner, IEnumerable<string> branches)
         {
+#if !AVALONIA
             return DoActionOnRepo(owner, action: () =>
             {
                 using FormDeleteBranch form = new(this, branches);
                 form.ShowDialog(owner);
                 return true;
             }, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartDeleteRemoteBranchDialog(IWin32Window? owner, string remoteBranch)
         {
+#if !AVALONIA
             return DoActionOnRepo(owner, action: () =>
             {
                 using FormDeleteRemoteBranch form = new(this, remoteBranch);
                 form.ShowDialog(owner);
                 return true;
             }, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCheckoutRevisionDialog(IWin32Window? owner, string? revision = null)
         {
+#if !AVALONIA
             return DoActionOnRepo(owner, action: () =>
             {
                 using FormCheckoutRevision form = new(this);
                 form.SetRevision(revision);
                 return form.ShowDialog(owner) == DialogResult.OK;
             }, preEvent: PreCheckoutRevision, postEvent: PostCheckoutRevision);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartResetCurrentBranchDialog(IWin32Window? owner, string branch)
         {
+#if !AVALONIA
             var objectId = Module.RevParse(branch);
             if (objectId is null)
             {
@@ -181,10 +224,14 @@ namespace GitUI
 
             using var form = FormResetCurrentBranch.Create(this, Module.GetRevision(objectId));
             return form.ShowDialog(owner) == DialogResult.OK;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StashSave(IWin32Window? owner, bool includeUntrackedFiles, bool keepIndex = false, string message = "", IReadOnlyList<string>? selectedFiles = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 var arguments = GitCommandHelpers.StashSaveCmd(includeUntrackedFiles, keepIndex, message, selectedFiles);
@@ -195,10 +242,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StashStaged(IWin32Window? owner)
         {
+#if !AVALONIA
             bool Action()
             {
                 FormProcess.ShowDialog(owner, arguments: "stash --staged", Module.WorkingDir, input: null, useDialogSettings: true);
@@ -208,10 +259,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StashPop(IWin32Window? owner, string stashName = "")
         {
+#if !AVALONIA
             bool Action()
             {
                 FormProcess.ShowDialog(owner, arguments: $"stash pop {stashName.QuoteNE()}", Module.WorkingDir, input: null, useDialogSettings: true);
@@ -222,10 +277,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StashDrop(IWin32Window? owner, string stashName)
         {
+#if !AVALONIA
             bool Action()
             {
                 FormProcess.ShowDialog(owner, arguments: $"stash drop {stashName.Quote()}", Module.WorkingDir, input: null, useDialogSettings: true);
@@ -235,10 +294,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StashApply(IWin32Window? owner, string stashName)
         {
+#if !AVALONIA
             bool Action()
             {
                 FormProcess.ShowDialog(owner, arguments: $"stash apply {stashName.Quote()}", Module.WorkingDir, input: null, useDialogSettings: true);
@@ -249,11 +312,15 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public void ShowModelessForm(IWin32Window? owner, bool requiresValidWorkingDir,
             EventHandler<GitUIEventArgs>? preEvent, EventHandler<GitUIPostActionEventArgs>? postEvent, Func<Form> provideForm)
         {
+#if !AVALONIA
             if (requiresValidWorkingDir && !RequiresValidWorkingDir(owner))
             {
                 return;
@@ -283,6 +350,9 @@ namespace GitUI
             {
                 form.ShowDialog();
             }
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         /// <param name="requiresValidWorkingDir">If action requires valid working directory.</param>
@@ -343,11 +413,15 @@ namespace GitUI
 
         public bool StartCheckoutBranch(IWin32Window? owner, string branch = "", bool remote = false, IReadOnlyList<ObjectId>? containRevisions = null)
         {
+#if !AVALONIA
             return DoActionOnRepo(owner, action: () =>
             {
                 using FormCheckoutBranch form = new(this, branch, remote, containRevisions);
                 return form.DoDefaultActionOrShow(owner) != DialogResult.Cancel;
             }, preEvent: PreCheckoutBranch, postEvent: PostCheckoutBranch);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCheckoutBranch(IWin32Window? owner, IReadOnlyList<ObjectId>? containRevisions)
@@ -379,6 +453,7 @@ namespace GitUI
         /// <param name="firstId">The first commit to be selected, the first commit in a diff.</param>
         public static void LaunchBrowse(string workingDir = "", ObjectId? selectedId = null, ObjectId? firstId = null)
         {
+#if !AVALONIA
             if (!Directory.Exists(workingDir))
             {
                 MessageBoxes.GitExtensionsDirectoryDoesNotExist(owner: null, workingDir);
@@ -403,10 +478,14 @@ namespace GitUI
             }
 
             Launch(arguments.ToString(), workingDir);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCompareRevisionsDialog(IWin32Window? owner = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormLog form = new(this);
@@ -414,16 +493,23 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartAddFilesDialog(IWin32Window? owner, string? addFiles = null)
         {
+#if !AVALONIA
             return DoActionOnRepo(owner, action: () =>
             {
                 using FormAddFiles form = new(this, addFiles);
                 form.ShowDialog(owner);
                 return true;
             });
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCreateBranchDialog(IWin32Window? owner, string? branch)
@@ -440,6 +526,7 @@ namespace GitUI
 
         public bool StartCreateBranchDialog(IWin32Window? owner = null, ObjectId? objectId = null, string? newBranchNamePrefix = null)
         {
+#if !AVALONIA
             if (Module.IsBareRepository() || objectId?.IsArtificial is true)
             {
                 return false;
@@ -452,10 +539,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCloneDialog(IWin32Window? owner, string? url = null, bool openedFromProtocolHandler = false, EventHandler<GitModuleEventArgs>? gitModuleChanged = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormClone form = new(this, url, openedFromProtocolHandler, gitModuleChanged);
@@ -464,6 +555,9 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, requiresValidWorkingDir: false, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCloneDialog(IWin32Window? owner, string url, EventHandler<GitModuleEventArgs> gitModuleChanged)
@@ -473,15 +567,20 @@ namespace GitUI
 
         public bool StartCleanupRepositoryDialog(IWin32Window? owner = null, string? path = null)
         {
+#if !AVALONIA
             using FormCleanupRepository form = new(this);
             form.SetPathArgument(path);
             form.ShowDialog(owner);
 
             return true;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartSquashCommitDialog(IWin32Window? owner, GitRevision revision)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormCommit form = new(this, CommitKind.Squash, revision);
@@ -490,10 +589,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartFixupCommitDialog(IWin32Window? owner, GitRevision revision)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormCommit form = new(this, CommitKind.Fixup, revision);
@@ -502,10 +605,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartAmendCommitDialog(IWin32Window? owner, GitRevision revision)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormCommit form = new(this, CommitKind.Amend, revision);
@@ -514,10 +621,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCommitDialog(IWin32Window? owner, string? commitMessage = null, bool showOnlyWhenChanges = false)
         {
+#if !AVALONIA
             if (Module.IsBareRepository())
             {
                 return false;
@@ -565,10 +676,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false, preEvent: PreCommit, postEvent: PostCommit);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartInitializeDialog(IWin32Window? owner = null, string? dir = null, EventHandler<GitModuleEventArgs>? gitModuleChanged = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 dir ??= Module.IsValidGitWorkingDir() ? Module.WorkingDir : string.Empty;
@@ -579,6 +694,9 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, requiresValidWorkingDir: false, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartPullDialogAndPullImmediately(IWin32Window? owner = null, string? remoteBranch = null, string? remote = null, AppSettings.PullAction pullAction = AppSettings.PullAction.None)
@@ -600,6 +718,7 @@ namespace GitUI
 
         private bool StartPullDialogInternal(IWin32Window? owner, bool pullOnShow, out bool pullCompleted, string? remoteBranch, string? remote, AppSettings.PullAction pullAction)
         {
+#if !AVALONIA
             var pulled = false;
 
             bool Action()
@@ -622,10 +741,14 @@ namespace GitUI
             pullCompleted = pulled;
 
             return done;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartViewPatchDialog(IWin32Window? owner, string? patchFile = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormViewPatch viewPatch = new(this);
@@ -640,10 +763,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, requiresValidWorkingDir: false, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartFormCommitDiff(ObjectId objectId)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormCommitDiff viewPatch = new(this, objectId);
@@ -652,6 +779,9 @@ namespace GitUI
             }
 
             return DoActionOnRepo(null, Action, requiresValidWorkingDir: false, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartViewPatchDialog(string patchFile)
@@ -661,6 +791,7 @@ namespace GitUI
 
         public bool StartSparseWorkingCopyDialog(IWin32Window? owner)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormSparseWorkingCopy form = new(this);
@@ -669,6 +800,9 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public void AddCommitTemplate(string key, Func<string> addingText, Image? icon)
@@ -683,6 +817,7 @@ namespace GitUI
 
         public bool StartFormatPatchDialog(IWin32Window? owner = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormFormatPatch form = new(this);
@@ -691,10 +826,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartStashDialog(IWin32Window? owner = null, bool manageStashes = true, string initialStash = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormStash form = new(this, initialStash) { ManageStashes = manageStashes };
@@ -703,10 +842,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartResetChangesDialog(IWin32Window? owner, IReadOnlyCollection<GitItemStatus> workTreeFiles, bool onlyWorkTree)
         {
+#if !AVALONIA
             // Show a form asking the user if they want to reset the changes.
             FormResetChanges.ActionEnum resetType = FormResetChanges.ShowResetDialog(owner, hasExistingFiles: workTreeFiles.Any(item => !item.IsNew), hasNewFiles: workTreeFiles.Any(item => item.IsNew));
 
@@ -721,10 +864,14 @@ namespace GitUI
             {
                 return Module.ResetAllChanges(clean: resetType == FormResetChanges.ActionEnum.ResetAndDelete, onlyWorkTree);
             }
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private bool StartResetChangesDialog(string fileName)
         {
+#if !AVALONIA
             // Show a form asking the user if they want to reset the changes.
             FormResetChanges.ActionEnum resetType = FormResetChanges.ShowResetDialog(null, hasExistingFiles: true, hasNewFiles: false);
 
@@ -756,10 +903,14 @@ namespace GitUI
             }
 
             return true;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartRevertCommitDialog(IWin32Window? owner, GitRevision revision)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormRevertCommit form = new(this, revision);
@@ -767,10 +918,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartResolveConflictsDialog(IWin32Window? owner = null, bool offerCommit = true)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormResolveConflicts form = new(this, offerCommit);
@@ -779,10 +934,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCherryPickDialog(IWin32Window? owner = null, GitRevision? revision = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormCherryPick form = new(this, revision);
@@ -790,10 +949,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCherryPickDialog(IWin32Window? owner, IEnumerable<GitRevision> revisions)
         {
+#if !AVALONIA
             if (revisions is null)
             {
                 throw new ArgumentNullException(nameof(revisions));
@@ -837,6 +1000,9 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         /// <summary>Start Merge dialog, using the specified branch.</summary>
@@ -844,6 +1010,7 @@ namespace GitUI
         /// <param name="branch">Branch to merge into the current branch.</param>
         public bool StartMergeBranchDialog(IWin32Window? owner, string? branch)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormMergeBranch form = new(this, branch);
@@ -852,10 +1019,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartCreateTagDialog(IWin32Window? owner = null, GitRevision? revision = null)
         {
+#if !AVALONIA
             if (revision?.IsArtificial is true)
             {
                  return false;
@@ -868,10 +1039,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartDeleteTagDialog(IWin32Window? owner, string? tag)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormDeleteTag form = new(this, tag);
@@ -879,10 +1054,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartEditGitIgnoreDialog(IWin32Window? owner, bool localExcludes)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormGitIgnore form = new(this, localExcludes);
@@ -891,10 +1070,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false, postEvent: PostEditGitIgnore);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartAddToGitIgnoreDialog(IWin32Window? owner, bool localExclude, params string[] filePattern)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormAddToGitIgnore frm = new(this, localExclude, filePattern);
@@ -903,10 +1086,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false, postEvent: PostEditGitIgnore);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartSettingsDialog(IWin32Window? owner = null, SettingsPageReference? initialPage = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 return FormSettings.ShowSettingsDialog(this, owner, initialPage)
@@ -914,6 +1101,9 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, requiresValidWorkingDir: false, postEvent: PostSettings);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartSettingsDialog(IGitPlugin gitPlugin)
@@ -935,6 +1125,7 @@ namespace GitUI
         /// <param name="path">Files path for archive.</param>
         public bool StartArchiveDialog(IWin32Window? owner = null, GitRevision? revision = null, GitRevision? revision2 = null, string? path = null)
         {
+#if !AVALONIA
             return DoActionOnRepo(owner, action: () =>
                 {
                     using FormArchive form = new(this)
@@ -947,10 +1138,14 @@ namespace GitUI
 
                     return true;
                 }, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartMailMapDialog(IWin32Window? owner = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormMailMap form = new(this);
@@ -959,10 +1154,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartVerifyDatabaseDialog(IWin32Window? owner = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormVerify form = new(this);
@@ -972,11 +1171,15 @@ namespace GitUI
 
             // TODO: move Notify to FormVerify and friends
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         /// <inheritdoc/>
         public bool StartRemotesDialog(IWin32Window? owner, string? preselectRemote = null, string? preselectLocal = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormRemotes form = new(this)
@@ -989,6 +1192,9 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartRebase(IWin32Window? owner, string onto)
@@ -1020,6 +1226,7 @@ namespace GitUI
 
         public bool StartRebaseDialog(IWin32Window? owner, string? from, string? to, string? onto, bool interactive = false, bool startRebaseImmediately = true)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormRebase form = new(this, from, to, onto, interactive, startRebaseImmediately);
@@ -1028,10 +1235,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartRenameDialog(IWin32Window? owner, string branch)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormRenameBranch form = new(this, branch);
@@ -1039,10 +1250,14 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartSubmodulesDialog(IWin32Window? owner)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormSubmodules form = new(this);
@@ -1051,20 +1266,28 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartUpdateSubmodulesDialog(IWin32Window? owner, string submoduleLocalPath = "")
         {
+#if !AVALONIA
             bool Action()
             {
                 return FormProcess.ShowDialog(owner, arguments: GitCommandHelpers.SubmoduleUpdateCmd(submoduleLocalPath), Module.WorkingDir, input: null, useDialogSettings: true);
             }
 
             return DoActionOnRepo(owner, Action, postEvent: PostUpdateSubmodules);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartUpdateSubmoduleDialog(IWin32Window? owner, string submoduleLocalPath, string submoduleParentPath)
         {
+#if !AVALONIA
             bool Action()
             {
                 // Execute the submodule update comment from the submodule's parent directory
@@ -1072,20 +1295,28 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, postEvent: PostUpdateSubmodules);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartSyncSubmodulesDialog(IWin32Window? owner)
         {
+#if !AVALONIA
             bool Action()
             {
                 return FormProcess.ShowDialog(owner, arguments: GitCommandHelpers.SubmoduleSyncCmd(""), Module.WorkingDir, input: null, useDialogSettings: true);
             }
 
             return DoActionOnRepo(owner, Action);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public void UpdateSubmodules(IWin32Window? owner)
         {
+#if !AVALONIA
             if (!Module.HasSubmodules())
             {
                 return;
@@ -1097,11 +1328,18 @@ namespace GitUI
             {
                 StartUpdateSubmodulesDialog(owner);
             }
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartGeneralSettingsDialog(IWin32Window? owner)
         {
+#if !AVALONIA
             return StartSettingsDialog(owner, CommandsDialogs.SettingsDialog.Pages.GeneralSettingsPage.GetPageReference());
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartPluginSettingsDialog(IWin32Window? owner)
@@ -1111,7 +1349,11 @@ namespace GitUI
 
         public bool StartRepoSettingsDialog(IWin32Window? owner)
         {
+#if !AVALONIA
             return StartSettingsDialog(owner, CommandsDialogs.SettingsDialog.Pages.GitConfigSettingsPage.GetPageReference());
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         /// <summary>
@@ -1121,6 +1363,7 @@ namespace GitUI
         /// <param name="args">The start up arguments.</param>
         public bool StartBrowseDialog(IWin32Window? owner, BrowseArguments? args = null)
         {
+#if !AVALONIA
             FormBrowse form = new(this, args ?? new BrowseArguments());
 
             if (Application.MessageLoop)
@@ -1133,6 +1376,9 @@ namespace GitUI
             }
 
             return true;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public void StartFileHistoryDialog(IWin32Window? owner, string fileName, GitRevision? revision = null, bool filterByRevision = false, bool showBlame = false)
@@ -1144,6 +1390,7 @@ namespace GitUI
 
         public void OpenWithDifftool(IWin32Window? owner, IReadOnlyList<GitRevision?> revisions, string fileName, string? oldFileName, RevisionDiffKind diffKind, bool isTracked, string? customTool = null)
         {
+#if !AVALONIA
             // Note: Order in revisions is that first clicked is last in array
 
             if (!RevisionDiffInfoProvider.TryGet(revisions, diffKind, out var firstRevision, out var secondRevision, out var error))
@@ -1158,8 +1405,12 @@ namespace GitUI
                     MessageBox.Show(owner, output, TranslatedStrings.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
+#if !AVALONIA
         public FormDiff ShowFormDiff(ObjectId baseCommitSha, ObjectId headCommitSha, string baseCommitDisplayStr, string headCommitDisplayStr)
         {
             FormDiff diffForm = new(this, baseCommitSha, headCommitSha, baseCommitDisplayStr, headCommitDisplayStr)
@@ -1171,9 +1422,11 @@ namespace GitUI
 
             return diffForm;
         }
+#endif
 
         public bool StartPushDialog(IWin32Window? owner, bool pushOnShow, bool forceWithLease, out bool pushCompleted)
         {
+#if !AVALONIA
             bool pushed = false;
 
             bool Action()
@@ -1201,6 +1454,9 @@ namespace GitUI
             pushCompleted = pushed;
 
             return done;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartPushDialog(IWin32Window? owner, bool pushOnShow)
@@ -1210,6 +1466,7 @@ namespace GitUI
 
         public bool StartApplyPatchDialog(IWin32Window? owner, string? patchFile = null)
         {
+#if !AVALONIA
             return DoActionOnRepo(owner, action: () =>
                 {
                     using FormApplyPatch form = new(this);
@@ -1226,10 +1483,14 @@ namespace GitUI
 
                     return true;
                 }, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public bool StartEditGitAttributesDialog(IWin32Window? owner = null)
         {
+#if !AVALONIA
             bool Action()
             {
                 using FormGitAttributes form = new(this);
@@ -1238,6 +1499,9 @@ namespace GitUI
             }
 
             return DoActionOnRepo(owner, Action, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private bool InvokeEvent(IWin32Window? ownerForm, EventHandler<GitUIEventArgs>? gitUIEventHandler)
@@ -1265,6 +1529,7 @@ namespace GitUI
             }
         }
 
+#if !AVALONIA
         private void WrapRepoHostingCall(string name, IRepositoryHostPlugin gitHoster, Action<IRepositoryHostPlugin> call)
         {
             if (!gitHoster.ConfigurationOk)
@@ -1322,9 +1587,11 @@ namespace GitUI
                                     }).FileAndForget();
                                 });
         }
+#endif
 
         public void StartCreatePullRequest(IWin32Window? owner)
         {
+#if !AVALONIA
             List<IRepositoryHostPlugin> relevantHosts =
                 PluginRegistry.GitHosters.Where(gh => gh.GitModuleIsRelevantToMe()).ToList();
 
@@ -1340,8 +1607,12 @@ namespace GitUI
             {
                 MessageBox.Show("StartCreatePullRequest:Selection not implemented!", TranslatedStrings.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
+#if !AVALONIA
         public void StartCreatePullRequest(IWin32Window? owner, IRepositoryHostPlugin gitHoster, string? chooseRemote = null, string? chooseBranch = null)
         {
             WrapRepoHostingCall(
@@ -1357,6 +1628,7 @@ namespace GitUI
                     form.Show(owner);
                 });
         }
+#endif
 
         public bool RunCommand(IReadOnlyList<string> args)
         {
@@ -1410,11 +1682,15 @@ namespace GitUI
             switch (command)
             {
                 case "about":
+#if !AVALONIA
                     Application.Run(new FormAbout
                     {
                         StartPosition = FormStartPosition.CenterScreen
                     });
                     return true;
+#else
+                    throw new NotImplementedException("TODO - avalonia");
+#endif
                 case "add":
                 case "addfiles":
                     return StartAddFilesDialog(null, args.Count == 3 ? args[2] : ".");
@@ -1521,8 +1797,12 @@ namespace GitUI
             }
 #pragma warning restore SA1025 // Code should not contain multiple whitespace in a row
 
+#if !AVALONIA
             Application.Run(new FormCommandlineHelp { StartPosition = FormStartPosition.CenterScreen });
             return true;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private static bool UninstallEditor()
@@ -1554,6 +1834,7 @@ namespace GitUI
 
         private bool RunSearchFileCommand()
         {
+#if !AVALONIA
             SearchWindow<string> searchWindow = new(FindFileMatches);
             Application.Run(searchWindow);
             if (searchWindow.SelectedItem is not null)
@@ -1565,6 +1846,9 @@ namespace GitUI
             }
 
             return false;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private bool RunBrowseCommand(IReadOnlyList<string> args)
@@ -1686,8 +1970,12 @@ namespace GitUI
 
         public bool StartFileEditorDialog(string? filename, bool showWarning = false, int? lineNumber = null)
         {
+#if !AVALONIA
             using FormEditor formEditor = new(this, filename, showWarning, lineNumber: lineNumber);
             return formEditor.ShowDialog() != DialogResult.Cancel;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         /// <summary>
@@ -1703,6 +1991,7 @@ namespace GitUI
         /// <returns>false on error.</returns>
         private bool RunFileHistoryCommand(IReadOnlyList<string> args, bool showBlame)
         {
+#if !AVALONIA
             string fileHistoryFileName = args[2];
             if (new FormFileHistoryController().TryGetExactPath(_fullPathResolver.Resolve(fileHistoryFileName), out var exactFileName))
             {
@@ -1760,6 +2049,9 @@ namespace GitUI
             }
 
             return true;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private bool RunCloneCommand(IReadOnlyList<string> args)
@@ -1771,6 +2063,7 @@ namespace GitUI
         /// <returns>false on error.</returns>
         private bool RunBlameCommand(IReadOnlyList<string> args)
         {
+#if !AVALONIA
             string blameFileName = NormalizeFileName(args[2]);
 
             int? initialLine = null;
@@ -1788,6 +2081,9 @@ namespace GitUI
                 frm.ShowDialog(null);
                 return true;
             }, changesRepo: false);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private bool RunMergeToolOrConflictCommand(IReadOnlyDictionary<string, string?> arguments)
@@ -1929,10 +2225,19 @@ namespace GitUI
             internal GitRemoteCommand(GitUICommands commands)
             {
                 _commands = commands;
+
+#if AVALONIA
+                // dummy, just to make code analysis happy
+                if (Completed == null)
+                {
+                    throw new NotImplementedException("TBD");
+                }
+#endif
             }
 
             public void Execute()
             {
+#if !AVALONIA
                 if (CommandText is null)
                 {
                     throw new InvalidOperationException("CommandText is required");
@@ -1955,8 +2260,12 @@ namespace GitUI
 
                 ErrorOccurred = form.ErrorOccurred();
                 CommandOutput = form.GetOutputString();
+#else
+                throw new NotImplementedException("TODO - avalonia");
+#endif
             }
 
+#if !AVALONIA
             private bool HandleOnExit(ref bool isError, FormProcess form)
             {
                 CommandOutput = form.GetOutputString();
@@ -1969,6 +2278,7 @@ namespace GitUI
 
                 return e.Handled;
             }
+#endif
         }
 
         #endregion

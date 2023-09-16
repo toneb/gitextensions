@@ -711,7 +711,6 @@
     <Compile Remove="GitExtensionsForm.cs" />
     <Compile Remove="GitModuleControl.cs" />
     <Compile Remove="GitModuleForm.cs" />
-    <Compile Remove="GitUICommands.cs" />
     <Compile Remove="GitUIExtensions.cs" />
     <Compile Remove="IGitUICommandsSource.cs" />
     <Compile Remove="MessageBoxes.cs" />

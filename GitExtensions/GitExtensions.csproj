@@ -50,4 +50,17 @@
     <EmbeddedResource Include="AutoCompleteRegexes.txt" />
   </ItemGroup>
 
+  <!-- Avalonia -->
+  <PropertyGroup>
+    <UseAvalonia>true</UseAvalonia>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Avalonia)' == 'true'">
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+  </ItemGroup>
 </Project>

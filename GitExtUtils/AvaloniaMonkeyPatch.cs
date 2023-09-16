@@ -23,12 +23,12 @@ public static class Application
 
 public static class MessageBox
 {
-    public static void Show(string message, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
+    public static DialogResult Show(string message, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
     {
         throw new NotImplementedException("TODO - avalonia");
     }
 
-    public static void Show(Window? owner, string message, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
+    public static DialogResult Show(Window? owner, string message, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
     {
         throw new NotImplementedException("TODO - avalonia");
     }
@@ -65,5 +65,14 @@ public enum MessageBoxIcon
     Error,
     Warning,
     Information,
+    Question
+}
+
+public enum DialogResult
+{
+    OK,
+    Cancel,
+    Yes,
+    No,
 }
 #endif

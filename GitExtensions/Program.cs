@@ -1,5 +1,8 @@
 using System.Configuration;
 using System.Diagnostics;
+#if AVALONIA
+using Avalonia;
+#endif
 using GitCommands;
 using GitCommands.Utils;
 using GitExtUtils.GitUI;
@@ -23,8 +26,30 @@ namespace GitExtensions
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        private static void Main()
+        private static void Main(string[] args)
         {
+#if !AVALONIA
+            OnFrameworkInitialized();
+#else
+            BuildAvaloniaApp()
+                .StartWithClassicDesktopLifetime(args);
+#endif
+        }
+
+#if AVALONIA
+        /// <summary>
+        /// Avalonia configuration, don't remove; also used by visual designer.
+        /// </summary>
+        public static AppBuilder BuildAvaloniaApp()
+            => AppBuilder.Configure(() => new App(OnFrameworkInitialized))
+                .UsePlatformDetect()
+                .WithInterFont()
+                .LogToTrace();
+#endif
+
+        private static void OnFrameworkInitialized()
+        {
+#if !AVALONIA // TODO - avalonia
             if (Environment.OSVersion.Version.Major >= 6)
             {
                 SetProcessDPIAware();
@@ -51,9 +76,11 @@ namespace GitExtensions
             // the call to GetInformation() from BugReporter.ShowNBug() will fail.
             // There's no perf hit calling Initialise() multiple times.
             UserEnvironmentInformation.Initialise(ThisAssembly.Git.Sha, ThisAssembly.Git.IsDirty);
+#endif
 
             AppSettings.SetDocumentationBaseUrl(ThisAssembly.Git.Branch);
 
+#if !AVALONIA // TODO - avalonia
             ThemeModule.Load();
 #if SUPPORT_THEME_HOOKS
             Application.ApplicationExit += (s, e) => ThemeModule.Unload();
@@ -96,6 +123,7 @@ namespace GitExtensions
                     HandleConfigurationException((ConfigurationException)tie.InnerException);
                 }
             }
+#endif
 
             AppTitleGenerator.Initialise(ThisAssembly.Git.Sha, ThisAssembly.Git.Branch);
 
@@ -109,6 +137,7 @@ namespace GitExtensions
         {
             string[] args = Environment.GetCommandLineArgs();
 
+#if !AVALONIA // TODO - avalonia
             // This form created to obtain UI synchronization context only
             using (new Form())
             {
@@ -123,9 +152,11 @@ namespace GitExtensions
                     typeof(ResourceManager.GitPluginBase).Assembly
                 },
                 AppSettings.UserPluginsPath);
+#endif
 
             AppSettings.LoadSettings();
 
+#if !AVALONIA // TODO - avalonia
             if (EnvUtils.RunningOnWindows())
             {
                 WebBrowserEmulationMode.SetBrowserFeatureControl();
@@ -137,6 +168,7 @@ namespace GitExtensions
                 using FormChooseTranslation formChoose = new();
                 formChoose.ShowDialog();
             }
+#endif
 
             AppSettings.TelemetryEnabled ??= MessageBox.Show(
                 null,
@@ -145,6 +177,7 @@ namespace GitExtensions
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question) == DialogResult.Yes;
 
+#if !AVALONIA // TODO - avalonia
             try
             {
                 // Ensure we can find the git command to execute,
@@ -191,6 +224,7 @@ namespace GitExtensions
             {
                 MouseWheelRedirector.Active = true;
             }
+#endif
 
             GitUICommands commands = new(GetWorkingDir(args));
 
@@ -285,6 +319,7 @@ namespace GitExtensions
                     {
                         string messageContent = string.Format("There is a problem with the user.xml configuration file.{0}{0}The error message was: {1}{0}{0}The configuration file is usually found in: {2}{0}{0}Problems with configuration can usually be solved by deleting the configuration file. Would you like to delete the file?", Environment.NewLine, in3.Message, localSettingsPath);
 
+#if !AVALONIA
                         if (MessageBox.Show(messageContent, "Configuration Error",
                                             MessageBoxButtons.YesNo, MessageBoxIcon.Error, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
                         {
@@ -309,6 +344,9 @@ namespace GitExtensions
                                 MessageBox.Show(string.Format("Could not delete all files and folders in {0}!", localSettingsPath), "Configuration Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
+#else
+                        throw new NotImplementedException("TODO - avalonia");
+#endif
                     }
 
                     // assuming that there is no localSettingsPath directory in existence we probably have a portable installation.
@@ -333,6 +371,7 @@ namespace GitExtensions
             }
         }
 
+#if !AVALONIA // TODO - avalonia
         private static bool LocateMissingGit()
         {
             TaskDialogPage page = new()
@@ -368,5 +407,6 @@ namespace GitExtensions
 
             return false;
         }
+#endif
     }
 }

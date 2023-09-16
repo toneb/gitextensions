@@ -43,4 +43,8 @@
     <Using Alias="Keys" Include="Avalonia.Input.Key" />
     <Using Alias="Form" Include="Avalonia.Controls.Window" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Avalonia)' != 'true'">
+    <Compile Remove="**/*.axaml.cs" />
+  </ItemGroup>
 </Project>
