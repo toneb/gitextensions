@@ -1,7 +1,10 @@
 ﻿namespace ResourceManager
 {
     /// <summary>Provides translation capabilities.</summary>
-    public interface ITranslate : IDisposable
+    public interface ITranslate
+#if !AVALONIA
+        : IDisposable
+#endif
     {
         void AddTranslationItems(ITranslation translation);
 

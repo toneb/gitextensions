@@ -3,9 +3,11 @@
     /// <summary>Provides translation capabilities.</summary>
     public class Translate : ITranslate
     {
+#if !AVALONIA
         void IDisposable.Dispose()
         {
         }
+#endif
 
         public virtual void AddTranslationItems(ITranslation translation)
         {

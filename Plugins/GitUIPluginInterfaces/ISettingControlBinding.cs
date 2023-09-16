@@ -42,7 +42,11 @@
         {
             get
             {
+#if !AVALONIA
                 if (_control?.IsDisposed is not false)
+#else
+                if (_control == null)
+#endif
                 {
                     _control = CreateControl();
                 }

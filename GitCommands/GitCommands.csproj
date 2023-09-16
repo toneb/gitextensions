@@ -10,6 +10,7 @@
     <Compile Include="..\GitExtUtils\Delimiters.cs" Link="Utils\Delimiters.cs" />
     <Compile Include="..\GitExtUtils\LazyStringSplit.cs" Link="Utils\LazyStringSplit.cs" />
     <Compile Include="..\GitExtUtils\Validates.cs" Link="Validates.cs" />
+    <Compile Remove="AvaloniaMonkeyPatch.cs" />
   </ItemGroup>
   
   <ItemGroup>
@@ -31,6 +32,18 @@
   <ItemGroup>
     <ProjectReference Include="..\GitExtUtils\GitExtUtils.csproj" />
     <ProjectReference Include="..\Plugins\GitUIPluginInterfaces\GitUIPluginInterfaces.csproj" />
+  </ItemGroup>
+
+  <!-- Avalonia -->
+  <PropertyGroup>
+    <UseAvalonia>true</UseAvalonia>
+  </PropertyGroup>
+
+  <!-- Exclude windows forms specific files from avalonia build -->
+  <ItemGroup Condition="'$(Avalonia)' == 'true'">
+    <Compile Remove="Git/OsShellUtil.cs" />
+    <Compile Remove="CommitMessageManager.cs" />
+    <Compile Remove="CustomDiffMergeTool.cs" />
   </ItemGroup>
 
 </Project>

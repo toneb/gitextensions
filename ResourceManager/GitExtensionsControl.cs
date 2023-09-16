@@ -15,6 +15,7 @@ namespace ResourceManager
             _initialiser = new GitExtensionsControlInitialiser(this);
         }
 
+#if !AVALONIA
         [Browsable(false)] // because we always read from settings
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public override Font Font
@@ -22,6 +23,7 @@ namespace ResourceManager
             get => base.Font;
             set => base.Font = value;
         }
+#endif
 
         protected bool IsDesignMode => _initialiser.IsDesignMode;
 
@@ -29,9 +31,15 @@ namespace ResourceManager
         {
         }
 
+#if !AVALONIA
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+#else
+        protected override void OnLoaded(RoutedEventArgs e)
+        {
+            base.OnLoaded(e);
+#endif
 
             if (!IsDesignMode)
             {
@@ -43,7 +51,7 @@ namespace ResourceManager
         /// <remarks>
         /// <para>Subclasses must ensure this method is called in their constructor, ideally as the final statement.</para>
         /// <para>Requiring this extra life-cycle event allows preparing the UI after any call to <c>InitializeComponent</c>,
-        /// but before it is show. The <see cref="UserControl.Load"/> event occurs too late for operations that effect layout.</para>
+        /// but before it is show. The UserControl.Load event occurs too late for operations that effect layout.</para>
         /// </remarks>
         protected void InitializeComplete()
         {
@@ -54,7 +62,9 @@ namespace ResourceManager
                 return;
             }
 
+#if !AVALONIA
             this.FixVisualStyle();
+#endif
         }
 
         public virtual void AddTranslationItems(ITranslation translation)
@@ -92,11 +102,13 @@ namespace ResourceManager
         /// <summary>Gets or sets the hotkeys</summary>
         protected IEnumerable<HotkeyCommand>? Hotkeys { get; set; }
 
+#if !AVALONIA // TODO - avalonia - handle hot keys
         /// <summary>Checks if a hotkey wants to handle the key before letting the message propagate.</summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             return ProcessHotkey(keyData) || base.ProcessCmdKey(ref msg, keyData);
         }
+#endif
 
         protected Keys GetShortcutKeys(int commandCode)
         {
@@ -118,6 +130,7 @@ namespace ResourceManager
             return false;
         }
 
+#if !AVALONIA
         /// <summary>
         /// Returns whether the given [combination of] key[s] represents a keypress which is used for text input by default.
         /// <remarks>Can be used to ignore hotkeys which would prevent from typing text into an input control if it's focused.</remarks>
@@ -163,6 +176,7 @@ namespace ResourceManager
 
             return false;
         }
+#endif
 
         #endregion
     }

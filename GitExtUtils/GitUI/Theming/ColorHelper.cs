@@ -13,11 +13,13 @@
 
         public static ThemeSettings ThemeSettings { private get; set; } = ThemeSettings.Default;
 
+#if !AVALONIA
         public static void SetForeColorForBackColor(this Control control) =>
             control.ForeColor = GetForeColorForBackColor(control.BackColor);
 
         public static void SetForeColorForBackColor(this ToolStripItem control) =>
             control.ForeColor = GetForeColorForBackColor(control.BackColor);
+#endif
 
         public static Color GetForeColorForBackColor(Color backColor)
         {
@@ -181,11 +183,13 @@
         public static Color GetSplitterColor() =>
             KnownColor.Window.MakeBackgroundDarkerBy(0);
 
+#if !AVALONIA
         public static void AdaptImageLightness(this ToolStripItem item) =>
             item.Image = ((Bitmap)item.Image)?.AdaptLightness();
 
         public static void AdaptImageLightness(this ButtonBase button) =>
             button.Image = ((Bitmap)button.Image)?.AdaptLightness();
+#endif
 
         public static Bitmap AdaptLightness(this Bitmap original)
         {

@@ -30,9 +30,11 @@ namespace ResourceManager
             Name = name;
         }
 
+#if !AVALONIA
         void IDisposable.Dispose()
         {
         }
+#endif
 
         public bool HasSettings { get; }
 

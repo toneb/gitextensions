@@ -29,10 +29,16 @@ namespace ResourceManager
                 return;
             }
 
+#if !AVALONIA // TODO - avalonia
             ShowInTaskbar = Application.OpenForms.Count <= 0;
+#endif
+#if !AVALONIA
             Icon = Resources.GitExtensionsLogoIcon;
+#else
+            Icon = new Avalonia.Controls.WindowIcon(ResourceManager.Properties.Resources.GitExtensionsLogoIcon.ToBitmap().ToAvaloniaBitmap());
+#endif
 
-#if !SUPPORT_THEME_HOOKS
+#if !SUPPORT_THEME_HOOKS && !AVALONIA
             Load += (s, e) => ((Form)s!).FixVisualStyle();
 #endif
         }
@@ -62,11 +68,13 @@ namespace ResourceManager
         /// <summary>Gets or sets the hotkeys</summary>
         protected IEnumerable<HotkeyCommand>? Hotkeys { get; set; }
 
+#if !AVALONIA // TODO - avalonia - handle hot keys
         /// <summary>Overridden: Checks if a hotkey wants to handle the key before letting the message propagate</summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             return ProcessHotkey(keyData) || base.ProcessCmdKey(ref msg, keyData);
         }
+#endif
 
         protected Keys GetShortcutKeys(int commandCode)
         {
@@ -86,6 +94,7 @@ namespace ResourceManager
 
         #endregion
 
+#if !AVALONIA
         protected override void WndProc(ref Message m)
         {
             if (!IsDesignMode)
@@ -105,12 +114,13 @@ namespace ResourceManager
 
             base.WndProc(ref m);
         }
+#endif
 
         /// <summary>Performs post-initialisation tasks such as translation and DPI scaling.</summary>
         /// <remarks>
         /// <para>Subclasses must ensure this method is called in their constructor, ideally as the final statement.</para>
         /// <para>Requiring this extra life-cycle event allows preparing the UI after any call to <c>InitializeComponent</c>,
-        /// but before it is show. Both the <see cref="Form.Load"/> and <see cref="Form.Shown"/> events occur too late for
+        /// but before it is show. Both the Form.Load and Form.Shown events occur too late for
         /// operations that effect layout.</para>
         /// </remarks>
         protected void InitializeComplete()
@@ -122,12 +132,14 @@ namespace ResourceManager
                 return;
             }
 
+#if !AVALONIA // TODO: handle EnableRemoveWordHotkey
             AutoScaleMode = AppSettings.EnableAutoScale
                 ? AutoScaleMode.Dpi
                 : AutoScaleMode.None;
 
             this.AdjustForDpiScaling();
             this.EnableRemoveWordHotkey();
+#endif
         }
 
         #region Translation

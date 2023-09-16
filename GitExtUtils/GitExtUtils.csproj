@@ -11,4 +11,33 @@
     <PackageReference Include="JetBrains.Annotations" />
   </ItemGroup>
 
+  <!-- Avalonia -->
+  <PropertyGroup>
+    <UseAvalonia>true</UseAvalonia>
+  </PropertyGroup>
+
+  <!-- Exclude windows forms specific files from avalonia build -->
+  <ItemGroup Condition="'$(Avalonia)' == 'true'">
+    <Compile Remove="GitUI/Theming/TabControlPaintContext.cs" />
+    <Compile Remove="GitUI/Theming/TabControlRenderer.cs" />
+    <Compile Remove="GitUI/Theming/ThemeFix.cs" />
+    <Compile Remove="GitUI/ComboBoxExtensions.cs" />
+    <Compile Remove="GitUI/ControlDpiExtensions.cs" />
+    <Compile Remove="GitUI/ControlHotkeyExtensions.cs" />
+    <Compile Remove="GitUI/ControlTagExtensions.cs" />
+    <Compile Remove="GitUI/ControlThreadingExtensions.cs" />
+    <Compile Remove="GitUI/ControlUtil.cs" />
+    <Compile Remove="GitUI/DpiUtil.cs" />
+    <Compile Remove="GitUI/HighDpiMouseCursors.cs" />
+    <Compile Remove="GitUI/IMenuItemBackgroundFilter.cs" />
+    <Compile Remove="GitUI/ListViewExtensions.cs" />
+    <Compile Remove="GitUI/TableLayoutPanelExtensions.cs" />
+    <Compile Remove="GitUI/ToolStripExProfessionalRenderer.cs" />
+    <Compile Remove="GitUI/ToolStripExSystemRenderer.cs" />
+    <Compile Remove="GitUI/ToolStripExtensions.cs" />
+    <Compile Remove="GitUI/ToolStripExThemeAwareRenderer.cs" />
+    <Compile Remove="GitUI/Win32ApiUtil.cs" />
+    <Compile Remove="ClipboardUtil.cs" />
+  </ItemGroup>
+
 </Project>

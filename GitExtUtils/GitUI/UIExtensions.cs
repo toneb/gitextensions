@@ -2,6 +2,7 @@
 {
     public static class UIExtensions
     {
+#if !AVALONIA
         public static bool? GetNullableChecked(this CheckBox chx)
         {
             if (chx.CheckState == CheckState.Indeterminate)
@@ -25,6 +26,7 @@
                 chx.CheckState = CheckState.Indeterminate;
             }
         }
+#endif
 
         public static bool IsFixedWidth(this Font ft, Graphics g)
         {

@@ -19,4 +19,28 @@
   </ItemGroup>
 
   <Sdk Name="Microsoft.Build.CentralPackageVersions" Version="2.0.79" />
+
+  <!-- Avalonia targeting -->
+  <PropertyGroup Condition="'$(UseAvalonia)' == 'true'">
+    <TargetFrameworks>net6.0-windows;net6.0</TargetFrameworks>
+    <Avalonia Condition="'$(TargetFramework)' == 'net6.0'">true</Avalonia>
+    <UseWindowsForms Condition="'$(Avalonia)' == 'true'">false</UseWindowsForms>
+    <DefineConstants Condition="'$(Avalonia)' == 'true'">$(DefineConstants);AVALONIA</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(Avalonia)' == 'true'">
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
+    <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="System.Resources.Extensions" />
+
+    <Using Include="System.Drawing" />
+    <Using Include="Avalonia.Interactivity" />
+    <Using Include="AvaloniaMonkeyPatch" />
+    <Using Alias="IWin32Window" Include="Avalonia.Controls.Window" />
+    <Using Alias="Control" Include="Avalonia.Controls.Control" />
+    <Using Alias="UserControl" Include="Avalonia.Controls.UserControl" />
+    <Using Alias="Keys" Include="Avalonia.Input.Key" />
+    <Using Alias="Form" Include="Avalonia.Controls.Window" />
+  </ItemGroup>
 </Project>

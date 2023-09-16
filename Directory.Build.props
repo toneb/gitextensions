@@ -10,7 +10,7 @@
 
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWindowsForms>true</UseWindowsForms>
-    <TargetFramework>$(SolutionTargetFramework)</TargetFramework>
+    <TargetFrameworks>$(SolutionTargetFramework)</TargetFrameworks>
     <Prefer32Bit>false</Prefer32Bit>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)GitExtensions.ruleset</CodeAnalysisRuleSet>

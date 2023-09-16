@@ -22,7 +22,11 @@ namespace ResourceManager
             }
 
             ThreadHelper.ThrowIfNotOnUIThread();
+#if !AVALONIA
             form.Load += LoadHandler;
+#else
+            form.Loaded += LoadHandler;
+#endif
             _translate = form;
         }
 
@@ -34,7 +38,11 @@ namespace ResourceManager
             }
 
             ThreadHelper.ThrowIfNotOnUIThread();
+#if !AVALONIA
             control.Load += LoadHandler;
+#else
+            control.Loaded += LoadHandler;
+#endif
             _translate = control;
         }
 
@@ -69,7 +77,9 @@ namespace ResourceManager
 
             _initialiseCompleteCalled = true;
 
+#if !AVALONIA // TODO - avalonia
             ((Control)_translate).Font = AppSettings.Font;
+#endif
             Translator.Translate(_translate, AppSettings.CurrentTranslation);
         }
 

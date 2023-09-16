@@ -11,6 +11,22 @@ Have a question? Come and talk to us: [![Gitter](https://badges.gitter.im/Join%2
 
 <a href="#backers" alt="sponsors on Open Collective"><img src="https://opencollective.com/gitextensions/backers/badge.svg" /></a> <a href="#sponsors" alt="Sponsors on Open Collective"><img src="https://opencollective.com/gitextensions/sponsors/badge.svg" /></a>
 
+### Avalonia
+**Major milestones:**
+* [ ] Migrate all forms and dialogs to Avalonia
+* [ ] Externals - TextEditor
+* [ ] Externals - conemu
+* [ ] Externals - WindowsAPICodePack
+* [ ] Localization
+* [ ] Theming
+* [ ] Plugins
+* [ ] Tests
+* [ ] Installer
+* [ ] Translation app
+
+**Post-migration:**
+* [ ] Use avalonia media types instead of System.Drawing (now we're converting between them back and forth in runtime)
+
 ### v4 // Next Version ([build instructions](https://github.com/gitextensions/gitextensions/wiki/How-To%3A-build-instructions))
 
 <table>

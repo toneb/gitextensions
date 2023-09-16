@@ -30,4 +30,14 @@
     <Compile Update="Properties\Resources.Designer.cs" AutoGen="True" DependentUpon="Resources.resx" DesignTime="True" />
   </ItemGroup>
 
+  <!-- Avalonia -->
+  <PropertyGroup>
+    <UseAvalonia>true</UseAvalonia>
+  </PropertyGroup>
+
+  <!-- Exclude windows forms specific files from avalonia build -->
+  <ItemGroup Condition="'$(Avalonia)' == 'true'">
+    <Compile Remove="CommitDataRenders/TabbedHeaderRenderStyleProvider.cs" />
+  </ItemGroup>
+
 </Project>

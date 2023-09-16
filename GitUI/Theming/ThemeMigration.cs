@@ -27,7 +27,7 @@ namespace GitUI.Theming
         }
 
         /// <summary>
-        /// Before <see cref="ThemeModule"/>, <see cref="AppSettings"/> was responsible for colors.
+        /// Before ThemeModule, <see cref="AppSettings"/> was responsible for colors.
         /// This method saves custom colors (if any) from <see cref="AppSettings"/> to a user-defined theme named 'migrated'.
         /// </summary>
         private void MigrateColorSettings()

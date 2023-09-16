@@ -3,9 +3,10 @@
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Compile Include="..\..\GitExtUtils\Validates.cs" Link="Validates.cs" />
+    <Compile Remove="AvaloniaMonkeyPatch.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +17,26 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\GitExtUtils\GitExtUtils.csproj" />
+  </ItemGroup>
+
+  <!-- Avalonia -->
+  <PropertyGroup>
+    <UseAvalonia>true</UseAvalonia>
+  </PropertyGroup>
+
+  <!-- Exclude windows forms specific files from avalonia build -->
+  <ItemGroup Condition="'$(Avalonia)' == 'true'">
+    <Compile Remove="RepositoryHosts/IRepositoryHostPlugin.cs" />
+    <Compile Remove="Settings/BoolSetting.cs" />
+    <Compile Remove="Settings/ChoiceSetting.cs" />
+    <Compile Remove="Settings/CredentialsSetting.cs" />
+    <Compile Remove="Settings/NumberSetting.cs" />
+    <Compile Remove="Settings/PasswordSetting.cs" />
+    <Compile Remove="Settings/PseudoSetting.cs" />
+    <Compile Remove="Settings/StringSetting.cs" />
+    <Compile Remove="UserControls/CredentialsControl.cs" />
+    <Compile Remove="UserControls/CredentialsControl.designer.cs" />
+    <Compile Remove="UserControls/CredentialsControl.resx" />
   </ItemGroup>
 
 </Project>

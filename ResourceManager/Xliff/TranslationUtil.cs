@@ -118,6 +118,7 @@ namespace ResourceManager.Xliff
             }
 
             Func<PropertyInfo, bool> isTranslatable;
+#if !AVALONIA
             if (item is DataGridViewColumn c)
             {
                 isTranslatable = property => IsTranslatableItemInDataGridViewColumn(property, c);
@@ -127,6 +128,7 @@ namespace ResourceManager.Xliff
                 isTranslatable = property => IsTranslatableItemInBox(property, item);
             }
             else
+#endif
             {
                 isTranslatable = IsTranslatableItemInComponent;
             }
@@ -141,6 +143,7 @@ namespace ResourceManager.Xliff
         {
             foreach (var (itemName, itemObj) in items)
             {
+#if !AVALONIA
                 if (itemObj is ToolTip tooltip)
                 {
                     string toolTipTitle = tooltip.ToolTipTitle;
@@ -165,6 +168,7 @@ namespace ResourceManager.Xliff
 
                     continue;
                 }
+#endif
 
                 foreach (var property in GetItemPropertiesEnumerator(itemName, itemObj))
                 {
@@ -215,6 +219,7 @@ namespace ResourceManager.Xliff
                     continue;
                 }
 
+#if !AVALONIA
                 if (itemObj is ToolTip tooltip)
                 {
                     static string ProvideDefaultValue() => null;
@@ -241,6 +246,7 @@ namespace ResourceManager.Xliff
 
                     continue;
                 }
+#endif
 
                 foreach (var propertyInfo in GetItemPropertiesEnumerator(itemName, itemObj))
                 {
@@ -322,10 +328,12 @@ namespace ResourceManager.Xliff
             TranslateItemsFromList(category, translation, GetObjFields(obj, "$this"));
         }
 
+#if !AVALONIA
         private static bool IsTranslatableItemInDataGridViewColumn(PropertyInfo propertyInfo, DataGridViewColumn viewCol)
         {
             return propertyInfo.Name.Equals("HeaderText", StringComparison.CurrentCulture) && viewCol.Visible;
         }
+#endif
 
         private static bool IsTranslatableItemInBox(PropertyInfo property, object itemObj)
         {
