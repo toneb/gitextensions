@@ -179,7 +179,7 @@ namespace GitExtensions.UITests.CommandsDialogs
                 showForm: () =>
                 {
 #pragma warning disable CS0618 // Type or member is obsolete
-                    FormBrowse form = new(_commands, new BrowseArguments(), _settings);
+                    FormBrowse form = new(_commands, new FormBrowseArguments(), _settings);
 #pragma warning restore CS0618 // Type or member is obsolete
 
                     form.Load += (_, _) =>

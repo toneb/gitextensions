@@ -245,7 +245,7 @@ namespace GitUI.CommandsDialogs
         /// </summary>
         /// <param name="commands">The commands in the current form.</param>
         /// <param name="args">The start up arguments.</param>
-        public FormBrowse(GitUICommands commands, BrowseArguments args)
+        public FormBrowse(GitUICommands commands, FormBrowseArguments args)
 #pragma warning disable CS0618 // Type or member is obsolete
             : this(commands, args, new AppSettingsPath("FormBrowse"))
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -253,7 +253,7 @@ namespace GitUI.CommandsDialogs
         }
 
         [Obsolete("Test only!")]
-        internal FormBrowse(GitUICommands commands, BrowseArguments args, ISettingsSource settingsSource)
+        internal FormBrowse(GitUICommands commands, FormBrowseArguments args, ISettingsSource settingsSource)
             : base(commands)
         {
             _splitterManager = new(settingsSource);

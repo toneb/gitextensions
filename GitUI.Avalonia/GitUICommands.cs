@@ -1,18 +1,22 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using Avalonia.Controls;
 using GitCommands;
 using GitCommands.Git;
 using GitCommands.Git.Commands;
 using GitCommands.Settings;
 using GitExtUtils;
 using GitUI.CommandsDialogs;
+#if false // avalonia
 using GitUI.CommandsDialogs.RepoHosting;
+#endif
 using GitUI.CommandsDialogs.SettingsDialog;
 using GitUI.HelperDialogs;
 using GitUIPluginInterfaces;
 using GitUIPluginInterfaces.RepositoryHosts;
 using JetBrains.Annotations;
-using SmartFormat.Core.Output;
-using static GitUI.CommandsDialogs.FormBrowse;
+using Image = System.Drawing.Image;
 
 namespace GitUI
 {
@@ -39,10 +43,19 @@ namespace GitUI
 
             _commitTemplateManager = new CommitTemplateManager(() => module);
             RepoChangedNotifier = new ActionNotifier(
-                () => InvokeEvent(null, PostRepositoryChanged));
+                () => throw new NotImplementedException("TODO - avalonia"));
+
+                // () => InvokeEvent(null, PostRepositoryChanged));
 
             _fullPathResolver = new FullPathResolver(() => Module.WorkingDir);
             _findFilePredicateProvider = new FindFilePredicateProvider();
+
+            // TODO - avalonia - remove this, temporary only to make compiler happy
+            if (PostRegisterPlugin == null || PreCommit == null || PostRepositoryChanged == null || PostSettings == null
+                || PostUpdateSubmodules == null || PostCommit == null || PostBrowseInitialize == null)
+            {
+                Debug.WriteLine("dummy");
+            }
         }
 
         public GitUICommands(string? workingDir)
@@ -54,16 +67,20 @@ namespace GitUI
 
         #region Events
 
+#if false // avalonia
         public event EventHandler<GitUIEventArgs>? PreCheckoutRevision;
         public event EventHandler<GitUIPostActionEventArgs>? PostCheckoutRevision;
 
         public event EventHandler<GitUIEventArgs>? PreCheckoutBranch;
         public event EventHandler<GitUIPostActionEventArgs>? PostCheckoutBranch;
+#endif
 
         public event EventHandler<GitUIEventArgs>? PreCommit;
         public event EventHandler<GitUIPostActionEventArgs>? PostCommit;
 
+#if false // avalonia
         public event EventHandler<GitUIPostActionEventArgs>? PostEditGitIgnore;
+#endif
 
         public event EventHandler<GitUIPostActionEventArgs>? PostSettings;
 
@@ -80,6 +97,7 @@ namespace GitUI
 
         #endregion
 
+#if false // avalonia
         private bool RequiresValidWorkingDir(object? owner)
         {
             if (!Module.IsValidGitWorkingDir())
@@ -90,6 +108,7 @@ namespace GitUI
 
             return true;
         }
+#endif
 
         public void StartBatchFileProcessDialog(string batchFile)
         {
@@ -115,7 +134,7 @@ namespace GitUI
         {
             bool success = command.AccessesRemote
                 ? FormRemoteProcess.ShowDialog(owner, this, command.Arguments)
-                : FormProcess.ShowDialog(owner.GetFormsWindow(), arguments: command.Arguments, Module.WorkingDir, input: null, useDialogSettings: true);
+                : FormProcess.ShowDialog(owner, arguments: command.Arguments, Module.WorkingDir, input: null, useDialogSettings: true);
 
             if (success && command.ChangesRepoState)
             {
@@ -127,9 +146,10 @@ namespace GitUI
 
         public bool StartCommandLineProcessDialog(UiWindow? owner, string? command, ArgumentString arguments)
         {
-            return FormProcess.ShowDialog(owner.GetFormsWindow(), arguments, Module.WorkingDir, input: null, useDialogSettings: true, process: command);
+            return FormProcess.ShowDialog(owner, arguments, Module.WorkingDir, input: null, useDialogSettings: true, process: command);
         }
 
+#if false // avalonia
         public bool StartGitCommandProcessDialog(IWin32Window? owner, ArgumentString arguments)
         {
             return FormProcess.ShowDialog(owner, arguments, Module.WorkingDir, input: null, useDialogSettings: true);
@@ -671,6 +691,7 @@ namespace GitUI
             return DoActionOnRepo(owner, Action, changesRepo: false);
         }
 
+#endif
         public void AddCommitTemplate(string key, Func<string> addingText, Image? icon)
         {
             _commitTemplateManager.Register(key, addingText, icon);
@@ -681,6 +702,7 @@ namespace GitUI
             _commitTemplateManager.Unregister(key);
         }
 
+#if false // avalonia
         public bool StartFormatPatchDialog(IWin32Window? owner = null)
         {
             bool Action()
@@ -915,18 +937,24 @@ namespace GitUI
 
             return DoActionOnRepo(owner, Action, requiresValidWorkingDir: false, postEvent: PostSettings);
         }
+#endif
 
         public bool StartSettingsDialog(IGitPlugin gitPlugin)
         {
-            // TODO: how to pass the main dialog as owner of the SettingsDialog (first parameter):
-            return StartSettingsDialog(null, new SettingsPageReferenceByPlugin(gitPlugin));
+            throw new NotImplementedException("TODO - avalonia");
+
+            // // TODO: how to pass the main dialog as owner of the SettingsDialog (first parameter):
+            // return StartSettingsDialog(null, new SettingsPageReferenceByPlugin(gitPlugin));
         }
 
         public bool StartSettingsDialog(Type pageType)
         {
-            return StartSettingsDialog(null, new SettingsPageReferenceByType(pageType));
+            throw new NotImplementedException("TODO");
+
+            // return StartSettingsDialog(null, new SettingsPageReferenceByType(pageType));
         }
 
+#if false
         /// <summary>
         /// Open the archive dialog.
         /// </summary>
@@ -973,24 +1001,28 @@ namespace GitUI
             // TODO: move Notify to FormVerify and friends
             return DoActionOnRepo(owner, Action);
         }
+#endif
 
         /// <inheritdoc/>
         public bool StartRemotesDialog(UiWindow? owner, string? preselectRemote = null, string? preselectLocal = null)
         {
-            bool Action()
-            {
-                using FormRemotes form = new(this)
-                {
-                    PreselectRemoteOnLoad = preselectRemote,
-                    PreselectLocalOnLoad = preselectLocal
-                };
-                form.ShowDialog(owner);
-                return true;
-            }
+            throw new NotImplementedException("TODO - avalonia");
 
-            return DoActionOnRepo(owner.GetFormsWindow(), Action);
+            // bool Action()
+            // {
+            //     using FormRemotes form = new(this)
+            //     {
+            //         PreselectRemoteOnLoad = preselectRemote,
+            //         PreselectLocalOnLoad = preselectLocal
+            //     };
+            //     form.ShowDialog(owner);
+            //     return true;
+            // }
+            //
+            // return DoActionOnRepo(owner.GetFormsWindow(), Action);
         }
 
+#if false // avalonia
         public bool StartRebase(IWin32Window? owner, string onto)
         {
             return StartRebaseDialog(owner, from: "", to: null, onto: onto,
@@ -1113,28 +1145,30 @@ namespace GitUI
         {
             return StartSettingsDialog(owner, CommandsDialogs.SettingsDialog.Pages.GitConfigSettingsPage.GetPageReference());
         }
+#endif
 
         /// <summary>
         /// Open Browse - main GUI including dashboard.
         /// </summary>
         /// <param name="owner">current window owner.</param>
         /// <param name="args">The start up arguments.</param>
-        public bool StartBrowseDialog(IWin32Window? owner, BrowseArguments? args = null)
+        public bool StartBrowseDialog(Window? owner, FormBrowseArguments? args = null)
         {
-            FormBrowse form = new(this, args ?? new BrowseArguments());
+            FormBrowse form = new(this, args ?? new FormBrowseArguments());
 
-            if (Application.MessageLoop)
+            if (owner != null)
             {
                 form.Show(owner);
             }
             else
             {
-                Application.Run(form);
+                form.Show();
             }
 
             return true;
         }
 
+#if false // avalonia
         public void StartFileHistoryDialog(IWin32Window? owner, string fileName, GitRevision? revision = null, bool filterByRevision = false, bool showBlame = false)
         {
             string arguments = AppSettings.UseBrowseForFileHistory.Value ? $"browse {PathFilterArg}={fileName.Quote()} -commit={revision?.ObjectId}"
@@ -1357,6 +1391,7 @@ namespace GitUI
                     form.Show(owner);
                 });
         }
+#endif
 
         public bool RunCommand(IReadOnlyList<string> args)
         {
@@ -1371,31 +1406,31 @@ namespace GitUI
 
             if (command == "blame" && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open blame, there is no file selected.", "Blame", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open blame, there is no file selected.", "Blame");
                 return false;
             }
 
             if (command == "difftool" && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open difftool, there is no file selected.", "Difftool", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open difftool, there is no file selected.", "Difftool");
                 return false;
             }
 
             if (command is (BlameHistoryCommand or FileHistoryCommand) && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open blame / file history, there is no file selected.", "Blame / file history", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open blame / file history, there is no file selected.", "Blame / file history");
                 return false;
             }
 
             if (command == "fileeditor" && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open file editor, there is no file selected.", "File editor", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open file editor, there is no file selected.", "File editor");
                 return false;
             }
 
             if (command == "revert" && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open revert, there is no file selected.", "Revert", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open revert, there is no file selected.", "Revert");
                 return false;
             }
 
@@ -1409,122 +1444,131 @@ namespace GitUI
             var command = args[1];
             switch (command)
             {
-                case "about":
-                    Application.Run(new FormAbout
-                    {
-                        StartPosition = FormStartPosition.CenterScreen
-                    });
-                    return true;
-                case "add":
-                case "addfiles":
-                    return StartAddFilesDialog(null, args.Count == 3 ? args[2] : ".");
-                case "apply":       // [filename]
-                case "applypatch":
-                    return StartApplyPatchDialog(null, args.Count == 3 ? args[2] : "");
-                case "blame":       // filename
-                    return RunBlameCommand(args);
-                case "branch":
-                    return StartCreateBranchDialog();
+                // TODO - avalonia
+                // case "about":
+                //     Application.Run(new FormAbout
+                //     {
+                //         StartPosition = FormStartPosition.CenterScreen
+                //     });
+                //     return true;
+                // case "add":
+                // case "addfiles":
+                //     return StartAddFilesDialog(null, args.Count == 3 ? args[2] : ".");
+                // case "apply":       // [filename]
+                // case "applypatch":
+                //     return StartApplyPatchDialog(null, args.Count == 3 ? args[2] : "");
+                // case "blame":       // filename
+                //     return RunBlameCommand(args);
+                // case "branch":
+                //     return StartCreateBranchDialog();
                 case "browse":      // [path] [--pathFilter=filname] [-filter] [-commit=selected[,first]]
                     return RunBrowseCommand(args);
-                case "checkout":
-                case "checkoutbranch":
-                    return StartCheckoutBranch(null);
-                case "checkoutrevision":
-                    return StartCheckoutRevisionDialog(null);
-                case "cherry":
-                    return StartCherryPickDialog();
-                case "cleanup":
-                    return StartCleanupRepositoryDialog();
-                case "clone":       // [path]
-                    return RunCloneCommand(args);
-                case "commit":      // [--quiet]
-                    return Commit(arguments);
-                case "difftool":    // filename
-                    return Module.OpenWithDifftool(args[2]) == "";
-                case BlameHistoryCommand:
-                case FileHistoryCommand:
-                    // filename [revision [--filter-by-revision]]
-                    if (Module.WorkingDir.TrimEnd('\\') == Path.GetFullPath(args[2]) && Module.SuperprojectModule is not null)
-                    {
-                        Module = Module.SuperprojectModule;
-                    }
 
-                    return RunFileHistoryCommand(args, showBlame: command == BlameHistoryCommand);
-                case "fileeditor":  // filename
-                    return StartFileEditorDialog(args[2]);
-                case "formatpatch":
-                    return StartFormatPatchDialog();
-                case "gitignore":
-                    return StartEditGitIgnoreDialog(null, false);
-                case "init":        // [path]
-                    return RunInitCommand(args);
-                case "merge":       // [--branch name]
-                    return RunMergeCommand(arguments);
-                case "mergeconflicts":
-                case "mergetool":   // [--quiet]
-                    return RunMergeToolOrConflictCommand(arguments);
+                // TODO - avalonia
+                // case "checkout":
+                // case "checkoutbranch":
+                //     return StartCheckoutBranch(null);
+                // case "checkoutrevision":
+                //     return StartCheckoutRevisionDialog(null);
+                // case "cherry":
+                //     return StartCherryPickDialog();
+                // case "cleanup":
+                //     return StartCleanupRepositoryDialog();
+                // case "clone":       // [path]
+                //     return RunCloneCommand(args);
+                // case "commit":      // [--quiet]
+                //     return Commit(arguments);
+                // case "difftool":    // filename
+                //     return Module.OpenWithDifftool(args[2]) == "";
+                // case BlameHistoryCommand:
+                // case FileHistoryCommand:
+                //     // filename [revision [--filter-by-revision]]
+                //     if (Module.WorkingDir.TrimEnd('\\') == Path.GetFullPath(args[2]) && Module.SuperprojectModule is not null)
+                //     {
+                //         Module = Module.SuperprojectModule;
+                //     }
+                //
+                //     return RunFileHistoryCommand(args, showBlame: command == BlameHistoryCommand);
+                // case "fileeditor":  // filename
+                //     return StartFileEditorDialog(args[2]);
+                // case "formatpatch":
+                //     return StartFormatPatchDialog();
+                // case "gitignore":
+                //     return StartEditGitIgnoreDialog(null, false);
+                // case "init":        // [path]
+                //     return RunInitCommand(args);
+                // case "merge":       // [--branch name]
+                //     return RunMergeCommand(arguments);
+                // case "mergeconflicts":
+                // case "mergetool":   // [--quiet]
+                //     return RunMergeToolOrConflictCommand(arguments);
                 case "openrepo":    // [path]
                     return RunOpenRepoCommand(args);
-                case "pull":        // [--rebase] [--merge] [--fetch] [--quiet] [--remotebranch name]
-                    return Pull(arguments);
-                case "push":        // [--quiet]
-                    return Push(arguments);
-                case "rebase":      // [--branch name]
-                    return RunRebaseCommand(arguments);
+
+                // TODO - avalonia
+                // case "pull":        // [--rebase] [--merge] [--fetch] [--quiet] [--remotebranch name]
+                //     return Pull(arguments);
+                // case "push":        // [--quiet]
+                //     return Push(arguments);
+                // case "rebase":      // [--branch name]
+                //     return RunRebaseCommand(arguments);
                 case "remotes":
                     return StartRemotesDialog(owner: null);
-                case "revert":
-                case "reset":
-                    return StartResetChangesDialog(args.Count == 3 ? args[2] : "");
-                case "searchfile":
-                    return RunSearchFileCommand();
-                case "settings":
-                    return StartSettingsDialog();
-                case "stash":
-                    return StartStashDialog();
-                case "synchronize": // [--rebase] [--merge] [--fetch] [--quiet]
-                    return RunSynchronizeCommand(arguments);
-                case "tag":
-                    return StartCreateTagDialog();
-                case "viewdiff":
-                    return StartCompareRevisionsDialog();
-                case "viewpatch":   // [filename]
-                    return StartViewPatchDialog(args.Count == 3 ? args[2] : "");
-                case "uninstall":
-                    return UninstallEditor();
-                default:
-                    if (args[1].StartsWith("git://") || args[1].StartsWith("http://") || args[1].StartsWith("https://"))
-                    {
-                        return StartCloneDialog(null, args[1], true);
-                    }
 
-                    if (args[1].StartsWith("github-windows://openRepo/"))
-                    {
-                        return StartCloneDialog(null, args[1].Replace("github-windows://openRepo/", ""), true);
-                    }
-
-                    if (args[1].StartsWith("github-mac://openRepo/"))
-                    {
-                        return StartCloneDialog(null, args[1].Replace("github-mac://openRepo/", ""), true);
-                    }
-
-                    // User supplied a path. Open the repository if its a valid path
-                    string dir = !string.IsNullOrWhiteSpace(command) && File.Exists(command) ? Path.GetDirectoryName(command) : command;
-                    if (args.Count == 2 && Directory.Exists(dir))
-                    {
-                        LaunchBrowse(dir);
-                        return true;
-                    }
-
-                    break;
+                // TODO - avalonia
+                // case "revert":
+                // case "reset":
+                //     return StartResetChangesDialog(args.Count == 3 ? args[2] : "");
+                // case "searchfile":
+                //     return RunSearchFileCommand();
+                // case "settings":
+                //     return StartSettingsDialog();
+                // case "stash":
+                //     return StartStashDialog();
+                // case "synchronize": // [--rebase] [--merge] [--fetch] [--quiet]
+                //     return RunSynchronizeCommand(arguments);
+                // case "tag":
+                //     return StartCreateTagDialog();
+                // case "viewdiff":
+                //     return StartCompareRevisionsDialog();
+                // case "viewpatch":   // [filename]
+                //     return StartViewPatchDialog(args.Count == 3 ? args[2] : "");
+                // case "uninstall":
+                //     return UninstallEditor();
+                // default:
+                //     if (args[1].StartsWith("git://") || args[1].StartsWith("http://") || args[1].StartsWith("https://"))
+                //     {
+                //         return StartCloneDialog(null, args[1], true);
+                //     }
+                //
+                //     if (args[1].StartsWith("github-windows://openRepo/"))
+                //     {
+                //         return StartCloneDialog(null, args[1].Replace("github-windows://openRepo/", ""), true);
+                //     }
+                //
+                //     if (args[1].StartsWith("github-mac://openRepo/"))
+                //     {
+                //         return StartCloneDialog(null, args[1].Replace("github-mac://openRepo/", ""), true);
+                //     }
+                //
+                //     // User supplied a path. Open the repository if its a valid path
+                //     string dir = !string.IsNullOrWhiteSpace(command) && File.Exists(command) ? Path.GetDirectoryName(command) : command;
+                //     if (args.Count == 2 && Directory.Exists(dir))
+                //     {
+                //         LaunchBrowse(dir);
+                //         return true;
+                //     }
+                //
+                //     break;
             }
 #pragma warning restore SA1025 // Code should not contain multiple whitespace in a row
 
-            Application.Run(new FormCommandlineHelp { StartPosition = FormStartPosition.CenterScreen });
+            // TODO - avalonia
+            // Application.Run(new FormCommandlineHelp { StartPosition = FormStartPosition.CenterScreen });
             return true;
         }
 
+#if false // avalonia
         private static bool UninstallEditor()
         {
             var configFileGlobalSettings = ConfigFileSettings.CreateGlobal(false);
@@ -1566,6 +1610,7 @@ namespace GitUI
 
             return false;
         }
+#endif
 
         private bool RunBrowseCommand(IReadOnlyList<string> args)
         {
@@ -1573,7 +1618,7 @@ namespace GitUI
             if (arg == "")
             {
                 return StartBrowseDialog(owner: null,
-                    new BrowseArguments
+                    new FormBrowseArguments
                     {
                         RevFilter = GetParameterOrEmptyStringAsDefault(args, "-filter"),
                         PathFilter = GetParameterOrEmptyStringAsDefault(args, PathFilterArg),
@@ -1584,7 +1629,7 @@ namespace GitUI
             if (TryGetObjectIds(arg, Module, out ObjectId? selectedId, out ObjectId? firstId))
             {
                 return StartBrowseDialog(owner: null,
-                    new BrowseArguments
+                    new FormBrowseArguments
                     {
                         RevFilter = GetParameterOrEmptyStringAsDefault(args, "-filter"),
                         PathFilter = GetParameterOrEmptyStringAsDefault(args, PathFilterArg),
@@ -1657,13 +1702,14 @@ namespace GitUI
             }
 
             return c.StartBrowseDialog(owner: null,
-                new BrowseArguments
+                new FormBrowseArguments
                 {
                     RevFilter = GetParameterOrEmptyStringAsDefault(args, "-filter"),
                     PathFilter = GetParameterOrEmptyStringAsDefault(args, PathFilterArg)
                 });
         }
 
+#if false // avalonia
         private bool RunSynchronizeCommand(IReadOnlyDictionary<string, string?> arguments)
         {
             bool successful = true;
@@ -1743,7 +1789,7 @@ namespace GitUI
                 // when the filter gets set.
 
                 ShowModelessForm(owner: null, requiresValidWorkingDir: true, preEvent: null, postEvent: null,
-                                 () => new FormBrowse(commands: this, new BrowseArguments
+                                 () => new FormBrowse(commands: this, new FormBrowseArguments
                                  {
                                      RevFilter = filterByRevision ? revision?.ObjectId.ToString() : null,
                                      PathFilter = fileHistoryFileName,
@@ -1799,6 +1845,7 @@ namespace GitUI
 
             return true;
         }
+#endif
 
         private static IReadOnlyDictionary<string, string?> InitializeArguments(IReadOnlyList<string> args)
         {
@@ -1828,6 +1875,7 @@ namespace GitUI
             return candidates.Where(predicate);
         }
 
+#if false // avalonia
         private bool Commit(IReadOnlyDictionary<string, string?> arguments)
         {
             arguments.TryGetValue("message", out string? overridingMessage);
@@ -1905,6 +1953,7 @@ namespace GitUI
         {
             return BrowseRepo?.GetSelectedRevisions();
         }
+#endif
 
         public IGitRemoteCommand CreateRemoteCommand()
         {
@@ -1929,50 +1978,59 @@ namespace GitUI
             internal GitRemoteCommand(GitUICommands commands)
             {
                 _commands = commands;
+
+                // TODO - avalonia - remove this, temporary only to make compiler happy
+                if (Completed == null)
+                {
+                    Debug.WriteLine("TODO - avalonia");
+                }
             }
 
             public void Execute()
             {
-                if (CommandText is null)
-                {
-                    throw new InvalidOperationException("CommandText is required");
-                }
+                throw new NotImplementedException("TODO - avalonia");
 
-                using FormRemoteProcess form = new(_commands, CommandText);
-                if (Title is not null)
-                {
-                    form.Text = Title;
-                }
-
-                if (Remote is not null)
-                {
-                    form.Remote = Remote;
-                }
-
-                form.HandleOnExitCallback = HandleOnExit;
-
-                form.ShowDialog(OwnerForm as IWin32Window);
-
-                ErrorOccurred = form.ErrorOccurred();
-                CommandOutput = form.GetOutputString();
+                // if (CommandText is null)
+                // {
+                //     throw new InvalidOperationException("CommandText is required");
+                // }
+                //
+                // using FormRemoteProcess form = new(_commands, CommandText);
+                // if (Title is not null)
+                // {
+                //     form.Text = Title;
+                // }
+                //
+                // if (Remote is not null)
+                // {
+                //     form.Remote = Remote;
+                // }
+                //
+                // form.HandleOnExitCallback = HandleOnExit;
+                //
+                // form.ShowDialog(OwnerForm as IWin32Window);
+                //
+                // ErrorOccurred = form.ErrorOccurred();
+                // CommandOutput = form.GetOutputString();
             }
 
-            private bool HandleOnExit(ref bool isError, FormProcess form)
-            {
-                CommandOutput = form.GetOutputString();
-
-                GitRemoteCommandCompletedEventArgs e = new(this, isError, false);
-
-                Completed?.Invoke(form, e);
-
-                isError = e.IsError;
-
-                return e.Handled;
-            }
+            // private bool HandleOnExit(ref bool isError, FormProcess form)
+            // {
+            //     CommandOutput = form.GetOutputString();
+            //
+            //     GitRemoteCommandCompletedEventArgs e = new(this, isError, false);
+            //
+            //     Completed?.Invoke(form, e);
+            //
+            //     isError = e.IsError;
+            //
+            //     return e.Handled;
+            // }
         }
 
         #endregion
 
+#if false // avalonia
         internal TestAccessor GetTestAccessor() => new(this);
 
         internal struct TestAccessor
@@ -1991,5 +2049,6 @@ namespace GitUI
             internal void ShowFileHistoryDialog(string fileName)
                 => _commands.RunFileHistoryCommand(args: new string[] { "", "", fileName }, showBlame: false);
         }
+#endif
     }
 }

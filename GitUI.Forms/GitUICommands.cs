@@ -12,7 +12,6 @@ using GitUIPluginInterfaces;
 using GitUIPluginInterfaces.RepositoryHosts;
 using JetBrains.Annotations;
 using SmartFormat.Core.Output;
-using static GitUI.CommandsDialogs.FormBrowse;
 
 namespace GitUI
 {
@@ -114,7 +113,7 @@ namespace GitUI
         public bool StartCommandLineProcessDialog(UiWindow? owner, IGitCommand command)
         {
             bool success = command.AccessesRemote
-                ? FormRemoteProcess.ShowDialog(owner, this, command.Arguments)
+                ? FormRemoteProcess.ShowDialog(owner.GetFormsWindow(), this, command.Arguments)
                 : FormProcess.ShowDialog(owner.GetFormsWindow(), arguments: command.Arguments, Module.WorkingDir, input: null, useDialogSettings: true);
 
             if (success && command.ChangesRepoState)
@@ -1119,9 +1118,9 @@ namespace GitUI
         /// </summary>
         /// <param name="owner">current window owner.</param>
         /// <param name="args">The start up arguments.</param>
-        public bool StartBrowseDialog(IWin32Window? owner, BrowseArguments? args = null)
+        public bool StartBrowseDialog(IWin32Window? owner, FormBrowseArguments? args = null)
         {
-            FormBrowse form = new(this, args ?? new BrowseArguments());
+            FormBrowse form = new(this, args ?? new FormBrowseArguments());
 
             if (Application.MessageLoop)
             {
@@ -1371,31 +1370,31 @@ namespace GitUI
 
             if (command == "blame" && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open blame, there is no file selected.", "Blame", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open blame, there is no file selected.", "Blame");
                 return false;
             }
 
             if (command == "difftool" && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open difftool, there is no file selected.", "Difftool", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open difftool, there is no file selected.", "Difftool");
                 return false;
             }
 
             if (command is (BlameHistoryCommand or FileHistoryCommand) && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open blame / file history, there is no file selected.", "Blame / file history", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open blame / file history, there is no file selected.", "Blame / file history");
                 return false;
             }
 
             if (command == "fileeditor" && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open file editor, there is no file selected.", "File editor", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open file editor, there is no file selected.", "File editor");
                 return false;
             }
 
             if (command == "revert" && args.Count <= 2)
             {
-                MessageBox.Show("Cannot open revert, there is no file selected.", "Revert", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UiApplication.ShowMessageBoxError(null, "Cannot open revert, there is no file selected.", "Revert");
                 return false;
             }
 
@@ -1573,7 +1572,7 @@ namespace GitUI
             if (arg == "")
             {
                 return StartBrowseDialog(owner: null,
-                    new BrowseArguments
+                    new FormBrowseArguments
                     {
                         RevFilter = GetParameterOrEmptyStringAsDefault(args, "-filter"),
                         PathFilter = GetParameterOrEmptyStringAsDefault(args, PathFilterArg),
@@ -1584,7 +1583,7 @@ namespace GitUI
             if (TryGetObjectIds(arg, Module, out ObjectId? selectedId, out ObjectId? firstId))
             {
                 return StartBrowseDialog(owner: null,
-                    new BrowseArguments
+                    new FormBrowseArguments
                     {
                         RevFilter = GetParameterOrEmptyStringAsDefault(args, "-filter"),
                         PathFilter = GetParameterOrEmptyStringAsDefault(args, PathFilterArg),
@@ -1657,7 +1656,7 @@ namespace GitUI
             }
 
             return c.StartBrowseDialog(owner: null,
-                new BrowseArguments
+                new FormBrowseArguments
                 {
                     RevFilter = GetParameterOrEmptyStringAsDefault(args, "-filter"),
                     PathFilter = GetParameterOrEmptyStringAsDefault(args, PathFilterArg)
@@ -1743,7 +1742,7 @@ namespace GitUI
                 // when the filter gets set.
 
                 ShowModelessForm(owner: null, requiresValidWorkingDir: true, preEvent: null, postEvent: null,
-                                 () => new FormBrowse(commands: this, new BrowseArguments
+                                 () => new FormBrowse(commands: this, new FormBrowseArguments
                                  {
                                      RevFilter = filterByRevision ? revision?.ObjectId.ToString() : null,
                                      PathFilter = fileHistoryFileName,

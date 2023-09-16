@@ -10,8 +10,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\GitExtUtils\Delimiters.cs" Link="Utils\Delimiters.cs" />
+    <Compile Include="..\GitExtUtils\LazyStringSplit.cs" Link="Utils\LazyStringSplit.cs" />
+    <Compile Include="..\GitExtUtils\Validates.cs" Link="Utils\Validates.cs" />
+    <Compile Update="CommandsDialogs\FormBrowse.axaml.cs">
+      <DependentUpon>MainWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Models\"/>
     <AvaloniaResource Include="Assets\**"/>
+    <Folder Include="Views\" />
   </ItemGroup>
 
   <ItemGroup>
