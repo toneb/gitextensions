@@ -19,6 +19,7 @@ namespace GitUI.CommandsDialogs
         /// <inheritdoc/>
         public bool ShowDeleteInvalidRepositoryDialog(string repositoryPath)
         {
+#if !AVALONIA
             int invalidPathCount = ThreadHelper.JoinableTaskFactory.Run(RepositoryHistoryManager.Locals.LoadRecentHistoryAsync)
                                                                    .Count(repo => !GitModule.IsValidGitWorkingDir(repo.Path));
 
@@ -55,6 +56,9 @@ namespace GitUI.CommandsDialogs
             }
 
             return false;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
     }
 }

@@ -41,7 +41,7 @@
     <Using Alias="IWin32Window" Include="Avalonia.Controls.Window" />
     <Using Alias="Control" Include="Avalonia.Controls.Control" />
     <Using Alias="UserControl" Include="Avalonia.Controls.UserControl" />
-    <Using Alias="Keys" Include="Avalonia.Input.Key" />
+    <Using Alias="Keys" Include="Avalonia.Input.KeyGesture" />
     <Using Alias="Form" Include="Avalonia.Controls.Window" />
     <Using Alias="Application" Include="AvaloniaMonkeyPatch.Application" />
     <Using Alias="Size" Include="System.Drawing.Size" />

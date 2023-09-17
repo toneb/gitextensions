@@ -35,6 +35,9 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using ResourceManager;
+#if AVALONIA
+using EventArgs = Avalonia.Interactivity.RoutedEventArgs;
+#endif
 
 namespace GitUI.CommandsDialogs
 {
@@ -222,7 +225,9 @@ namespace GitUI.CommandsDialogs
         private readonly FormBrowseDiagnosticsReporter _formBrowseDiagnosticsReporter;
         private BuildReportTabPageExtension? _buildReportTabPageExtension;
         private readonly ShellProvider _shellProvider = new();
+#endif
         private readonly RepositoryHistoryUIService _repositoryHistoryUIService = new();
+#if !AVALONIA
         private ConEmuControl? _terminal;
         private Dashboard? _dashboard;
 #endif
@@ -273,15 +278,17 @@ namespace GitUI.CommandsDialogs
             SystemEvents.SessionEnding += (sender, args) => SaveApplicationSettings();
 
             _isFileBlameHistory = args.IsFileBlameHistory;
-#if !AVALONIA // TODO - avalonia
             InitializeComponent();
 
+#if !AVALONIA // TODO - avalonia
             fileToolStripMenuItem.Initialize(() => UICommands);
             helpToolStripMenuItem.Initialize(() => UICommands);
             toolsToolStripMenuItem.Initialize(() => UICommands);
+#endif
 
             _repositoryHistoryUIService.GitModuleChanged += SetGitModule;
 
+#if !AVALONIA
             BackColor = OtherColors.BackgroundColor;
 
             WorkaroundPaddingIncreaseBug();
@@ -565,7 +572,11 @@ namespace GitUI.CommandsDialogs
         }
 #endif
 
+#if !AVALONIA
         protected override void OnClosed(EventArgs e)
+#else
+        protected override void OnClosed(System.EventArgs e)
+#endif
         {
             PluginRegistry.Unregister(UICommands);
             base.OnClosed(e);
@@ -632,7 +643,11 @@ namespace GitUI.CommandsDialogs
 #endif
         }
 
+#if !AVALONIA
         public override void CancelButtonClick(object sender, EventArgs e)
+#else
+        public override void CancelButtonClick(object sender, System.EventArgs e)
+#endif
         {
 #if !AVALONIA
             // If a filter is applied, clear it
@@ -2758,7 +2773,11 @@ namespace GitUI.CommandsDialogs
 #endif
         }
 
+#if !AVALONIA
         private void SubmoduleStatusProvider_StatusUpdating(object sender, EventArgs e)
+#else
+        private void SubmoduleStatusProvider_StatusUpdating(object sender, System.EventArgs e)
+#endif
         {
 #if !AVALONIA
             ThreadHelper.JoinableTaskFactory.RunAsync(async () =>

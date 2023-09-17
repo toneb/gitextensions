@@ -1,9 +1,13 @@
 ﻿using System.Globalization;
+#if AVALONIA
+using Avalonia.Input;
+#endif
 
 namespace GitUI.Hotkey
 {
     public static class KeysExtensions
     {
+#if !AVALONIA
         /// <summary>
         /// Strips the modifier from KeyData.
         /// </summary>
@@ -11,14 +15,20 @@ namespace GitUI.Hotkey
         {
             return keyData & Keys.KeyCode;
         }
+#endif
 
         public static bool IsModifierKey(this Keys key)
         {
+#if !AVALONIA
             return key == Keys.ShiftKey ||
                    key == Keys.ControlKey ||
                    key == Keys.Alt;
+#else
+            return key.KeyModifiers != KeyModifiers.None;
+#endif
         }
 
+#if !AVALONIA
         public static Keys[] GetModifiers(this Keys key)
         {
             // Retrieve the modifiers, mask away the rest
@@ -40,17 +50,44 @@ namespace GitUI.Hotkey
 
             return modifierList.ToArray();
         }
+#else
+        public static KeyModifiers[] GetModifiers(this Keys key)
+        {
+            // Retrieve the modifiers, mask away the rest
+            List<KeyModifiers> modifierList = new();
+
+            void AddIfContains(KeyModifiers m)
+            {
+                if (m == (m & key.KeyModifiers))
+                {
+                    modifierList.Add(m);
+                }
+            }
+
+            AddIfContains(KeyModifiers.Control);
+            AddIfContains(KeyModifiers.Shift);
+            AddIfContains(KeyModifiers.Alt);
+
+            return modifierList.ToArray();
+        }
+#endif
 
         public static string ToText(this Keys key)
         {
+#if !AVALONIA
             return string.Join(
                 "+",
                 key.GetModifiers()
                     .Union(new[] { key.GetKeyCode() })
                     .Select(k => k.ToFormattedString())
                     .ToArray());
+#else
+            // TODO: avalonia - handle localization for keys
+            return key.ToString();
+#endif
         }
 
+#if !AVALONIA
         public static string? ToFormattedString(this Keys key)
         {
             if (key == Keys.Oemcomma)
@@ -74,12 +111,14 @@ namespace GitUI.Hotkey
 
             return str;
         }
+#endif
 
         public static string ToShortcutKeyDisplayString(this Keys key)
         {
             return key.ToText();
         }
 
+#if !AVALONIA
         private static string? ToCultureSpecificString(this Keys key)
         {
             if (key == Keys.None)
@@ -93,5 +132,6 @@ namespace GitUI.Hotkey
             // for modifier keys this yields for example "Ctrl+None" thus we have to strip the rest after the +
             return new KeysConverter().ConvertToString(null, culture, key)?.SubstringUntil('+');
         }
+#endif
     }
 }

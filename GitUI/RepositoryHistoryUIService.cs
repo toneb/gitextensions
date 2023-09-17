@@ -3,6 +3,10 @@ using GitCommands.Git;
 using GitCommands.UserRepositoryHistory;
 using GitUI.CommandsDialogs;
 using Microsoft.VisualStudio.Threading;
+#if AVALONIA
+using Avalonia.Controls;
+using ToolStripDropDownItem = Avalonia.Controls.MenuItem;
+#endif
 
 namespace GitUI
 {
@@ -24,17 +28,27 @@ namespace GitUI
         {
         }
 
+#if !AVALONIA
         private static Form? OwnerForm
             => Form.ActiveForm ?? (Application.OpenForms.Count > 0 ? Application.OpenForms[0] : null);
+#endif
 
         private void AddRecentRepositories(ToolStripDropDownItem menuItemContainer, Repository repo, string? caption)
         {
+#if !AVALONIA
             ToolStripMenuItem item = new(caption)
             {
                 DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
             };
 
             menuItemContainer.DropDownItems.Add(item);
+#else
+            TextBlock itemCaption = new() { Text = caption };
+            TextBlock itemBranch = new();
+            DockPanel.SetDock(itemBranch, Dock.Right);
+            MenuItem item = new() { Header = new DockPanel { Children = { itemCaption, itemBranch } } };
+            menuItemContainer.Items.Add(item);
+#endif
 
             item.Click += (obj, args) =>
             {
@@ -43,7 +57,11 @@ namespace GitUI
 
             if (repo.Path != caption)
             {
+#if !AVALONIA
                 item.ToolTipText = repo.Path;
+#else
+                ToolTip.SetTip(item, repo.Path);
+#endif
             }
 
             ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
@@ -51,7 +69,11 @@ namespace GitUI
                 await TaskScheduler.Default;
                 string branchName = _repositoryCurrentBranchNameProvider.GetCurrentBranchName(repo.Path);
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+#if !AVALONIA
                 item.ShortcutKeyDisplayString = branchName;
+#else
+                itemBranch.Text = branchName;
+#endif
             }).FileAndForget();
         }
 
@@ -69,11 +91,13 @@ namespace GitUI
 
         private void OpenRepo(string repoPath)
         {
+#if !AVALONIA // -- TODO: can we check for Ctrl key by registering to keyDown+keyUp events? On the window?
             if (Control.ModifierKeys != Keys.Control)
             {
                 ChangeWorkingDir(repoPath);
                 return;
             }
+#endif
 
             GitUICommands.LaunchBrowse(repoPath);
         }
@@ -91,6 +115,7 @@ namespace GitUI
 
         private void PopulateFavouriteRepositoriesMenu(ToolStripDropDownItem container, in IList<Repository> repositoryHistory)
         {
+#if !AVALONIA
             List<RecentRepoInfo> pinnedRepos = new();
             List<RecentRepoInfo> allRecentRepos = new();
 
@@ -131,10 +156,14 @@ namespace GitUI
 
                 menuItemCategory.DropDown.ResumeLayout();
             }
+#else
+            throw new NotImplementedException("TODO");
+#endif
         }
 
         public void PopulateRecentRepositoriesMenu(ToolStripDropDownItem container)
         {
+#if !AVALONIA
             List<RecentRepoInfo> pinnedRepos = new();
             List<RecentRepoInfo> allRecentRepos = new();
 
@@ -172,6 +201,9 @@ namespace GitUI
                     AddRecentRepositories(container, repo.Repo, repo.Caption);
                 }
             }
+#else
+            throw new NotImplementedException("TODO");
+#endif
         }
 
         internal TestAccessor GetTestAccessor()

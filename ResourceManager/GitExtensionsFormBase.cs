@@ -76,10 +76,17 @@ namespace ResourceManager
         }
 #endif
 
+#if !AVALONIA
         protected Keys GetShortcutKeys(int commandCode)
         {
             return GetHotkeyCommand(commandCode)?.KeyData ?? Keys.None;
         }
+#else
+        protected Keys? GetShortcutKeys(int commandCode)
+        {
+            return GetHotkeyCommand(commandCode)?.KeyData;
+        }
+#endif
 
         protected HotkeyCommand? GetHotkeyCommand(int commandCode)
         {

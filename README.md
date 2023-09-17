@@ -16,7 +16,7 @@ Have a question? Come and talk to us: [![Gitter](https://badges.gitter.im/Join%2
 * [ ] Migrate core forms and dialogs to Avalonia
 * [ ] Migrate plugins
 * [ ] Migrate tests
-* [ ] Ensure localizations work
+* [ ] Migrate localization
 * [ ] Migrate theming
 * [ ] Externals - TextEditor
 * [ ] Externals - conemu
@@ -26,6 +26,7 @@ Have a question? Come and talk to us: [![Gitter](https://badges.gitter.im/Join%2
 **Known omissions - yet to be ported:**
 * [ ] Window restore
 * [ ] Taskbar progress
+* [ ] Localization of hot keys - was handled by WinForms (KeysConverter) until now
 
 **Post-migration:**
 * [ ] Use avalonia media types instead of System.Drawing (now we're converting between them back and forth in runtime)

@@ -1,9 +1,378 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        Width="939" Height="612"
         x:Class="GitUI.CommandsDialogs.FormBrowse"
-        Title="AvaloniaApplication1">
-    Welcome to Avalonia!
+        Title="Git Extensions">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top" Name="mainMenuStrip">
+            <MenuItem Header="_Start" Name="fileToolStripMenuItem">
+                <MenuItem Header="_Create new repository..." Name="initNewRepositoryToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/RepoCreate.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Open..." InputGesture="Ctrl+O" HotKey="Ctrl+O" Name="openToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/RepoOpen.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Favorite repositories" Name="tsmiFavouriteRepositories">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/star.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Recent repositories" Name="tsmiRecentRepositories">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/RecentRepositories.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="C_lone repository..." Name="cloneToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/CloneRepoGit.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="E_xit" InputGesture="Ctrl+Q" HotKey="Ctrl+Q" Name="exitToolStripMenuItem" />
+            </MenuItem>
+            <MenuItem Header="_Dashboard" Name="dashboardToolStripMenuItem">
+                <MenuItem Header="_Refresh" Name="refreshDashboardToolStripMenuItem" Click="RefreshDashboardToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/ReloadRevisions.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Repository" Name="repositoryToolStripMenuItem">
+                <MenuItem Header="_Refresh" InputGesture="F5" HotKey="F5" Name="refreshToolStripMenuItem" Click="RefreshToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/ReloadRevisions.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="File E_xplorer" InputGesture="Ctrl+Shift+O" HotKey="Ctrl+Shift+O" Name="fileExplorerToolStripMenuItem" Click="FileExplorerToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/BrowseFileExplorer.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Remo_te repositories..." Name="manageRemoteRepositoriesToolStripMenuItem1" Click="ManageRemoteRepositoriesToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Remotes.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Manage _submodules..." Name="manageSubmodulesToolStripMenuItem" Click="ManageSubmodulesToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/SubmodulesManage.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Update all submodules" Name="updateAllSubmodulesToolStripMenuItem" Click="UpdateAllSubmodulesToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/SubmodulesUpdate.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Synchronize all su_bmodules" Name="synchronizeAllSubmodulesToolStripMenuItem" Click="SynchronizeAllSubmodulesToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/SubmodulesSync.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Manage _worktrees..." Name="manageWorktreeToolStripMenuItem" Click="manageWorktreeToolStripMenuItem_Click">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/WorkTree.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Edit .git_ignore" Name="editgitignoreToolStripMenuItem1" Click="EditGitignoreToolStripMenuItem1Click">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/EditGitIgnore.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Edit .git/info/_exclude" Name="editgitinfoexcludeToolStripMenuItem" Click="EditGitInfoExcludeToolStripMenuItemClick" />
+                <MenuItem Header="Edit .git_attributes" Name="editGitAttributesToolStripMenuItem" Click="editGitAttributesToolStripMenuItem_Click" />
+                <MenuItem Header="Edit _mailmap" Name="editmailmapToolStripMenuItem" Click="EditMailMapToolStripMenuItemClick" />
+                <MenuItem Header="Sparse Wor_king Copy" Name="menuitemSparse" Click="menuitemSparseWorkingCopy_Click" />
+                <Separator />
+                <MenuItem Header="_Git maintenance" Name="gitMaintenanceToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Maintenance.png" />
+                    </MenuItem.Icon>
+                    <MenuItem Header="_Compress git database" Name="compressGitDatabaseToolStripMenuItem" Click="CompressGitDatabaseToolStripMenuItemClick">
+                        <MenuItem.Icon>
+                            <Image Source="../Resources/Icons/CompressGitDatabase.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Recover lost objects..." Name="recoverLostObjectsToolStripMenuItem" Click="recoverLostObjectsToolStripMenuItemClick">
+                        <MenuItem.Icon>
+                            <Image Source="../Resources/Icons/RecoverLostObjects.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Delete index.lock" Name="deleteIndexLockToolStripMenuItem" Click="deleteIndexLockToolStripMenuItem_Click">
+                        <MenuItem.Icon>
+                            <Image Source="../Resources/Icons/DeleteIndexLock.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Edit .git/config" Name="editLocalGitConfigToolStripMenuItem" Click="EditLocalGitConfigToolStripMenuItemClick">
+                        <MenuItem.Icon>
+                            <Image Source="../Resources/Icons/EditGitConfig.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem Header="Rep_ository settings" Name="repoSettingsToolStripMenuItem" Click="RepoSettingsToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Settings.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="_Close (go to Dashboard)" InputGesture="Ctrl+W" HotKey="Ctrl+W" Name="closeToolStripMenuItem" Click="CloseToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/DashboardFolderGit.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Commands" Name="commandsToolStripMenuItem">
+                <MenuItem Header="_Commit..." InputGesture="Ctrl+Space" HotKey="Ctrl+Space" Name="commitToolStripMenuItem" Click="CommitToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/RepoStateClean.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Undo last commit..." Name="undoLastCommitToolStripMenuItem" Click="undoLastCommitToolStripMenuItem_Click">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/ResetFileTo.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Pull_/Fetch..." InputGesture="Ctrl+Down" HotKey="Ctrl+Down" Name="pullToolStripMenuItem" Click="PullToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Pull.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Push..." InputGesture="Ctrl+Up" HotKey="Ctrl+Up" Name="pushToolStripMenuItem" Click="PushToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Push.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Ma_nage stashes..." Name="stashToolStripMenuItem" Click="StashToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/stash.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Reset changes..." Name="resetToolStripMenuItem" Click="ResetToolStripMenuItem_Click">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/ResetWorkingDirChanges.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Clean _working directory..." Name="cleanupToolStripMenuItem" Click="CleanupToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/CleanupRepo.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Create _branch..." InputGesture="Ctrl+B" HotKey="Ctrl+B" Name="branchToolStripMenuItem" Click="CreateBranchToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/BranchCreate.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="De_lete branch..." Name="deleteBranchToolStripMenuItem" Click="DeleteBranchToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/BranchDelete.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Chec_kout branch..." InputGesture="Ctrl+." HotKey="Ctrl+." Name="checkoutBranchToolStripMenuItem" Click="CheckoutBranchToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/BranchCheckout.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Merge branches..." InputGesture="Ctrl+M" HotKey="Ctrl+M" Name="mergeBranchToolStripMenuItem" Click="MergeBranchToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Merge.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="R_ebase..." InputGesture="Ctrl+Shift+E" HotKey="Ctrl+Shift+E" Name="rebaseToolStripMenuItem" Click="RebaseToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Rebase.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Solve merge conflicts..." Name="runMergetoolToolStripMenuItem" Click="RunMergetoolToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Unmerged.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Create _tag..." InputGesture="Ctrl+T" HotKey="Ctrl+T" Name="tagToolStripMenuItem" Click="TagToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/TagCreate.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Delete tag..." Name="deleteTagToolStripMenuItem" Click="DeleteTagToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/TagDelete.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Cherr_y pick..." Name="cherryPickToolStripMenuItem" Click="CherryPickToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/CherryPick.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Archi_ve revision..." Name="archiveToolStripMenuItem" Click="ArchiveToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/ArchiveRevision.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Check_out revision..." Name="checkoutToolStripMenuItem" Click="CheckoutToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/checkout.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="B_isect..." Name="bisectToolStripMenuItem" Click="BisectClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Bisect.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Show reflo_g..." Name="toolStripMenuItemReflog" Click="toolStripMenuItemReflog_Click">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Book.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="_Format patch..." Name="formatPatchToolStripMenuItem" Click="FormatPatchToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/PatchFormat.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Apply patch..." Name="applyPatchToolStripMenuItem" Click="ApplyPatchToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/PatchApply.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="View patc_h file..." Name="patchToolStripMenuItem" Click="PatchToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/PatchView.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="(Repository hosts)" Name="_repositoryHostsToolStripMenuItem">
+                <MenuItem Header="_Fork/Clone repository..." Name="_forkCloneRepositoryToolStripMenuItem" Click="_forkCloneMenuItem_Click" />
+                <MenuItem Header="View _pull requests..." Name="_viewPullRequestsToolStripMenuItem" Click="_viewPullRequestsToolStripMenuItem_Click" />
+                <MenuItem Header="_Create pull requests..." Name="_createPullRequestsToolStripMenuItem" Click="_createPullRequestToolStripMenuItem_Click" />
+                <MenuItem Header="_Add upstream remote" Name="_addUpstreamRemoteToolStripMenuItem" Click="_addUpstreamRemoteToolStripMenuItem_Click" />
+            </MenuItem>
+            <MenuItem Header="_Plugins" Name="pluginsToolStripMenuItem">
+                <Separator />
+                <MenuItem Header="Plugin _Settings" Name="pluginSettingsToolStripMenuItem" Click="PluginSettingsToolStripMenuItemClick">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Settings.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Tools" Name="toolsToolStripMenuItem">
+                <!-- TODO Click="gitBashToolStripMenuItem_Click" -->
+                <MenuItem Header="Git _bash" InputGesture="Ctrl+G" HotKey="Ctrl+G" Name="gitBashToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/GitForWindows.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <!-- TODO Click="GitGuiToolStripMenuItemClick" -->
+                <MenuItem Header="Git _GUI" Name="gitGUIToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/GitGui.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <!-- TODO Click="KGitToolStripMenuItemClick" -->
+                <MenuItem Header="Git_K" Name="kGitToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Gitk.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="_PuTTY" Name="PuTTYToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/putty.png" />
+                    </MenuItem.Icon>
+                    <!-- TODO Click="StartAuthenticationAgentToolStripMenuItemClick" -->
+                    <MenuItem Header="Start authentication agent" Name="startAuthenticationAgentToolStripMenuItem">
+                        <MenuItem.Icon>
+                            <Image Source="../Resources/Icons/Pageant16.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <!-- TODO Click="GenerateOrImportKeyToolStripMenuItemClick" -->
+                    <MenuItem Header="Generate or import key" Name="generateOrImportKeyToolStripMenuItem">
+                        <MenuItem.Icon>
+                            <Image Source="../Resources/Icons/puttygen.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                <Separator />
+                <!-- TODO Click="GitcommandLogToolStripMenuItemClick" -->
+                <MenuItem Header="Git _command log" InputGesture="F12" HotKey="F12" Name="gitcommandLogToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/GitCommandLog.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <!-- TODO Click="OnShowSettingsClick" -->
+                <MenuItem Header="_Settings" InputGesture="Ctrl+," HotKey="Ctrl+," Name="settingsToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Settings.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Help" Name="helpToolStripMenuItem">
+                <!-- TODO Click="UserManualToolStripMenuItemClick" -->
+                <MenuItem Header="User _manual" Name="userManualToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/GotoManual.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <!-- TODO Click="ChangelogToolStripMenuItemClick" -->
+                <MenuItem Header="_Changelog" Name="changelogToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Changelog.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <!-- TODO Click="TranslateToolStripMenuItemClick" -->
+                <MenuItem Header="_Translate" Name="translateToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/Translate.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <!-- TODO Click="DonateToolStripMenuItemClick" -->
+                <MenuItem Header="_Donate" Name="donateToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/DollarSign.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <!-- TODO Click="TsmiTelemetryEnabled_Click" -->
+                <MenuItem Header="_Yes, I allow telemetry" Name="tsmiTelemetryEnabled" >
+                    <MenuItem.Icon>
+                        <CheckBox IsChecked="True" BorderThickness="0" IsHitTestVisible="False" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <!-- TODO Click="reportAnIssueToolStripMenuItem_Click" -->
+                <MenuItem Header="_Report an issue" Name="reportAnIssueToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/BugReport.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <!-- TODO Click="checkForUpdatesToolStripMenuItem_Click" -->
+                <MenuItem Header="Check for _updates" Name="checkForUpdatesToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/CheckForUpdates.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <!-- TODO Click="AboutToolStripMenuItemClick" -->
+                <MenuItem Header="_About" Name="aboutToolStripMenuItem">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/information.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <TextBlock>
+            Welcome to avalonia
+        </TextBlock>
+    </DockPanel>
 </Window>
