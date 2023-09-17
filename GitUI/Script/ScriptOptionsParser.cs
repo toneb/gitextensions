@@ -157,6 +157,7 @@ namespace GitUI.Script
 
         private static string AskToSpecify(IEnumerable<IGitRef> options, IScriptHostControl? scriptHostControl)
         {
+#if !AVALONIA
             var items = options.ToList();
             if (items.Count == 0)
             {
@@ -168,15 +169,22 @@ namespace GitUI.Script
             f.Init(FormQuickGitRefSelector.Action.Select, items);
             f.ShowDialog();
             return f.SelectedRef?.Name ?? "";
+#else
+            throw new NotImplementedException("TODO: avalonia");
+#endif
         }
 
         private static string AskToSpecify(IEnumerable<string> options, IScriptHostControl? scriptHostControl)
         {
+#if !AVALONIA
             using FormQuickStringSelector f = new();
             f.Location = scriptHostControl?.GetQuickItemSelectorLocation() ?? new System.Drawing.Point();
             f.Init(options.ToList());
             f.ShowDialog();
             return f.SelectedString ?? "";
+#else
+            throw new NotImplementedException("TODO: avalonia");
+#endif
         }
 
         private static GitRevision? CalculateSelectedRevision(IScriptHostControl? scriptHostControl, List<IGitRef> selectedRemoteBranches,
@@ -457,6 +465,7 @@ namespace GitUI.Script
                     break;
 
                 case "UserInput":
+#if !AVALONIA
                     using (SimplePrompt prompt = new())
                     {
                         prompt.ShowDialog();
@@ -464,8 +473,12 @@ namespace GitUI.Script
                     }
 
                     break;
+#else
+                    throw new NotImplementedException("TODO: avalonia");
+#endif
 
                 case "UserFiles":
+#if !AVALONIA
                     using (FormFilePrompt prompt = new())
                     {
                         if (prompt.ShowDialog(owner) != DialogResult.OK)
@@ -477,6 +490,9 @@ namespace GitUI.Script
                         newString = prompt.FileInput;
                         break;
                     }
+#else
+                    throw new NotImplementedException("TODO: avalonia");
+#endif
 
                 case "WorkingDir":
                     newString = module is null ? string.Empty : module.WorkingDir;

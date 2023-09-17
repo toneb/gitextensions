@@ -134,7 +134,6 @@
     <Compile Remove="CommandsDialogs/BrowseDialog/FormUpdates.cs" />
     <Compile Remove="CommandsDialogs/BrowseDialog/FormUpdates.Designer.cs" />
     <Compile Remove="CommandsDialogs/BrowseDialog/FormUpdates.resx" />
-    <Compile Remove="CommandsDialogs/BrowseDialog/GitStatusMonitor.cs" />
     <Compile Remove="CommandsDialogs/BrowseDialog/MenuCommand.cs" />
     <Compile Remove="CommandsDialogs/BrowseDialog/MenuCommandBase.cs" />
     <Compile Remove="CommandsDialogs/BrowseDialog/MenuCommandsBase.cs" />
@@ -309,9 +308,6 @@
     <Compile Remove="CommandsDialogs/FormBlame.cs" />
     <Compile Remove="CommandsDialogs/FormBlame.Designer.cs" />
     <Compile Remove="CommandsDialogs/FormBlame.resx" />
-    <Compile Remove="CommandsDialogs/FormBrowse.cs" />
-    <Compile Remove="CommandsDialogs/FormBrowse.Designer.cs" />
-    <Compile Remove="CommandsDialogs/FormBrowse.resx" />
     <Compile Remove="CommandsDialogs/FormBrowse.InitCommitDetails.cs" />
     <Compile Remove="CommandsDialogs/FormBrowse.InitMenusAndToolbars.cs" />
     <Compile Remove="CommandsDialogs/FormBrowse.InitRevisionGrid.cs" />
@@ -516,7 +512,6 @@
     <Compile Remove="HelperDialogs/FormSelectMultipleBranches.resx" />
     <Compile Remove="Hotkey/HotkeySettingsManager.cs" />
     <Compile Remove="Hotkey/KeysExtensions.cs" />
-    <Compile Remove="Infrastructure/Telemetry/DiagnosticsClient.cs" />
     <Compile Remove="Infrastructure/Telemetry/FormBrowseDiagnosticsReporter.cs" />
     <Compile Remove="Infrastructure/Telemetry/MonitorsTelemetryInitializer.cs" />
     <Compile Remove="Infrastructure/Telemetry/ThemingTelemetryInitializer.cs" />
@@ -563,13 +558,9 @@
     <Compile Remove="LeftPanel/TagTree.cs" />
     <Compile Remove="LeftPanel/Tree.cs" />
     <Compile Remove="NBugReports/BugReportInvoker.cs" />
-    <Compile Remove="Plugin/PluginRegistry.cs" />
     <Compile Remove="Script/FormFilePrompt.cs" />
     <Compile Remove="Script/FormFilePrompt.Designer.cs" />
     <Compile Remove="Script/FormFilePrompt.resx" />
-    <Compile Remove="Script/ScriptManager.cs" />
-    <Compile Remove="Script/ScriptOptionsParser.cs" />
-    <Compile Remove="Script/ScriptRunner.cs" />
     <Compile Remove="Script/SimplePrompt.cs" />
     <Compile Remove="Script/SimplePrompt.Designer.cs" />
     <Compile Remove="Script/SplitButton.cs" />
@@ -708,11 +699,8 @@
     <Compile Remove="GitExtensionsDialog.cs" />
     <Compile Remove="GitExtensionsDialog.Designer.cs" />
     <Compile Remove="GitExtensionsDialog.resx" />
-    <Compile Remove="GitExtensionsForm.cs" />
     <Compile Remove="GitModuleControl.cs" />
-    <Compile Remove="GitModuleForm.cs" />
     <Compile Remove="GitUIExtensions.cs" />
-    <Compile Remove="IGitUICommandsSource.cs" />
     <Compile Remove="MessageBoxes.cs" />
     <Compile Remove="MouseWheelRedirector.cs" />
     <Compile Remove="RepositoryHistoryUIService.cs" />
@@ -732,5 +720,7 @@
 
   <!-- Exclude windows forms specific files from avalonia build -->
   <ItemGroup Condition="'$(Avalonia)' == 'true'">
+    <Compile Remove="CommandsDialogs/FormBrowse.Designer.cs" />
+    <Compile Remove="CommandsDialogs/FormBrowse.resx" />
   </ItemGroup>
 </Project>

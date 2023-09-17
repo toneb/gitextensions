@@ -11,8 +11,10 @@ namespace GitUI
     /// <remarks>Includes support for font, hotkey, icon, translation, and position restore.</remarks>
     public class GitExtensionsForm : GitExtensionsFormBase
     {
+#if !AVALONIA // TODO: Avalonia
         private IWindowPositionManager _windowPositionManager = new WindowPositionManager();
         private Func<IReadOnlyList<Rectangle>> _getScreensWorkingArea = () => Screen.AllScreens.Select(screen => screen.WorkingArea).ToArray();
+#endif
         private bool _needsPositionRestore;
 
         /// <summary>Creates a new <see cref="GitExtensionsForm"/> without position restore.</summary>
@@ -29,6 +31,7 @@ namespace GitUI
             var needsPositionSave = enablePositionRestore;
             _needsPositionRestore = enablePositionRestore;
 
+#if !AVALONIA
             FormClosing += GitExtensionsForm_FormClosing;
 
             Button cancelButton = new();
@@ -52,6 +55,7 @@ namespace GitUI
                 _windowPositionManager.SavePosition(this);
                 TaskbarProgress.Clear();
             }
+#endif
         }
 
         public virtual void CancelButtonClick(object sender, EventArgs e)
@@ -59,12 +63,20 @@ namespace GitUI
             Close();
         }
 
+#if !AVALONIA
         protected override void OnLoad(EventArgs e)
+#else
+        protected override void OnLoaded(RoutedEventArgs e)
+#endif
         {
             RestorePosition();
 
             // Should be called after restoring position
+#if !AVALONIA
             base.OnLoad(e);
+#else
+            base.OnLoaded(e);
+#endif
 
             if (!IsDesignMode)
             {
@@ -72,7 +84,7 @@ namespace GitUI
             }
         }
 
-        /// <summary>Invoked at runtime during the <see cref="OnLoad"/> method.</summary>
+        /// <summary>Invoked at runtime during the OnLoad method.</summary>
         /// <remarks>In particular, this method is not invoked when running in a designer.</remarks>
         protected virtual void OnRuntimeLoad(EventArgs e)
         {
@@ -85,6 +97,7 @@ namespace GitUI
         /// </summary>
         protected virtual void RestorePosition()
         {
+#if !AVALONIA // TODO: Avalonia
             if (!_needsPositionRestore)
             {
                 return;
@@ -147,6 +160,7 @@ namespace GitUI
             }
 
             ResumeLayout();
+#endif
         }
 
         // This is a base class for many forms, which have own GetTestAccessor() methods. This has to be unique
@@ -161,6 +175,7 @@ namespace GitUI
                 _form = form;
             }
 
+#if !AVALONIA
             public IWindowPositionManager WindowPositionManager
             {
                 get => _form._windowPositionManager;
@@ -172,6 +187,7 @@ namespace GitUI
                 get => _form._getScreensWorkingArea;
                 set => _form._getScreensWorkingArea = value;
             }
+#endif
         }
     }
 }

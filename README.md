@@ -13,16 +13,19 @@ Have a question? Come and talk to us: [![Gitter](https://badges.gitter.im/Join%2
 
 ### Avalonia
 **Major milestones:**
-* [ ] Migrate all forms and dialogs to Avalonia
+* [ ] Migrate core forms and dialogs to Avalonia
+* [ ] Migrate plugins
+* [ ] Migrate tests
+* [ ] Ensure localizations work
+* [ ] Migrate theming
 * [ ] Externals - TextEditor
 * [ ] Externals - conemu
 * [ ] Externals - WindowsAPICodePack
-* [ ] Localization
-* [ ] Theming
-* [ ] Plugins
-* [ ] Tests
-* [ ] Installer
 * [ ] Translation app
+
+**Known omissions - yet to be ported:**
+* [ ] Window restore
+* [ ] Taskbar progress
 
 **Post-migration:**
 * [ ] Use avalonia media types instead of System.Drawing (now we're converting between them back and forth in runtime)

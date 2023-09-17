@@ -1363,9 +1363,9 @@ namespace GitUI
         /// <param name="args">The start up arguments.</param>
         public bool StartBrowseDialog(IWin32Window? owner, BrowseArguments? args = null)
         {
-#if !AVALONIA
             FormBrowse form = new(this, args ?? new BrowseArguments());
 
+#if !AVALONIA
             if (Application.MessageLoop)
             {
                 form.Show(owner);
@@ -1374,11 +1374,11 @@ namespace GitUI
             {
                 Application.Run(form);
             }
+#else
+            form.Show();
+#endif
 
             return true;
-#else
-            throw new NotImplementedException("TODO - avalonia");
-#endif
         }
 
         public void StartFileHistoryDialog(IWin32Window? owner, string fileName, GitRevision? revision = null, bool filterByRevision = false, bool showBlame = false)

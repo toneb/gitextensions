@@ -19,10 +19,16 @@ namespace GitUI.Infrastructure.Telemetry
         {
             _telemetryConfiguration.TelemetryInitializers.Add(new AppEnvironmentTelemetryInitializer());
             _telemetryConfiguration.TelemetryInitializers.Add(new AppInfoTelemetryInitializer(isDirty));
+#if !AVALONIA // TODO: Avalonia
             _telemetryConfiguration.TelemetryInitializers.Add(new MonitorsTelemetryInitializer());
             _telemetryConfiguration.TelemetryInitializers.Add(new ThemingTelemetryInitializer());
+#endif
 
+#if !AVALONIA
             Application.ApplicationExit += (s, e) =>
+#else
+            (Avalonia.Application.Current.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime).Exit += (s, e) =>
+#endif
             {
                 TrackEvent("AppExit");
                 OnExit();

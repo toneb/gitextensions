@@ -42,6 +42,7 @@ namespace GitUI.Script
 
         private static CommandStatus RunScriptInternal(IWin32Window owner, IGitModule module, string? scriptKey, IGitUICommands uiCommands, RevisionGridControl? revisionGrid)
         {
+#if !AVALONIA
             if (string.IsNullOrEmpty(scriptKey))
             {
                 return false;
@@ -164,6 +165,9 @@ namespace GitUI.Script
             }
 
             return new CommandStatus(executed: true, needsGridRefresh: !scriptInfo.RunInBackground);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private static string ExpandCommandVariables(string originalCommand, IGitModule module)

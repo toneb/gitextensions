@@ -26,7 +26,6 @@
 
   <!-- Exclude windows forms specific files from avalonia build -->
   <ItemGroup Condition="'$(Avalonia)' == 'true'">
-    <Compile Remove="RepositoryHosts/IRepositoryHostPlugin.cs" />
     <Compile Remove="Settings/BoolSetting.cs" />
     <Compile Remove="Settings/ChoiceSetting.cs" />
     <Compile Remove="Settings/CredentialsSetting.cs" />

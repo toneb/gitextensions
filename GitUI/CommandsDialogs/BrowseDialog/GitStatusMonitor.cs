@@ -53,7 +53,11 @@ namespace GitUI.CommandsDialogs.BrowseDialog
 
         private readonly FileSystemWatcher _workTreeWatcher = new();
         private readonly FileSystemWatcher _gitDirWatcher = new();
+#if !AVALONIA
         private readonly System.Windows.Forms.Timer _timerRefresh;
+#else
+        private readonly Avalonia.Threading.DispatcherTimer _timerRefresh;
+#endif
         private bool _isFirstPostRepoChanged;
         private string? _gitPath;
         private string? _submodulesPath;
@@ -95,11 +99,19 @@ namespace GitUI.CommandsDialogs.BrowseDialog
         public GitStatusMonitor(IGitUICommandsSource commandsSource, Func<bool> isMinimized)
         {
             _isMinimized = isMinimized;
+#if !AVALONIA
             _timerRefresh = new System.Windows.Forms.Timer
             {
                 Enabled = true,
                 Interval = InteractiveUpdateDelay / 2
             };
+#else
+            _timerRefresh = new Avalonia.Threading.DispatcherTimer
+            {
+                IsEnabled = true,
+                Interval = TimeSpan.FromMilliseconds(InteractiveUpdateDelay / 2)
+            };
+#endif
             _timerRefresh.Tick += delegate { Update(); };
 
             CurrentStatus = GitStatusMonitorState.Stopped;
@@ -202,7 +214,11 @@ namespace GitUI.CommandsDialogs.BrowseDialog
         {
             _workTreeWatcher.Dispose();
             _gitDirWatcher.Dispose();
+#if !AVALONIA
             _timerRefresh.Dispose();
+#else
+            _timerRefresh.Stop();
+#endif
             _statusSequence.Dispose();
         }
 

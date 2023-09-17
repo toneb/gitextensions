@@ -8,7 +8,9 @@
 
         IReadOnlyList<IHostedRepository> GetMyRepos();
 
+#if !AVALONIA // TODO: avalonia
         void ConfigureContextMenu(ContextMenuStrip contextMenu);
+#endif
 
         bool ConfigurationOk { get; }
 

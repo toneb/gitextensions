@@ -34,6 +34,7 @@
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Resources.Extensions" />
 
+    <Using Include="Avalonia" />
     <Using Include="System.Drawing" />
     <Using Include="Avalonia.Interactivity" />
     <Using Include="AvaloniaMonkeyPatch" />
@@ -42,6 +43,9 @@
     <Using Alias="UserControl" Include="Avalonia.Controls.UserControl" />
     <Using Alias="Keys" Include="Avalonia.Input.Key" />
     <Using Alias="Form" Include="Avalonia.Controls.Window" />
+    <Using Alias="Application" Include="AvaloniaMonkeyPatch.Application" />
+    <Using Alias="Size" Include="System.Drawing.Size" />
+    <Using Alias="Point" Include="System.Drawing.Point" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Avalonia)' != 'true'">

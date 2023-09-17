@@ -204,15 +204,20 @@ namespace GitUI.CommandsDialogs
         #endregion
 
         private readonly uint _closeAllMessage = NativeMethods.RegisterWindowMessageW("Global.GitExtensions.CloseAllInstances");
+#if !AVALONIA // TODO - avalonia
         private readonly SplitterManager _splitterManager;
         private readonly GitStatusMonitor _gitStatusMonitor;
         private readonly FormBrowseMenus _formBrowseMenus;
+#endif
         private readonly IFormBrowseController _controller;
         private readonly ICommitDataManager _commitDataManager;
         private readonly IAppTitleGenerator _appTitleGenerator;
         private readonly IAheadBehindDataProvider? _aheadBehindDataProvider;
+#if !AVALONIA
         private readonly IWindowsJumpListManager _windowsJumpListManager;
+#endif
         private readonly ISubmoduleStatusProvider _submoduleStatusProvider;
+#if !AVALONIA
         private List<ToolStripItem>? _currentSubmoduleMenuItems;
         private readonly FormBrowseDiagnosticsReporter _formBrowseDiagnosticsReporter;
         private BuildReportTabPageExtension? _buildReportTabPageExtension;
@@ -220,16 +225,21 @@ namespace GitUI.CommandsDialogs
         private readonly RepositoryHistoryUIService _repositoryHistoryUIService = new();
         private ConEmuControl? _terminal;
         private Dashboard? _dashboard;
+#endif
         private bool _isFileBlameHistory;
+#if !AVALONIA
         private bool _fileBlameHistoryLeftPanelStartupState;
 
         private TabPage? _consoleTabPage;
+#endif
 
         private readonly Dictionary<Brush, Icon> _overlayIconByBrush = new();
 
+#if !AVALONIA
         private UpdateTargets _selectedRevisionUpdatedTargets = UpdateTargets.None;
 
         public override RevisionGridControl RevisionGridControl { get => RevisionGrid; }
+#endif
 
         [Obsolete("For VS designer and translation test only. Do not remove.")]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -256,11 +266,14 @@ namespace GitUI.CommandsDialogs
         internal FormBrowse(GitUICommands commands, BrowseArguments args, ISettingsSource settingsSource)
             : base(commands)
         {
+#if !AVALONIA // TODO - avalonia
             _splitterManager = new(settingsSource);
+#endif
 
             SystemEvents.SessionEnding += (sender, args) => SaveApplicationSettings();
 
             _isFileBlameHistory = args.IsFileBlameHistory;
+#if !AVALONIA // TODO - avalonia
             InitializeComponent();
 
             fileToolStripMenuItem.Initialize(() => UICommands);
@@ -272,14 +285,17 @@ namespace GitUI.CommandsDialogs
             BackColor = OtherColors.BackgroundColor;
 
             WorkaroundPaddingIncreaseBug();
+#endif
 
             _appTitleGenerator = ManagedExtensibility.GetExport<IAppTitleGenerator>().Value;
+#if !AVALONIA // TODO: avalonia
             _windowsJumpListManager = ManagedExtensibility.GetExport<IWindowsJumpListManager>().Value;
 
             _formBrowseDiagnosticsReporter = new FormBrowseDiagnosticsReporter(this);
 
             MainSplitContainer.Visible = false;
             MainSplitContainer.SplitterDistance = DpiUtil.Scale(260);
+#endif
 
             ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
@@ -289,6 +305,7 @@ namespace GitUI.CommandsDialogs
                 RegisterPlugins();
             }).FileAndForget();
 
+#if !AVALONIA // TODO - avalonia
             InitCountArtificial(out _gitStatusMonitor);
 
             _formBrowseMenus = new FormBrowseMenus(mainMenuStrip);
@@ -300,11 +317,14 @@ namespace GitUI.CommandsDialogs
 
             InitRevisionGrid(args.SelectedId, args.FirstId, args.IsFileBlameHistory);
             InitCommitDetails();
+#endif
 
             InitializeComplete();
 
             HotkeysEnabled = true;
+#if !AVALONIA // TODO - avalonia
             Hotkeys = HotkeySettingsManager.LoadHotkeys(HotkeySettingsName);
+#endif
 
             UICommands.PostRepositoryChanged += UICommands_PostRepositoryChanged;
             UICommands.BrowseRepo = this;
@@ -316,14 +336,17 @@ namespace GitUI.CommandsDialogs
             _submoduleStatusProvider.StatusUpdating += SubmoduleStatusProvider_StatusUpdating;
             _submoduleStatusProvider.StatusUpdated += SubmoduleStatusProvider_StatusUpdated;
 
+#if !AVALONIA // TODO - avalonia
             foreach (var control in this.FindDescendants())
             {
                 control.AllowDrop = true;
                 control.DragEnter += FormBrowse_DragEnter;
                 control.DragDrop += FormBrowse_DragDrop;
             }
+#endif
 
             _aheadBehindDataProvider = new AheadBehindDataProvider(() => Module.GitExecutable);
+#if !AVALONIA // TODO - avalonia
             toolStripButtonPush.Initialize(_aheadBehindDataProvider);
             repoObjectsTree.Initialize(_aheadBehindDataProvider, filterRevisionGridBySpaceSeparatedRefs: ToolStripFilters.SetBranchFilter, refsSource: RevisionGrid, revisionGridInfo: RevisionGrid, scriptRunner: RevisionGrid);
             revisionDiff.Bind(revisionGridInfo: RevisionGrid, revisionGridUpdate: RevisionGrid, revisionFileTree: fileTree, () => RevisionGrid.CurrentFilter.PathFilter, RefreshGitStatusMonitor);
@@ -331,10 +354,12 @@ namespace GitUI.CommandsDialogs
             // Show blame by default if not started from command line
             fileTree.Bind(revisionGridInfo: RevisionGrid, revisionGridUpdate: RevisionGrid, RefreshGitStatusMonitor, _isFileBlameHistory);
             RevisionGrid.ResumeRefreshRevisions();
+#endif
 
             // Application is init, the repo related operations are triggered in OnLoad()
             return;
 
+#if !AVALONIA
             void InitCountArtificial(out GitStatusMonitor gitStatusMonitor)
             {
                 Brush? lastBrush = null;
@@ -445,8 +470,10 @@ namespace GitUI.CommandsDialogs
                 RevisionsSplitContainer.Panel1.Padding = new Padding(1);
                 RevisionsSplitContainer.Panel2.Padding = new Padding(1);
             }
+#endif
         }
 
+#if !AVALONIA // TODO - avalonia
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -461,17 +488,23 @@ namespace GitUI.CommandsDialogs
 
             base.Dispose(disposing);
         }
+#endif
 
         protected override void OnApplicationActivated()
         {
+#if !AVALONIA
             if (AppSettings.RefreshArtificialCommitOnApplicationActivated && CommitInfoTabControl.SelectedTab == DiffTabPage)
             {
                 revisionDiff.RefreshArtificial();
             }
 
             base.OnApplicationActivated();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
+#if !AVALONIA // TODO - avalonia
         protected override void OnLoad(EventArgs e)
         {
             _formBrowseMenus.CreateToolbarsMenus(ToolStripMain, ToolStripFilters, ToolStripScripts);
@@ -530,6 +563,7 @@ namespace GitUI.CommandsDialogs
             _splitterManager.SaveSplitters();
             base.OnClosing(e);
         }
+#endif
 
         protected override void OnClosed(EventArgs e)
         {
@@ -539,6 +573,7 @@ namespace GitUI.CommandsDialogs
 
         protected override void OnUICommandsChanged(GitUICommandsChangedEventArgs e)
         {
+#if !AVALONIA
             var oldCommands = e.OldCommands;
             RefreshDefaultPullAction();
 
@@ -552,8 +587,13 @@ namespace GitUI.CommandsDialogs
             UICommands.BrowseRepo = this;
 
             base.OnUICommandsChanged(e);
+#else
+            // TODO
+            // throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
+#if !AVALONIA // TODO: avalonia
         protected override void WndProc(ref Message m)
         {
             if (m.Msg == _closeAllMessage || m is { Msg: NativeMethods.WM_SYSCOMMAND, WParam: NativeMethods.SC_CLOSE })
@@ -572,27 +612,38 @@ namespace GitUI.CommandsDialogs
 
             base.WndProc(ref m);
         }
+#endif
 
         public override void AddTranslationItems(ITranslation translation)
         {
+#if !AVALONIA
             base.AddTranslationItems(translation);
             TranslationUtils.AddTranslationItemsFromFields(Name, ToolStripFilters, translation);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         public override void TranslateItems(ITranslation translation)
         {
             base.TranslateItems(translation);
+#if !AVALONIA // TODO: avalonia
             TranslationUtils.TranslateItemsFromFields(Name, ToolStripFilters, translation);
+#endif
         }
 
         public override void CancelButtonClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             // If a filter is applied, clear it
             if (RevisionGrid.FilterIsApplied())
             {
                 // Clear filter
                 ToolStripFilters.SetRevisionFilter(string.Empty);
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private static bool NeedsGitStatusMonitor()
@@ -602,6 +653,7 @@ namespace GitUI.CommandsDialogs
 
         private void UICommands_PostRepositoryChanged(object sender, GitUIEventArgs e)
         {
+#if !AVALONIA
             // Note that this called in most FormBrowse context to "be sure"
             // that the repo has not been updated externally.
 
@@ -617,6 +669,9 @@ namespace GitUI.CommandsDialogs
             }
 
             RefreshRevisions(e.GetRefs);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         /// <summary>
@@ -633,6 +688,7 @@ namespace GitUI.CommandsDialogs
         /// <param name="getRefs">(Lazy) func to get refs.</param>
         private void RefreshRevisions(Func<RefsFilter, IReadOnlyList<IGitRef>> getRefs)
         {
+#if !AVALONIA
             if (RevisionGrid.IsDisposed || IsDisposed || Disposing)
             {
                 return;
@@ -659,12 +715,18 @@ namespace GitUI.CommandsDialogs
 
             RefreshGitStatusMonitor();
             UpdateStashCount();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
+#if !AVALONIA // TODO - avalonia
         private void RefreshGitStatusMonitor() => _gitStatusMonitor?.RequestRefresh();
+#endif
 
         private void RefreshSelection()
         {
+#if !AVALONIA
             var selectedRevisions = RevisionGrid.GetSelectedRevisions();
             GitRevision? selectedRevision = selectedRevisions.Count > 0 ? selectedRevisions[0] : null;
 
@@ -683,21 +745,31 @@ namespace GitUI.CommandsDialogs
             ThreadHelper.JoinableTaskFactory.RunAsync(() => FillGpgInfoAsync(selectedRevision));
             FillBuildReport(selectedRevision);
             repoObjectsTree.SelectionChanged(selectedRevisions);
+#else
+#endif
         }
 
         #region IBrowseRepo
 
         public void GoToRef(string refName, bool showNoRevisionMsg, bool toggleSelection = false)
         {
+#if !AVALONIA
             using (WaitCursorScope.Enter())
             {
                 RevisionGrid.GoToRef(refName, showNoRevisionMsg, toggleSelection);
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         public IReadOnlyList<GitRevision> GetSelectedRevisions()
         {
+#if !AVALONIA
             return RevisionGrid.GetSelectedRevisions();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         #endregion
@@ -708,11 +780,16 @@ namespace GitUI.CommandsDialogs
         /// <param name="pathFilter">Zero or more quoted paths, separated by spaces.</param>
         public void SetPathFilter(string pathFilter)
         {
+#if !AVALONIA
             RevisionGrid.SetAndApplyPathFilter(pathFilter);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void ShowDashboard()
         {
+#if !AVALONIA
             toolPanel.SuspendLayout();
             toolPanel.TopToolStripPanelVisible = false;
             toolPanel.BottomToolStripPanelVisible = false;
@@ -736,10 +813,14 @@ namespace GitUI.CommandsDialogs
             _dashboard.BringToFront();
 
             DiagnosticsClient.TrackPageView("Dashboard");
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void HideDashboard()
         {
+#if !AVALONIA
             MainSplitContainer.Visible = true;
             if (!_dashboard?.Visible ?? true)
             {
@@ -755,18 +836,26 @@ namespace GitUI.CommandsDialogs
             toolPanel.ResumeLayout();
 
             DiagnosticsClient.TrackPageView("Revision graph");
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void UpdatePluginMenu(bool validWorkingDir)
         {
+#if !AVALONIA
             foreach (ToolStripItem item in pluginsToolStripMenuItem.DropDownItems)
             {
                 item.Enabled = !(item.Tag is IGitPluginForRepository) || validWorkingDir;
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void RegisterPlugins()
         {
+#if !AVALONIA
             const string PluginManagerName = "Plugin Manager";
             var existingPluginMenus = pluginsToolStripMenuItem.DropDownItems.OfType<ToolStripMenuItem>().ToLookup(c => c.Tag);
 
@@ -835,6 +924,9 @@ namespace GitUI.CommandsDialogs
             }
 
             UpdatePluginMenu(Module.IsValidGitWorkingDir());
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         /// <summary>
@@ -845,6 +937,7 @@ namespace GitUI.CommandsDialogs
         /// </summary>
         private void HideVariableMainMenuItems()
         {
+#if !AVALONIA
             dashboardToolStripMenuItem.Visible = false;
             repositoryToolStripMenuItem.Visible = false;
             commandsToolStripMenuItem.Visible = false;
@@ -854,10 +947,14 @@ namespace GitUI.CommandsDialogs
             _repositoryHostsToolStripMenuItem.Visible = false;
             _formBrowseMenus.RemoveRevisionGridMainMenuItems();
             mainMenuStrip.Refresh();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void InternalInitialize()
         {
+#if !AVALONIA
             toolPanel.SuspendLayout();
             toolPanel.TopToolStripPanel.SuspendLayout();
 
@@ -1037,10 +1134,14 @@ namespace GitUI.CommandsDialogs
                     ToolStripScripts.Items.Add(button);
                 }
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void SetShortcutKeyDisplayStringsFromHotkeySettings()
         {
+#if !AVALONIA
             // Add shortcuts to the menu items
             commitToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKeys(Command.Commit).ToShortcutKeyDisplayString();
             stashChangesToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKeys(Command.Stash).ToShortcutKeyDisplayString();
@@ -1064,20 +1165,28 @@ namespace GitUI.CommandsDialogs
             RevisionGrid.SetFilterShortcutKeys(ToolStripFilters);
 
             // TODO: add more
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void OnActivate()
         {
+#if !AVALONIA
             // check if we are in the middle of bisect
             notificationBarBisectInProgress.RefreshBisect();
 
             // check if we are in the middle of an action (merge/rebase/etc.)
             notificationBarGitActionInProgress.RefreshGitAction(
                 checkForConflicts: AppSettings.GitAsyncWhenMinimized || (WindowState != FormWindowState.Minimized));
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void UpdateStashCount()
         {
+#if !AVALONIA
             if (AppSettings.ShowStashCount)
             {
                 ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
@@ -1097,6 +1206,9 @@ namespace GitUI.CommandsDialogs
             {
                 toolStripSplitStash.Text = string.Empty;
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         #region Working directory combo box
@@ -1104,6 +1216,7 @@ namespace GitUI.CommandsDialogs
         /// <summary>Updates the text shown on the combo button itself.</summary>
         private void RefreshWorkingDirComboText()
         {
+#if !AVALONIA
             var path = Module.WorkingDir;
 
             // it appears at times Module.WorkingDir path is an empty string, this caused issues like #4874
@@ -1141,10 +1254,14 @@ namespace GitUI.CommandsDialogs
             {
                 _NO_TRANSLATE_WorkingDir.AutoSize = true;
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void WorkingDirDropDownOpening(object sender, EventArgs e)
         {
+#if !AVALONIA
             _NO_TRANSLATE_WorkingDir.DropDown.SuspendLayout();
             _NO_TRANSLATE_WorkingDir.DropDownItems.Clear();
 
@@ -1180,13 +1297,21 @@ namespace GitUI.CommandsDialogs
             _NO_TRANSLATE_WorkingDir.DropDownItems.Add(mnuRecentReposSettings);
 
             _NO_TRANSLATE_WorkingDir.DropDown.ResumeLayout();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void WorkingDirClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             _NO_TRANSLATE_WorkingDir.ShowDropDown();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
+#if !AVALONIA // TODO: avalonia
         private void _NO_TRANSLATE_WorkingDir_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
@@ -1194,11 +1319,13 @@ namespace GitUI.CommandsDialogs
                 fileToolStripMenuItem.OpenRepositoryMenuItem.PerformClick();
             }
         }
+#endif
 
         #endregion
 
         private void FillFileTree(GitRevision revision)
         {
+#if !AVALONIA
             // Don't show the "File Tree" tab for artificial commits
             var showFileTreeTab = revision?.IsArtificial != true;
 
@@ -1223,10 +1350,14 @@ namespace GitUI.CommandsDialogs
 
             _selectedRevisionUpdatedTargets |= UpdateTargets.FileTree;
             fileTree.LoadRevision(revision);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void FillDiff(IReadOnlyList<GitRevision> revisions)
         {
+#if !AVALONIA
             if (CommitInfoTabControl.SelectedTab != DiffTabPage)
             {
                 return;
@@ -1239,10 +1370,14 @@ namespace GitUI.CommandsDialogs
 
             _selectedRevisionUpdatedTargets |= UpdateTargets.DiffList;
             revisionDiff.DisplayDiffTab(revisions);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void FillCommitInfo(GitRevision? revision)
         {
+#if !AVALONIA
             if (_selectedRevisionUpdatedTargets.HasFlag(UpdateTargets.CommitInfo))
             {
                 return;
@@ -1262,10 +1397,14 @@ namespace GitUI.CommandsDialogs
 
             var children = RevisionGrid.GetRevisionChildren(revision.ObjectId);
             RevisionInfo.SetRevisionWithChildren(revision, children);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private async Task FillGpgInfoAsync(GitRevision? revision)
         {
+#if !AVALONIA
             if (!AppSettings.ShowGpgInformation.Value || CommitInfoTabControl.SelectedTab != GpgInfoTabPage)
             {
                 return;
@@ -1278,11 +1417,19 @@ namespace GitUI.CommandsDialogs
 
             var info = await _controller.LoadGpgInfoAsync(revision);
             revisionGpgInfo1.DisplayGpgInfo(info);
+#else
+            await Task.Yield();
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void RefreshLeftPanel(Func<RefsFilter, IReadOnlyList<IGitRef>> getRefs, Lazy<IReadOnlyCollection<GitRevision>> getStashRevs, bool forceRefresh)
         {
+#if !AVALONIA
             repoObjectsTree.RefreshRevisionsLoading(getRefs, getStashRevs, forceRefresh);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void CheckoutToolStripMenuItemClick(object sender, EventArgs e)
@@ -1297,7 +1444,11 @@ namespace GitUI.CommandsDialogs
 
         private void PushToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             UICommands.StartPushDialog(this, pushOnShow: ModifierKeys.HasFlag(Keys.Shift));
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void RefreshToolStripMenuItemClick(object sender, EventArgs e)
@@ -1308,7 +1459,11 @@ namespace GitUI.CommandsDialogs
 
         private void RefreshDashboardToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             _dashboard?.RefreshContent();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void PatchToolStripMenuItemClick(object sender, EventArgs e)
@@ -1323,6 +1478,7 @@ namespace GitUI.CommandsDialogs
 
         private void userShell_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (userShell.DropDownButtonPressed)
             {
                 return;
@@ -1344,6 +1500,9 @@ namespace GitUI.CommandsDialogs
             {
                 MessageBoxes.FailedToRunShell(this, shell.Name, exception);
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void FormatPatchToolStripMenuItemClick(object sender, EventArgs e)
@@ -1364,9 +1523,13 @@ namespace GitUI.CommandsDialogs
 
         private void ResetToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             UICommands.StartResetChangesDialog(this, Module.GetWorkTreeFiles(), onlyWorkTree: false);
             RefreshGitStatusMonitor();
             revisionDiff.RefreshArtificial();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void RunMergetoolToolStripMenuItemClick(object sender, EventArgs e)
@@ -1376,7 +1539,11 @@ namespace GitUI.CommandsDialogs
 
         private void CurrentBranchClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             branchSelect.ShowDropDown();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void DeleteBranchToolStripMenuItemClick(object sender, EventArgs e)
@@ -1391,9 +1558,13 @@ namespace GitUI.CommandsDialogs
 
         private void CherryPickToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             var revisions = RevisionGrid.GetSelectedRevisions(SortDirection.Descending);
 
             UICommands.StartCherryPickDialog(this, revisions);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void MergeBranchToolStripMenuItemClick(object sender, EventArgs e)
@@ -1418,6 +1589,7 @@ namespace GitUI.CommandsDialogs
 
         private void HandleSettingsChanged(string oldTranslation, CommitInfoPosition oldCommitInfoPosition)
         {
+#if !AVALONIA
             if (oldTranslation != AppSettings.Translation)
             {
                 Translator.Translate(this, AppSettings.CurrentTranslation);
@@ -1458,11 +1630,18 @@ namespace GitUI.CommandsDialogs
             _gitStatusMonitor.Active = NeedsGitStatusMonitor() && Module.IsValidGitWorkingDir();
 
             RefreshDefaultPullAction();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void TagToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             UICommands.StartCreateTagDialog(this, RevisionGrid.LatestSelectedRevision);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private static void SaveApplicationSettings()
@@ -1482,6 +1661,7 @@ namespace GitUI.CommandsDialogs
 
         private void ArchiveToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             var revisions = RevisionGrid.GetSelectedRevisions();
             if (revisions.Count is (< 1 or > 2))
             {
@@ -1493,6 +1673,9 @@ namespace GitUI.CommandsDialogs
             GitRevision? diffRevision = revisions.Count == 2 ? revisions[1] : null;
 
             UICommands.StartArchiveDialog(this, mainRevision, diffRevision);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void EditMailMapToolStripMenuItemClick(object sender, EventArgs e)
@@ -1508,7 +1691,11 @@ namespace GitUI.CommandsDialogs
 
         private void CompressGitDatabaseToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             FormProcess.ReadDialog(this, arguments: "gc", Module.WorkingDir, input: null, useDialogSettings: true);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void recoverLostObjectsToolStripMenuItemClick(object sender, EventArgs e)
@@ -1523,6 +1710,7 @@ namespace GitUI.CommandsDialogs
 
         private void RebaseToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             var revisions = RevisionGrid.GetSelectedRevisions();
 
             if (revisions.Count == 0 || revisions[0].IsArtificial)
@@ -1544,10 +1732,14 @@ namespace GitUI.CommandsDialogs
             {
                 UICommands.StartRebaseDialog(this, onto);
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void CommitInfoTabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
+#if !AVALONIA
             RefreshSelection();
             FillTerminalTab();
             if (CommitInfoTabControl.SelectedTab == DiffTabPage)
@@ -1559,6 +1751,9 @@ namespace GitUI.CommandsDialogs
             {
                 fileTree.SwitchFocus(alreadyContainedFocus: false);
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void ToolStripButtonPushClick(object sender, EventArgs e)
@@ -1574,6 +1769,7 @@ namespace GitUI.CommandsDialogs
 
         private void UpdateSubmoduleToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (sender is ToolStripMenuItem toolStripMenuItem)
             {
                 var submodule = toolStripMenuItem.Tag as string;
@@ -1582,6 +1778,9 @@ namespace GitUI.CommandsDialogs
             }
 
             RefreshRevisions();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void UpdateAllSubmodulesToolStripMenuItemClick(object sender, EventArgs e)
@@ -1654,13 +1853,18 @@ namespace GitUI.CommandsDialogs
 
         public void SetWorkingDir(string? path, ObjectId? selectedId = null, ObjectId? firstId = null)
         {
+#if !AVALONIA
             RevisionGrid.SelectedId = selectedId;
             RevisionGrid.FirstId = firstId;
             SetGitModule(this, new GitModuleEventArgs(new GitModule(path)));
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void SetGitModule(object sender, GitModuleEventArgs e)
         {
+#if !AVALONIA
             string originalWorkingDir = Module.WorkingDir;
 
             var module = e.GitModule;
@@ -1721,16 +1925,27 @@ namespace GitUI.CommandsDialogs
 
             revisionDiff.RegisterGitHostingPluginInBlameControl();
             fileTree.RegisterGitHostingPluginInBlameControl();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void FileExplorerToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             OsShellUtil.OpenWithFileExplorer(Module.WorkingDir);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void CreateBranchToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             UICommands.StartCreateBranchDialog(this, RevisionGrid.LatestSelectedRevision?.ObjectId);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void editGitAttributesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1753,16 +1968,21 @@ namespace GitUI.CommandsDialogs
 
         private void BisectClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             using (FormBisect frm = new(RevisionGrid))
             {
                 frm.ShowDialog(this);
             }
 
             RefreshRevisions();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void CurrentBranchDropDownOpening(object sender, EventArgs e)
         {
+#if !AVALONIA
             branchSelect.DropDown.SuspendLayout();
             branchSelect.DropDownItems.Clear();
 
@@ -1807,10 +2027,14 @@ namespace GitUI.CommandsDialogs
                         .Take(100);
                 }
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void _forkCloneMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (PluginRegistry.GitHosters.Count > 0)
             {
                 UICommands.StartCloneForkFromHoster(this, PluginRegistry.GitHosters[0], SetGitModule);
@@ -1820,36 +2044,51 @@ namespace GitUI.CommandsDialogs
             {
                 MessageBox.Show(this, _noReposHostPluginLoaded.Text, TranslatedStrings.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void _viewPullRequestsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (!TryGetRepositoryHost(out IRepositoryHostPlugin? repoHost))
             {
                 return;
             }
 
             UICommands.StartPullRequestsDialog(this, repoHost);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void _createPullRequestToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (!TryGetRepositoryHost(out IRepositoryHostPlugin? repoHost))
             {
                 return;
             }
 
             UICommands.StartCreatePullRequest(this, repoHost);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void _addUpstreamRemoteToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (!TryGetRepositoryHost(out IRepositoryHostPlugin? repoHost))
             {
                 return;
             }
 
             UICommands.AddUpstreamRemote(this, repoHost);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private bool TryGetRepositoryHost([NotNullWhen(returnValue: true)] out IRepositoryHostPlugin? repoHost)
@@ -1948,6 +2187,7 @@ namespace GitUI.CommandsDialogs
 
         private void AddNotes()
         {
+#if !AVALONIA
             GitRevision? revision = RevisionGrid.GetSelectedRevisionOrDefault();
             if (revision?.IsArtificial is not false)
             {
@@ -1956,10 +2196,14 @@ namespace GitUI.CommandsDialogs
 
             Module.EditNotes(revision.ObjectId);
             FillCommitInfo(revision);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void FindFileInSelectedCommit()
         {
+#if !AVALONIA
             IReadOnlyList<GitRevision> selectedRevisions = RevisionGrid.GetSelectedRevisions();
             if (selectedRevisions.Count > 1 || (selectedRevisions.Count == 1 && selectedRevisions[0].IsArtificial))
             {
@@ -1974,10 +2218,14 @@ namespace GitUI.CommandsDialogs
             RefreshSplitViewLayout();
 
             fileTree.InvokeFindFileDialog();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void QuickFetch()
         {
+#if !AVALONIA
             bool success = ScriptManager.RunEventScripts(this, ScriptEvent.BeforeFetch);
             if (!success)
             {
@@ -1992,10 +2240,14 @@ namespace GitUI.CommandsDialogs
 
             ScriptManager.RunEventScripts(this, ScriptEvent.AfterFetch);
             RefreshRevisions();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         public override bool ProcessHotkey(Keys keyData)
         {
+#if !AVALONIA
             if (IsDesignMode || !HotkeysEnabled)
             {
                 return false;
@@ -2019,10 +2271,14 @@ namespace GitUI.CommandsDialogs
             return (keyData != (Keys.Control | Keys.A) && RevisionGridControl.ProcessHotkey(keyData))
                 || (CommitInfoTabControl.SelectedTab == DiffTabPage && revisionDiff.ProcessHotkey(keyData))
                 || (CommitInfoTabControl.SelectedTab == TreeTabPage && fileTree.ProcessHotkey(keyData));
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         protected override CommandStatus ExecuteCommand(int cmd)
         {
+#if !AVALONIA
             switch ((Command)cmd)
             {
                 case Command.GitBash: userShell.PerformButtonClick(); break;
@@ -2180,6 +2436,9 @@ namespace GitUI.CommandsDialogs
                     revisionDiff.SwitchFocus(alreadyContainedFocus: false);
                 }
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         internal CommandStatus ExecuteCommand(Command cmd)
@@ -2189,6 +2448,7 @@ namespace GitUI.CommandsDialogs
 
         #endregion
 
+#if !AVALONIA // TODO - avalonia
         public static void OpenContainingFolder(FileStatusList diffFiles, GitModule module)
         {
             if (!diffFiles.SelectedItems.Any())
@@ -2206,9 +2466,11 @@ namespace GitUI.CommandsDialogs
                 }
             }
         }
+#endif
 
         private void SetSplitterPositions()
         {
+#if !AVALONIA
             _splitterManager.AddSplitter(RevisionsSplitContainer, nameof(RevisionsSplitContainer));
             _splitterManager.AddSplitter(MainSplitContainer, nameof(MainSplitContainer));
             _splitterManager.AddSplitter(RightSplitContainer, nameof(RightSplitContainer));
@@ -2230,10 +2492,14 @@ namespace GitUI.CommandsDialogs
             {
                 RevisionsSplitContainer.SplitterDistance -= 4;
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void CommandsToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
         {
+#if !AVALONIA
             // Most options do not make sense for artificial commits or no revision selected at all
             var selectedRevisions = RevisionGrid.GetSelectedRevisions();
             bool singleNormalCommit = selectedRevisions.Count == 1 && !selectedRevisions[0].IsArtificial;
@@ -2269,6 +2535,9 @@ namespace GitUI.CommandsDialogs
             toolStripMenuItemReflog.Enabled =
             applyPatchToolStripMenuItem.Enabled =
                 !Module.IsBareRepository();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void PullToolStripMenuItemClick(object sender, EventArgs e)
@@ -2330,6 +2599,7 @@ namespace GitUI.CommandsDialogs
             }
         }
 
+#if !AVALONIA // TODO - avalonia
         private void branchSelect_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
@@ -2337,9 +2607,11 @@ namespace GitUI.CommandsDialogs
                 CheckoutBranchToolStripMenuItemClick(sender, e);
             }
         }
+#endif
 
         private void RevisionInfo_CommandClicked(object sender, ResourceManager.CommandEventArgs e)
         {
+#if !AVALONIA
             // TODO this code duplicated in FormFileHistory.Blame_CommandClick
             switch (e.Command)
             {
@@ -2382,10 +2654,14 @@ namespace GitUI.CommandsDialogs
                 default:
                     throw new InvalidOperationException($"unexpected internal link: {e.Command}/{e.Data}");
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void SubmoduleToolStripButtonClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (sender is not ToolStripMenuItem menuSender)
             {
                 return;
@@ -2399,10 +2675,14 @@ namespace GitUI.CommandsDialogs
             }
 
             SetWorkingDir(path);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         #region Submodules
 
+#if !AVALONIA // TODO - avalonia
         private ToolStripItem CreateSubmoduleMenuItem(SubmoduleInfo info, string textFormat = "{0}")
         {
             ToolStripMenuItem item = new(string.Format(textFormat, info.Text))
@@ -2450,9 +2730,11 @@ namespace GitUI.CommandsDialogs
                 };
             }
         }
+#endif
 
         private void UpdateSubmodulesStructure()
         {
+#if !AVALONIA
             // Submodule status is updated on git-status updates. To make sure supermodule status is updated, update immediately (once)
             var updateStatus = AppSettings.ShowSubmoduleStatus && _gitStatusMonitor.Active;
 
@@ -2471,20 +2753,28 @@ namespace GitUI.CommandsDialogs
                     MessageBoxes.ShowGitConfigurationExceptionMessage(this, ex);
                 }
             });
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void SubmoduleStatusProvider_StatusUpdating(object sender, EventArgs e)
         {
+#if !AVALONIA
             ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
                 await this.SwitchToMainThreadAsync();
                 RemoveSubmoduleButtons();
                 toolStripButtonLevelUp.DropDownItems.Add(_loading.Text);
             }).FileAndForget();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void SubmoduleStatusProvider_StatusUpdated(object sender, SubmoduleStatusEventArgs e)
         {
+#if !AVALONIA
             ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
                 if (e.StructureUpdated || _currentSubmoduleMenuItems is null)
@@ -2494,8 +2784,12 @@ namespace GitUI.CommandsDialogs
 
                 await UpdateSubmoduleMenuStatusAsync(e.Info, e.Token);
             }).FileAndForget();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
+#if !AVALONIA // TODO - avalonia
         private async Task<List<ToolStripItem>> PopulateToolbarAsync(SubmoduleInfoResult result, CancellationToken cancelToken)
         {
             // Second task: Populate submodule toolbar menu on UI thread.
@@ -2554,9 +2848,11 @@ namespace GitUI.CommandsDialogs
 
             return newItems;
         }
+#endif
 
         private async Task UpdateSubmoduleMenuStatusAsync(SubmoduleInfoResult result, CancellationToken cancelToken)
         {
+#if !AVALONIA
             if (_currentSubmoduleMenuItems is null)
             {
                 return;
@@ -2585,10 +2881,15 @@ namespace GitUI.CommandsDialogs
                     Debug.Fail($"Status info for {path} ({1 + result.AllSubmodules.Count} records) has no match in current nodes ({_currentSubmoduleMenuItems.Count})");
                 }
             }
+#else
+            await Task.Yield();
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void RemoveSubmoduleButtons()
         {
+#if !AVALONIA
             foreach (var item in toolStripButtonLevelUp.DropDownItems)
             {
                 if (item is ToolStripMenuItem toolStripButton)
@@ -2598,12 +2899,16 @@ namespace GitUI.CommandsDialogs
             }
 
             toolStripButtonLevelUp.DropDownItems.Clear();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         #endregion
 
         private void toolStripButtonLevelUp_ButtonClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (Module.SuperprojectModule is not null)
             {
                 SetGitModule(this, new GitModuleEventArgs(Module.SuperprojectModule));
@@ -2612,6 +2917,9 @@ namespace GitUI.CommandsDialogs
             {
                 toolStripButtonLevelUp.ShowDropDown();
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         /// <summary>
@@ -2619,6 +2927,7 @@ namespace GitUI.CommandsDialogs
         /// </summary>
         private void FillTerminalTab()
         {
+#if !AVALONIA
             if (!EnvUtils.RunningOnWindows() || !AppSettings.ShowConEmuTab.Value)
             {
                 // ConEmu only works on WinNT
@@ -2707,13 +3016,20 @@ namespace GitUI.CommandsDialogs
 #endif
                 }
             };
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         public void ChangeTerminalActiveFolder(string path)
         {
+#if !AVALONIA
             string? shellType = AppSettings.ConEmuTerminal.Value;
             IShellDescriptor shell = _shellProvider.GetShell(shellType);
             _terminal?.ChangeFolder(shell, path);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void menuitemSparseWorkingCopy_Click(object sender, EventArgs e)
@@ -2723,8 +3039,12 @@ namespace GitUI.CommandsDialogs
 
         private void toolStripMenuItemReflog_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             using FormReflog formReflog = new(UICommands);
             formReflog.ShowDialog();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         #region Layout management
@@ -2740,6 +3060,7 @@ namespace GitUI.CommandsDialogs
 
         private void toggleLeftPanel_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             MainSplitContainer.Panel1Collapsed = !MainSplitContainer.Panel1Collapsed;
             DiagnosticsClient.TrackEvent("Layout change",
                 new Dictionary<string, string> { { "ShowLeftPanel", MainSplitContainer.Panel1Collapsed.ToString() } });
@@ -2758,16 +3079,23 @@ namespace GitUI.CommandsDialogs
                 RefreshLeftPanel(new FilteredGitRefsProvider(UICommands.GitModule).GetRefs, getStashRevs, forceRefresh: true);
                 repoObjectsTree.RefreshRevisionsLoaded();
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void CommitInfoPositionClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (!menuCommitInfoPosition.DropDownButtonPressed)
             {
                 SetCommitInfoPosition((CommitInfoPosition)(
                     ((int)AppSettings.CommitInfoPosition + 1) %
                     Enum.GetValues(typeof(CommitInfoPosition)).Length));
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void CommitInfoBelowClick(object sender, EventArgs e) =>
@@ -2791,15 +3119,20 @@ namespace GitUI.CommandsDialogs
 
         private void RefreshSplitViewLayout()
         {
+#if !AVALONIA
             RightSplitContainer.Panel2Collapsed = !AppSettings.ShowSplitViewLayout;
             DiagnosticsClient.TrackEvent("Layout change",
                 new Dictionary<string, string> { { nameof(AppSettings.ShowSplitViewLayout), AppSettings.ShowSplitViewLayout.ToString() } });
 
             RefreshLayoutToggleButtonStates();
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void RefreshLayoutToggleButtonStates()
         {
+#if !AVALONIA
             toggleLeftPanel.Checked = !MainSplitContainer.Panel1Collapsed;
             toggleSplitViewLayout.Checked = AppSettings.ShowSplitViewLayout;
 
@@ -2807,10 +3140,14 @@ namespace GitUI.CommandsDialogs
             var selectedMenuItem = menuCommitInfoPosition.DropDownItems[commitInfoPositionNumber];
             menuCommitInfoPosition.Image = selectedMenuItem.Image;
             menuCommitInfoPosition.ToolTipText = selectedMenuItem.Text?.Replace("&", string.Empty);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void LayoutRevisionInfo()
         {
+#if !AVALONIA
             // Handle must be created prior to insertion
             _ = CommitInfoTabControl.Handle;
 
@@ -2870,22 +3207,30 @@ namespace GitUI.CommandsDialogs
 
             CommitInfoTabControl.ResumeLayout(performLayout: true);
             RevisionsSplitContainer.ResumeLayout(performLayout: true);
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         #endregion
 
         private void manageWorktreeToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             using FormManageWorktree formManageWorktree = new(UICommands);
             formManageWorktree.ShowDialog(this);
             if (formManageWorktree.ShouldRefreshRevisionGrid)
             {
                 RefreshRevisions();
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         private void undoLastCommitToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             if (AppSettings.DontConfirmUndoLastCommit || MessageBox.Show(this, _undoLastCommitText.Text, _undoLastCommitCaption.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
                 var args = GitCommandHelpers.ResetCmd(ResetMode.Soft, "HEAD~1");
@@ -2893,6 +3238,9 @@ namespace GitUI.CommandsDialogs
                 refreshToolStripMenuItem.PerformClick();
                 RefreshGitStatusMonitor();
             }
+#else
+            throw new NotImplementedException("TODO: Avalonia");
+#endif
         }
 
         internal TestAccessor GetTestAccessor()
@@ -2907,6 +3255,7 @@ namespace GitUI.CommandsDialogs
                 _form = form;
             }
 
+#if !AVALONIA // TODO - avalonia
             public FullBleedTabControl CommitInfoTabControl => _form.CommitInfoTabControl;
             public TabPage DiffTabPage => _form.DiffTabPage;
             public RepoObjectsTree RepoObjectsTree => _form.repoObjectsTree;
@@ -2918,8 +3267,10 @@ namespace GitUI.CommandsDialogs
             public SplitterManager SplitterManager => _form._splitterManager;
             public TabPage TreeTabPage => _form.TreeTabPage;
             public FilterToolBar ToolStripFilters => _form.ToolStripFilters;
+#endif
         }
 
+#if !AVALONIA // TODO - avalonia
         private void FormBrowse_DragDrop(object sender, DragEventArgs e)
         {
             HandleDrop(e);
@@ -2982,5 +3333,6 @@ namespace GitUI.CommandsDialogs
         {
             _dashboard?.RefreshContent();
         }
+#endif
     }
 }

@@ -137,9 +137,10 @@ namespace GitExtensions
         {
             string[] args = Environment.GetCommandLineArgs();
 
-#if !AVALONIA // TODO - avalonia
+#if !AVALONIA
             // This form created to obtain UI synchronization context only
             using (new Form())
+#endif
             {
                 // Store the shared JoinableTaskContext
                 ThreadHelper.JoinableTaskContext = new JoinableTaskContext();
@@ -152,7 +153,6 @@ namespace GitExtensions
                     typeof(ResourceManager.GitPluginBase).Assembly
                 },
                 AppSettings.UserPluginsPath);
-#endif
 
             AppSettings.LoadSettings();
 
