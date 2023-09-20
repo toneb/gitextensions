@@ -1,0 +1,36 @@
+﻿<MenuItem xmlns="https://github.com/avaloniaui"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+          mc:Ignorable="d"
+          x:Class="GitUI.CommandsDialogs.Menus.StartToolStripMenuItem"
+          Header="_Start">
+    <MenuItem Header="_Create new repository..." Name="initNewRepositoryToolStripMenuItem" Click="InitNewRepositoryToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/RepoCreate.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="_Open..." InputGesture="Ctrl+O" HotKey="Ctrl+O" Name="openToolStripMenuItem" Click="OpenToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/RepoOpen.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="_Favorite repositories" Name="tsmiFavouriteRepositories" Click="tsmiFavouriteRepositories_DropDownOpening">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/star.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="_Recent repositories" Name="tsmiRecentRepositories" Click="tsmiRecentRepositories_DropDownOpening">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/RecentRepositories.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <Separator />
+    <MenuItem Header="C_lone repository..." Name="cloneToolStripMenuItem" Click="CloneToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/CloneRepoGit.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <Separator />
+    <MenuItem Header="E_xit" InputGesture="Ctrl+Q" HotKey="Ctrl+Q" Name="exitToolStripMenuItem" Click="ExitToolStripMenuItemClick" />
+</MenuItem>

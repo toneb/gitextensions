@@ -1,0 +1,50 @@
+﻿<MenuItem xmlns="https://github.com/avaloniaui"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+          mc:Ignorable="d"
+          x:Class="GitUI.CommandsDialogs.Menus.HelpToolStripMenuItem"
+          Header="_Help" SubmenuOpened="this_DropDownOpening">
+    <MenuItem Header="User _manual" Name="userManualToolStripMenuItem" Click="UserManualToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/GotoManual.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="_Changelog" Name="changelogToolStripMenuItem" Click="ChangelogToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/Changelog.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <Separator />
+    <MenuItem Header="_Translate" Name="translateToolStripMenuItem" Click="TranslateToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/Translate.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <Separator />
+    <MenuItem Header="_Donate" Name="donateToolStripMenuItem" Click="DonateToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/DollarSign.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="_Yes, I allow telemetry" Name="tsmiTelemetryEnabled" Click="TsmiTelemetryEnabled_Click">
+        <MenuItem.Icon>
+            <CheckBox IsChecked="True" BorderThickness="0" IsHitTestVisible="False" Name="tsmiTelemetryEnabledCheckBox" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="_Report an issue" Name="reportAnIssueToolStripMenuItem" Click="reportAnIssueToolStripMenuItem_Click">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/BugReport.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="Check for _updates" Name="checkForUpdatesToolStripMenuItem" Click="checkForUpdatesToolStripMenuItem_Click">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/CheckForUpdates.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="_About" Name="aboutToolStripMenuItem" Click="AboutToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/information.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+</MenuItem>

@@ -106,6 +106,7 @@ namespace GitUI
 
         public static bool ConfirmUpdateSubmodules(IWin32Window? owner)
         {
+#if !AVALONIA
             TaskDialogPage page = new()
             {
                 Text = Instance._updateSubmodulesToo.Text,
@@ -128,6 +129,9 @@ namespace GitUI
             }
 
             return result;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         public static bool ConfirmBranchCheckout(IWin32Window? owner, string branchName)

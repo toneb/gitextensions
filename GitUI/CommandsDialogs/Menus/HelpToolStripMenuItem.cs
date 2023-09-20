@@ -1,6 +1,9 @@
 ﻿using GitCommands;
 using GitExtUtils.GitUI.Theming;
 using GitUI.CommandsDialogs.BrowseDialog;
+#if AVALONIA
+using EventArgs = Avalonia.Interactivity.RoutedEventArgs;
+#endif
 
 namespace GitUI.CommandsDialogs.Menus
 {
@@ -10,42 +13,68 @@ namespace GitUI.CommandsDialogs.Menus
         {
             InitializeComponent();
 
+#if !AVALONIA // NOTE: not needed in Avalonia, since we're showing checkbox which has corresponding dark theme
             translateToolStripMenuItem.AdaptImageLightness();
+#endif
         }
 
         private void this_DropDownOpening(object sender, EventArgs e)
         {
+#if !AVALONIA
             tsmiTelemetryEnabled.Checked = AppSettings.TelemetryEnabled ?? false;
+#else
+            tsmiTelemetryEnabledCheckBox.IsChecked = AppSettings.TelemetryEnabled ?? false;
+#endif
         }
 
         private void AboutToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             using FormAbout frm = new();
             frm.ShowDialog(OwnerForm);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void ChangelogToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             using FormChangeLog frm = new();
             frm.ShowDialog(OwnerForm);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             FormUpdates updateForm = new(AppSettings.AppVersion);
             updateForm.SearchForUpdatesAndShow(Owner, true);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void DonateToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             using FormDonate frm = new();
             frm.ShowDialog(OwnerForm);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void reportAnIssueToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if !AVALONIA
             UserEnvironmentInformation.CopyInformation();
             OsShellUtil.OpenUrlInDefaultBrowser(@"https://github.com/gitextensions/gitextensions/issues");
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void TranslateToolStripMenuItemClick(object sender, EventArgs e)

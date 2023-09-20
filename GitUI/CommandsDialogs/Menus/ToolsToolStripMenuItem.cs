@@ -5,6 +5,9 @@ using GitUI.Infrastructure;
 using GitUI.Shells;
 using Microsoft;
 using ResourceManager;
+#if AVALONIA
+using EventArgs = Avalonia.Interactivity.RoutedEventArgs;
+#endif
 
 namespace GitUI.CommandsDialogs.Menus
 {
@@ -20,31 +23,51 @@ namespace GitUI.CommandsDialogs.Menus
 
             if (!EnvUtils.RunningOnWindows())
             {
+#if !AVALONIA
                 toolStripSeparator6.Visible = false;
                 PuTTYToolStripMenuItem.Visible = false;
+#else
+                toolStripSeparator6.IsVisible = false;
+                PuTTYToolStripMenuItem.IsVisible = false;
+#endif
             }
         }
 
         public override void RefreshShortcutKeys(IEnumerable<HotkeyCommand>? hotkeys)
         {
+#if !AVALONIA
             gitBashToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKey(hotkeys, (int)FormBrowse.Command.GitBash);
             gitGUIToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKey(hotkeys, (int)FormBrowse.Command.GitGui);
             kGitToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKey(hotkeys, (int)FormBrowse.Command.GitGitK);
             settingsToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKey(hotkeys, (int)FormBrowse.Command.OpenSettings);
+#else
+            SetShortcutKey(gitBashToolStripMenuItem, hotkeys, (int)FormBrowse.Command.GitBash);
+            SetShortcutKey(gitGUIToolStripMenuItem, hotkeys, (int)FormBrowse.Command.GitGui);
+            SetShortcutKey(kGitToolStripMenuItem, hotkeys, (int)FormBrowse.Command.GitGitK);
+            SetShortcutKey(settingsToolStripMenuItem, hotkeys, (int)FormBrowse.Command.OpenSettings);
+#endif
 
             base.RefreshShortcutKeys(hotkeys);
         }
 
         public override void RefreshState(bool bareRepository)
         {
+#if !AVALONIA
             gitGUIToolStripMenuItem.Enabled = !bareRepository;
+#else
+            gitGUIToolStripMenuItem.IsEnabled = !bareRepository;
+#endif
 
             base.RefreshState(bareRepository);
         }
 
         private void GitcommandLogToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             FormGitCommandLog.ShowOrActivate(OwnerForm);
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void GitGuiToolStripMenuItemClick(object sender, EventArgs e)

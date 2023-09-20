@@ -48,6 +48,7 @@
         /// <returns>The path selected by the user, or null if the user cancels the dialog.</returns>
         public static string? PickFolder(IWin32Window ownerWindow, string? selectedPath = null)
         {
+#if !AVALONIA
             using (FolderBrowserDialog dialog = new())
             {
                 if (selectedPath is not null)
@@ -64,6 +65,9 @@
 
             // return null if the user cancelled
             return null;
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
     }
 }

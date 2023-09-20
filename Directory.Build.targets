@@ -34,18 +34,31 @@
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Resources.Extensions" />
 
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+
+    <!-- Avalonia usings -->
     <Using Include="Avalonia" />
-    <Using Include="System.Drawing" />
     <Using Include="Avalonia.Interactivity" />
+    <Using Include="Avalonia.Controls" />
     <Using Include="AvaloniaMonkeyPatch" />
+
+    <!-- Remap WinForms controls to Avalonia controls -->
     <Using Alias="IWin32Window" Include="Avalonia.Controls.Window" />
+    <Using Alias="Form" Include="Avalonia.Controls.Window" />
     <Using Alias="Control" Include="Avalonia.Controls.Control" />
     <Using Alias="UserControl" Include="Avalonia.Controls.UserControl" />
+    <Using Alias="ToolStripMenuItem" Include="Avalonia.Controls.MenuItem" />
     <Using Alias="Keys" Include="Avalonia.Input.KeyGesture" />
-    <Using Alias="Form" Include="Avalonia.Controls.Window" />
     <Using Alias="Application" Include="AvaloniaMonkeyPatch.Application" />
+
+    <!-- Include System.Drawing (otherwise included by net-windows framework) -->
+    <Using Include="System.Drawing" />
+
+    <!-- Manually resolve conflicting type names between Avalonia and System.Drawing -->
     <Using Alias="Size" Include="System.Drawing.Size" />
     <Using Alias="Point" Include="System.Drawing.Point" />
+    <Using Alias="Image" Include="System.Drawing.Image" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Avalonia)' != 'true'">

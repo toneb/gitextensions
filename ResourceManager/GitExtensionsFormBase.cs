@@ -147,6 +147,10 @@ namespace ResourceManager
             this.AdjustForDpiScaling();
             this.EnableRemoveWordHotkey();
 #endif
+
+#if AVALONIA
+            this.AttachDevTools(Keys.Parse("F11")); // F12 is already used by Git Command Log
+#endif
         }
 
         #region Translation

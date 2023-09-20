@@ -149,10 +149,6 @@
     <Compile Remove="CommandsDialogs/FormatPatchDialog/SmtpCredentials.resx" />
     <Compile Remove="CommandsDialogs/Menus/CopyPathsToolStripMenuItem.cs" />
     <Compile Remove="CommandsDialogs/Menus/CopyPathsToolStripMenuItem.Designer.cs" />
-    <Compile Remove="CommandsDialogs/Menus/HelpToolStripMenuItem.cs" />
-    <Compile Remove="CommandsDialogs/Menus/HelpToolStripMenuItem.Designer.cs" />
-    <Compile Remove="CommandsDialogs/Menus/ToolsToolStripMenuItem.cs" />
-    <Compile Remove="CommandsDialogs/Menus/ToolsToolStripMenuItem.Designer.cs" />
     <Compile Remove="CommandsDialogs/RepoHosting/CreatePullRequestForm.cs" />
     <Compile Remove="CommandsDialogs/RepoHosting/CreatePullRequestForm.Designer.cs" />
     <Compile Remove="CommandsDialogs/RepoHosting/CreatePullRequestForm.resx" />
@@ -564,7 +560,6 @@
     <Compile Remove="Script/SimplePrompt.Designer.cs" />
     <Compile Remove="Script/SplitButton.cs" />
     <Compile Remove="Shells/ConEmuControlExtensions.cs" />
-    <Compile Remove="Shells/ShellProvider.cs" />
     <Compile Remove="SpellChecker/EditNetSpell.cs" />
     <Compile Remove="SpellChecker/EditNetSpell.Designer.cs" />
     <Compile Remove="SpellChecker/EditNetSpell.resx" />
@@ -699,7 +694,6 @@
     <Compile Remove="GitExtensionsDialog.resx" />
     <Compile Remove="GitModuleControl.cs" />
     <Compile Remove="GitUIExtensions.cs" />
-    <Compile Remove="MessageBoxes.cs" />
     <Compile Remove="MouseWheelRedirector.cs" />
     <Compile Remove="RevisionDiffInfoProvider.cs" />
     <Compile Remove="SortableBindingList.cs" />
@@ -717,6 +711,9 @@
 
   <!-- Exclude windows forms specific files from avalonia build -->
   <ItemGroup Condition="'$(Avalonia)' == 'true'">
+    <Compile Remove="CommandsDialogs/Menus/HelpToolStripMenuItem.Designer.cs" />
+    <Compile Remove="CommandsDialogs/Menus/StartToolStripMenuItem.Designer.cs" />
+    <Compile Remove="CommandsDialogs/Menus/ToolsToolStripMenuItem.Designer.cs" />
     <Compile Remove="CommandsDialogs/FormBrowse.Designer.cs" />
     <Compile Remove="CommandsDialogs/FormBrowse.resx" />
   </ItemGroup>
@@ -725,11 +722,5 @@
   <ItemGroup Condition="'$(Avalonia)' == 'true'">
     <!-- this extension is not needed, since avalonia has ClickThrough by default -->
     <Compile Remove="UserControls/MenuStripEx.cs" />
-
-    <!-- I didn't find a way to implement menu items as custom control, thus this functionality was moved directly into FormBrowse -->
-    <!-- TODO: transfer its functionalities to FormBrowse -->
-    <Compile Remove="CommandsDialogs/Menus/ToolStripMenuItemEx.cs" />
-    <Compile Remove="CommandsDialogs/Menus/StartToolStripMenuItem.cs" />
-    <Compile Remove="CommandsDialogs/Menus/StartToolStripMenuItem.Designer.cs" />
   </ItemGroup>
 </Project>

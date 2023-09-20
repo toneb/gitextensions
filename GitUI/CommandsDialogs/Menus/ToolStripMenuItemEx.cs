@@ -6,6 +6,11 @@ namespace GitUI.CommandsDialogs.Menus
 {
     internal abstract class ToolStripMenuItemEx : ToolStripMenuItem, ITranslate
     {
+#if AVALONIA
+        // Appear as MenuItem in visual tree
+        protected override Type StyleKeyOverride => typeof(MenuItem);
+#endif
+
         private Func<GitUICommands>? _getUICommands;
 
         /// <summary>
@@ -23,8 +28,13 @@ namespace GitUI.CommandsDialogs.Menus
         /// <summary>
         ///  Gets the form that is displaying the menu item.
         /// </summary>
+#if !AVALONIA
         protected static Form? OwnerForm
             => Form.ActiveForm ?? (Application.OpenForms.Count > 0 ? Application.OpenForms[0] : null);
+#else
+        protected Form? OwnerForm
+            => VisualRoot as Form ?? ((Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)Avalonia.Application.Current?.ApplicationLifetime)?.Windows[0];
+#endif
 
         /// <summary>
         ///  Initializes the menu item.
@@ -42,11 +52,30 @@ namespace GitUI.CommandsDialogs.Menus
         /// </summary>
         /// <param name="hotkeys">The collection of configured shortcut keys.</param>
         /// <param name="commandCode">The required shortcut identifier.</param>
-        /// <returns>The string representation of the shortcut, if exists; otherwise, the string representation of <see cref="Keys.None"/>.</returns>
+        /// <returns>The string representation of the shortcut, if exists; otherwise, the string representation of Keys.None.</returns>
         protected static string GetShortcutKey(IEnumerable<HotkeyCommand>? hotkeys, int commandCode)
         {
+#if !AVALONIA
             return (hotkeys?.FirstOrDefault(h => h.CommandCode == commandCode)?.KeyData ?? Keys.None).ToShortcutKeyDisplayString();
+#else
+            return hotkeys?.FirstOrDefault(h => h.CommandCode == commandCode)?.KeyData.ToShortcutKeyDisplayString() ?? "";
+#endif
         }
+
+#if AVALONIA
+        /// <summary>
+        ///  Sets the shortcut key to given <paramref name="menuItem" /> from provided <paramref name="commandCode"/> if it exists in <paramref name="hotkeys"/> collection.
+        /// </summary>
+        /// <param name="menuItem">The menu item to assign shortcut key to.</param>
+        /// <param name="hotkeys">The collection of configured shortcut keys.</param>
+        /// <param name="commandCode">The required shortcut identifier.</param>
+        protected static void SetShortcutKey(MenuItem menuItem, IEnumerable<HotkeyCommand>? hotkeys, int commandCode)
+        {
+            Avalonia.Input.KeyGesture inputGesture = Keys.Parse(GetShortcutKey(hotkeys, (int)FormBrowse.Command.OpenRepo));
+            menuItem.InputGesture = inputGesture;
+            menuItem.HotKey = inputGesture;
+        }
+#endif
 
         /// <summary>
         ///  Allows reloading/reassigning the configured shortcut key.

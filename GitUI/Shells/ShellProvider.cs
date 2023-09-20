@@ -13,6 +13,7 @@ namespace GitUI.Shells
 
         public string GetShellCommandLine(string? shellType)
         {
+#if !AVALONIA
             var shell = GetShell(shellType);
 
             if (!shell.HasExecutable || shell.ExecutableCommandLine is null)
@@ -22,6 +23,9 @@ namespace GitUI.Shells
             }
 
             return shell.ExecutableCommandLine;
+#else
+            throw new NotImplementedException();
+#endif
         }
     }
 }

@@ -3,6 +3,9 @@ using GitCommands.Git;
 using GitCommands.UserRepositoryHistory;
 using GitUI.CommandsDialogs.BrowseDialog;
 using ResourceManager;
+#if AVALONIA
+using EventArgs = Avalonia.Interactivity.RoutedEventArgs;
+#endif
 
 namespace GitUI.CommandsDialogs.Menus
 {
@@ -18,11 +21,16 @@ namespace GitUI.CommandsDialogs.Menus
             InitializeComponent();
 
             _repositoryHistoryUIService.GitModuleChanged += repositoryHistoryUIService_GitModuleChanged;
+
+#if AVALONIA
+            DetachedFromVisualTree += (_, _) => _repositoryHistoryUIService.GitModuleChanged -= repositoryHistoryUIService_GitModuleChanged;
+#endif
         }
 
         internal ToolStripMenuItem OpenRepositoryMenuItem => openToolStripMenuItem;
         internal ToolStripMenuItem FavouriteRepositoriesMenuItem => tsmiFavouriteRepositories;
 
+#if !AVALONIA
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -38,10 +46,15 @@ namespace GitUI.CommandsDialogs.Menus
 
             base.Dispose(disposing);
         }
+#endif
 
         public override void RefreshShortcutKeys(IEnumerable<HotkeyCommand>? hotkeys)
         {
+#if !AVALONIA
             openToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKey(hotkeys, (int)FormBrowse.Command.OpenRepo);
+#else
+            SetShortcutKey(openToolStripMenuItem, hotkeys, (int)FormBrowse.Command.OpenRepo);
+#endif
 
             base.RefreshShortcutKeys(hotkeys);
         }
@@ -63,11 +76,15 @@ namespace GitUI.CommandsDialogs.Menus
 
         private void OpenToolStripMenuItemClick(object sender, EventArgs e)
         {
+#if !AVALONIA
             GitModule? module = FormOpenDirectory.OpenModule(OwnerForm, UICommands.Module);
             if (module is not null)
             {
                 GitModuleChanged?.Invoke(OwnerForm, new GitModuleEventArgs(module));
             }
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void repositoryHistoryUIService_GitModuleChanged(object? sender, GitModuleEventArgs e)
@@ -77,14 +94,19 @@ namespace GitUI.CommandsDialogs.Menus
 
         private void tsmiFavouriteRepositories_DropDownOpening(object sender, EventArgs e)
         {
+#if !AVALONIA
             tsmiFavouriteRepositories.DropDown.SuspendLayout();
             tsmiFavouriteRepositories.DropDownItems.Clear();
             _repositoryHistoryUIService.PopulateFavouriteRepositoriesMenu(tsmiFavouriteRepositories);
             tsmiFavouriteRepositories.DropDown.ResumeLayout();
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void tsmiRecentRepositories_DropDownOpening(object sender, EventArgs e)
         {
+#if !AVALONIA
             tsmiRecentRepositories.DropDown.SuspendLayout();
             tsmiRecentRepositories.DropDownItems.Clear();
             _repositoryHistoryUIService.PopulateRecentRepositoriesMenu(tsmiRecentRepositories);
@@ -97,6 +119,9 @@ namespace GitUI.CommandsDialogs.Menus
             ////TranslateItem(tsmiRecentRepositoriesClear.Name, tsmiRecentRepositoriesClear);
             tsmiRecentRepositories.DropDownItems.Add(tsmiRecentRepositoriesClear);
             tsmiRecentRepositories.DropDown.ResumeLayout();
+#else
+            throw new NotImplementedException("TODO - avalonia");
+#endif
         }
 
         private void tsmiRecentRepositoriesClear_Click(object sender, EventArgs e)

@@ -2,39 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Width="939" Height="612"
         x:Class="GitUI.CommandsDialogs.FormBrowse"
+        xmlns:mc="using:GitUI.CommandsDialogs.Menus"
         Title="Git Extensions">
     <DockPanel>
         <Menu DockPanel.Dock="Top" Name="mainMenuStrip">
-            <MenuItem Header="_Start" Name="fileToolStripMenuItem">
-                <MenuItem Header="_Create new repository..." Name="initNewRepositoryToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/RepoCreate.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="_Open..." InputGesture="Ctrl+O" HotKey="Ctrl+O" Name="openToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/RepoOpen.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="_Favorite repositories" Name="tsmiFavouriteRepositories">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/star.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="_Recent repositories" Name="tsmiRecentRepositories">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/RecentRepositories.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <MenuItem Header="C_lone repository..." Name="cloneToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/CloneRepoGit.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <MenuItem Header="E_xit" InputGesture="Ctrl+Q" HotKey="Ctrl+Q" Name="exitToolStripMenuItem" />
-            </MenuItem>
+            <mc:StartToolStripMenuItem Name="fileToolStripMenuItem" GitModuleChanged="SetGitModule" />
             <MenuItem Header="_Dashboard" Name="dashboardToolStripMenuItem">
                 <MenuItem Header="_Refresh" Name="refreshDashboardToolStripMenuItem" Click="RefreshDashboardToolStripMenuItemClick">
                     <MenuItem.Icon>
@@ -265,111 +237,31 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="_Tools" Name="toolsToolStripMenuItem">
-                <!-- TODO Click="gitBashToolStripMenuItem_Click" -->
-                <MenuItem Header="Git _bash" InputGesture="Ctrl+G" HotKey="Ctrl+G" Name="gitBashToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/GitForWindows.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <!-- TODO Click="GitGuiToolStripMenuItemClick" -->
-                <MenuItem Header="Git _GUI" Name="gitGUIToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/GitGui.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <!-- TODO Click="KGitToolStripMenuItemClick" -->
-                <MenuItem Header="Git_K" Name="kGitToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/Gitk.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <MenuItem Header="_PuTTY" Name="PuTTYToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/putty.png" />
-                    </MenuItem.Icon>
-                    <!-- TODO Click="StartAuthenticationAgentToolStripMenuItemClick" -->
-                    <MenuItem Header="Start authentication agent" Name="startAuthenticationAgentToolStripMenuItem">
-                        <MenuItem.Icon>
-                            <Image Source="../Resources/Icons/Pageant16.png" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <!-- TODO Click="GenerateOrImportKeyToolStripMenuItemClick" -->
-                    <MenuItem Header="Generate or import key" Name="generateOrImportKeyToolStripMenuItem">
-                        <MenuItem.Icon>
-                            <Image Source="../Resources/Icons/puttygen.png" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </MenuItem>
-                <Separator />
-                <!-- TODO Click="GitcommandLogToolStripMenuItemClick" -->
-                <MenuItem Header="Git _command log" InputGesture="F12" HotKey="F12" Name="gitcommandLogToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/GitCommandLog.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <!-- TODO Click="OnShowSettingsClick" -->
-                <MenuItem Header="_Settings" InputGesture="Ctrl+," HotKey="Ctrl+," Name="settingsToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/Settings.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
-            <MenuItem Header="_Help" Name="helpToolStripMenuItem">
-                <!-- TODO Click="UserManualToolStripMenuItemClick" -->
-                <MenuItem Header="User _manual" Name="userManualToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/GotoManual.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <!-- TODO Click="ChangelogToolStripMenuItemClick" -->
-                <MenuItem Header="_Changelog" Name="changelogToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/Changelog.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <!-- TODO Click="TranslateToolStripMenuItemClick" -->
-                <MenuItem Header="_Translate" Name="translateToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/Translate.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <!-- TODO Click="DonateToolStripMenuItemClick" -->
-                <MenuItem Header="_Donate" Name="donateToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/DollarSign.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <!-- TODO Click="TsmiTelemetryEnabled_Click" -->
-                <MenuItem Header="_Yes, I allow telemetry" Name="tsmiTelemetryEnabled" >
-                    <MenuItem.Icon>
-                        <CheckBox IsChecked="True" BorderThickness="0" IsHitTestVisible="False" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <!-- TODO Click="reportAnIssueToolStripMenuItem_Click" -->
-                <MenuItem Header="_Report an issue" Name="reportAnIssueToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/BugReport.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <!-- TODO Click="checkForUpdatesToolStripMenuItem_Click" -->
-                <MenuItem Header="Check for _updates" Name="checkForUpdatesToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/CheckForUpdates.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <!-- TODO Click="AboutToolStripMenuItemClick" -->
-                <MenuItem Header="_About" Name="aboutToolStripMenuItem">
-                    <MenuItem.Icon>
-                        <Image Source="../Resources/Icons/information.png" />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
+            <mc:ToolsToolStripMenuItem Name="toolsToolStripMenuItem" SettingsChanged="toolsToolStripMenuItem_SettingsChanged" />
+            <mc:HelpToolStripMenuItem Name="helpToolStripMenuItem" />
         </Menu>
+
+
+
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+            <Button Content="B1" />
+            <Button Content="B2" />
+            <Button Content="B3" />
+            <Button Content="B4" />
+            <Button Content="B5" />
+            <Button Content="B6" />
+            <Button Content="B7" />
+            <Button Content="B8" />
+            <Button Content="B9" />
+            <Button Content="B10" />
+            <Button Content="B11" />
+            <Button Content="B12" />
+            <Button Content="B13" />
+            <Button Content="B14" />
+            <Button Content="B15" />
+            <Button Content="B16" />
+            <Button Content="B17" />
+        </StackPanel>
 
         <TextBlock>
             Welcome to avalonia

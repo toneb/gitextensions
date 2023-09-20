@@ -280,11 +280,9 @@ namespace GitUI.CommandsDialogs
             _isFileBlameHistory = args.IsFileBlameHistory;
             InitializeComponent();
 
-#if !AVALONIA // TODO - avalonia
             fileToolStripMenuItem.Initialize(() => UICommands);
             helpToolStripMenuItem.Initialize(() => UICommands);
             toolsToolStripMenuItem.Initialize(() => UICommands);
-#endif
 
             _repositoryHistoryUIService.GitModuleChanged += SetGitModule;
 
