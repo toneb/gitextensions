@@ -26,6 +26,18 @@ namespace ResourceManager
             _translate = form;
         }
 
+        public GitExtensionsControlInitialiser(GitExtensionsFormBaseAvalonia form)
+        {
+            if (IsDesignMode)
+            {
+                return;
+            }
+
+            ThreadHelper.ThrowIfNotOnUIThread();
+            form.Loaded += LoadHandler;
+            _translate = form;
+        }
+
         public GitExtensionsControlInitialiser(GitExtensionsControl control)
         {
             if (IsDesignMode)
@@ -69,7 +81,16 @@ namespace ResourceManager
 
             _initialiseCompleteCalled = true;
 
-            ((Control)_translate).Font = AppSettings.Font;
+            if (_translate is Control control)
+            {
+                control.Font = AppSettings.Font;
+            }
+            else
+            {
+                // Avalonia.Controls.Control ...
+                // TODO - avalonia
+            }
+
             Translator.Translate(_translate, AppSettings.CurrentTranslation);
         }
 

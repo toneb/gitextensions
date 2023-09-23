@@ -1,4 +1,6 @@
-﻿using GitCommands;
+﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
+using GitCommands;
 using GitCommands.Git;
 using GitCommands.UserRepositoryHistory;
 using GitUI.CommandsDialogs.BrowseDialog;
@@ -6,7 +8,7 @@ using ResourceManager;
 
 namespace GitUI.CommandsDialogs.Menus
 {
-    internal partial class StartToolStripMenuItem : ToolStripMenuItemEx
+    internal partial class StartToolStripMenuItem : ToolStripMenuItemExAvalonia
     {
         private readonly RepositoryHistoryUIService _repositoryHistoryUIService = new();
 
@@ -17,51 +19,36 @@ namespace GitUI.CommandsDialogs.Menus
         {
             InitializeComponent();
 
-            _repositoryHistoryUIService.GitModuleChanged += repositoryHistoryUIService_GitModuleChanged;
+            AttachedToVisualTree += (_, _) => _repositoryHistoryUIService.GitModuleChanged += repositoryHistoryUIService_GitModuleChanged;
+            DetachedFromVisualTree += (_, _) => _repositoryHistoryUIService.GitModuleChanged -= repositoryHistoryUIService_GitModuleChanged;
         }
 
-        internal ToolStripMenuItem OpenRepositoryMenuItem => openToolStripMenuItem;
-        internal ToolStripMenuItem FavouriteRepositoriesMenuItem => tsmiFavouriteRepositories;
-
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-
-                _repositoryHistoryUIService.GitModuleChanged -= repositoryHistoryUIService_GitModuleChanged;
-            }
-
-            base.Dispose(disposing);
-        }
+        internal MenuItem OpenRepositoryMenuItem => openToolStripMenuItem;
+        internal MenuItem FavouriteRepositoriesMenuItem => tsmiFavouriteRepositories;
 
         public override void RefreshShortcutKeys(IEnumerable<HotkeyCommand>? hotkeys)
         {
-            openToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKey(hotkeys, (int)FormBrowse.Command.OpenRepo);
+            SetShortcutKey(openToolStripMenuItem, hotkeys, (int)FormBrowse.Command.OpenRepo);
 
             base.RefreshShortcutKeys(hotkeys);
         }
 
-        private void CloneToolStripMenuItemClick(object sender, EventArgs e)
+        private void CloneToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
             UICommands.StartCloneDialog(OwnerForm, string.Empty, false, GitModuleChanged);
         }
 
-        private void ExitToolStripMenuItemClick(object sender, EventArgs e)
+        private void ExitToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
             OwnerForm?.Close();
         }
 
-        private void InitNewRepositoryToolStripMenuItemClick(object sender, EventArgs e)
+        private void InitNewRepositoryToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
             UICommands.StartInitializeDialog(OwnerForm, gitModuleChanged: GitModuleChanged);
         }
 
-        private void OpenToolStripMenuItemClick(object sender, EventArgs e)
+        private void OpenToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
             GitModule? module = FormOpenDirectory.OpenModule(OwnerForm, UICommands.Module);
             if (module is not null)
@@ -75,16 +62,21 @@ namespace GitUI.CommandsDialogs.Menus
             GitModuleChanged?.Invoke(this, e);
         }
 
-        private void tsmiFavouriteRepositories_DropDownOpening(object sender, EventArgs e)
+        private void tsmiFavouriteRepositories_DropDownOpening(object sender, RoutedEventArgs e)
         {
+#if false
             tsmiFavouriteRepositories.DropDown.SuspendLayout();
             tsmiFavouriteRepositories.DropDownItems.Clear();
             _repositoryHistoryUIService.PopulateFavouriteRepositoriesMenu(tsmiFavouriteRepositories);
             tsmiFavouriteRepositories.DropDown.ResumeLayout();
+#endif
+
+            throw new NotImplementedException("TODO - avalonia");
         }
 
-        private void tsmiRecentRepositories_DropDownOpening(object sender, EventArgs e)
+        private void tsmiRecentRepositories_DropDownOpening(object sender, RoutedEventArgs e)
         {
+#if false
             tsmiRecentRepositories.DropDown.SuspendLayout();
             tsmiRecentRepositories.DropDownItems.Clear();
             _repositoryHistoryUIService.PopulateRecentRepositoriesMenu(tsmiRecentRepositories);
@@ -97,9 +89,12 @@ namespace GitUI.CommandsDialogs.Menus
             ////TranslateItem(tsmiRecentRepositoriesClear.Name, tsmiRecentRepositoriesClear);
             tsmiRecentRepositories.DropDownItems.Add(tsmiRecentRepositoriesClear);
             tsmiRecentRepositories.DropDown.ResumeLayout();
+#endif
+
+            throw new NotImplementedException("TODO - avalonia");
         }
 
-        private void tsmiRecentRepositoriesClear_Click(object sender, EventArgs e)
+        private void tsmiRecentRepositoriesClear_Click(object sender, RoutedEventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             ThreadHelper.JoinableTaskFactory.Run(() => RepositoryHistoryManager.Locals.SaveRecentHistoryAsync(Array.Empty<Repository>()));

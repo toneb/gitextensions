@@ -1,0 +1,51 @@
+<MenuItem xmlns="https://github.com/avaloniaui"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+          mc:Ignorable="d"
+          x:Class="GitUI.CommandsDialogs.Menus.ToolsToolStripMenuItem"
+          Header="_Tools">
+    <MenuItem Header="Git _bash" InputGesture="Ctrl+G" HotKey="Ctrl+G" Name="gitBashToolStripMenuItem" Click="gitBashToolStripMenuItem_Click">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/GitForWindows.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="Git _GUI" Name="gitGUIToolStripMenuItem" Click="GitGuiToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/GitGui.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <MenuItem Header="Git_K" Name="kGitToolStripMenuItem" Click="KGitToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/Gitk.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <Separator Name="toolStripSeparator6" />
+    <MenuItem Header="_PuTTY" Name="PuTTYToolStripMenuItem">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/putty.png" />
+        </MenuItem.Icon>
+        <MenuItem Header="Start authentication agent" Name="startAuthenticationAgentToolStripMenuItem" Click="StartAuthenticationAgentToolStripMenuItemClick">
+            <MenuItem.Icon>
+                <Image Source="../../Resources/Icons/Pageant16.png" />
+            </MenuItem.Icon>
+        </MenuItem>
+        <MenuItem Header="Generate or import key" Name="generateOrImportKeyToolStripMenuItem" Click="GenerateOrImportKeyToolStripMenuItemClick">
+            <MenuItem.Icon>
+                <Image Source="../../Resources/Icons/puttygen.png" />
+            </MenuItem.Icon>
+        </MenuItem>
+    </MenuItem>
+    <Separator />
+    <MenuItem Header="Git _command log" InputGesture="F12" HotKey="F12" Name="gitcommandLogToolStripMenuItem" Click="GitcommandLogToolStripMenuItemClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/GitCommandLog.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+    <Separator />
+    <MenuItem Header="_Settings" InputGesture="Ctrl+," HotKey="Ctrl+," Name="settingsToolStripMenuItem" Click="OnShowSettingsClick">
+        <MenuItem.Icon>
+            <Image Source="../../Resources/Icons/Settings.png" />
+        </MenuItem.Icon>
+    </MenuItem>
+</MenuItem>

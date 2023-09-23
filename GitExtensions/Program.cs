@@ -1,5 +1,6 @@
 using System.Configuration;
 using System.Diagnostics;
+using Avalonia;
 using GitCommands;
 using GitCommands.Utils;
 using GitExtUtils.GitUI;
@@ -11,6 +12,7 @@ using GitUI.NBugReports;
 using GitUI.Theming;
 using GitUIPluginInterfaces;
 using Microsoft.VisualStudio.Threading;
+using Application = System.Windows.Forms.Application;
 
 namespace GitExtensions
 {
@@ -33,6 +35,11 @@ namespace GitExtensions
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
+
+            AppBuilder.Configure<App>()
+                .UseWin32()
+                .UseSkia()
+                .SetupWithoutStarting();
 
             bool checkForIllegalCrossThreadCalls = false;
 #if !DEBUG

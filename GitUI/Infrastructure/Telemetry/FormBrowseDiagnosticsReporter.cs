@@ -17,7 +17,9 @@ namespace GitUI.Infrastructure.Telemetry
             Dictionary<string, string> properties = new()
                 {
                     // layout
+#if false // TODO - avalonia
                     { "ShowLeftPanel".FormatKey(), _owner.MainSplitContainer.Panel1Collapsed.ToString() },
+#endif
                     { nameof(AppSettings.ShowSplitViewLayout).FormatKey(), AppSettings.ShowSplitViewLayout.ToString() },
                     { nameof(AppSettings.CommitInfoPosition).FormatKey(), AppSettings.CommitInfoPosition.ToString() },
 

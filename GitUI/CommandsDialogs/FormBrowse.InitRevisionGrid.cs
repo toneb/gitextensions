@@ -10,6 +10,7 @@ namespace GitUI.CommandsDialogs
 
         private void InitRevisionGrid(ObjectId? selectedId, ObjectId? firstId, bool isBlame)
         {
+#if false
             RevisionGrid.IndexWatcher.Changed += (_, args) =>
             {
                 bool indexChanged = args.IsIndexChanged;
@@ -94,6 +95,8 @@ namespace GitUI.CommandsDialogs
 
             RevisionGrid.SelectedId = selectedId;
             RevisionGrid.FirstId = firstId;
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
     }
 }

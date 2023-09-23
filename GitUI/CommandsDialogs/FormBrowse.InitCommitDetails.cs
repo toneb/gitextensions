@@ -12,6 +12,7 @@ namespace GitUI.CommandsDialogs
 
         private void InitCommitDetails()
         {
+#if false
             // set tab page images
             CommitInfoTabControl.ImageList = new ImageList
             {
@@ -43,14 +44,19 @@ namespace GitUI.CommandsDialogs
 
             // Populate terminal tab after translation within InitializeComplete
             FillTerminalTab();
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
 
         private void FillBuildReport(GitRevision? revision)
         {
+#if false
             _buildReportTabPageExtension ??= new BuildReportTabPageExtension(() => Module, CommitInfoTabControl, _buildReportTabCaption.Text);
 
             // Note: FillBuildReport will check if tab is visible and revision is OK
             _buildReportTabPageExtension.FillBuildReport(revision);
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
     }
 }

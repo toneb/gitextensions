@@ -15,6 +15,11 @@
 
   <ItemGroup>
     <PackageReference Include="AppInsights.WindowsDesktop" />
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Win32.Interoperability" />
     <PackageReference Include="EnvDTE" />
     <PackageReference Include="ExCSS" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Core" />
@@ -41,7 +46,7 @@
       <LastGenOutput>Images.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Properties\Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
-    <Compile Update="CommandsDialogs\Menus\StartToolStripMenuItem.cs">
+    <Compile Update="CommandsDialogs\Menus\StartToolStripMenuItem.axaml.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="UserControls\FilterToolBar.Designer.cs">
@@ -83,6 +88,11 @@
     <Content Update="Themes\darksilver.css">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <!-- Avalonia -->
+  <ItemGroup>
+    <AvaloniaResource Include="Resources/Icons/*.png" />
   </ItemGroup>
 
 </Project>

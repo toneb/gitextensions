@@ -340,7 +340,7 @@ namespace GitUI.NBugReports
 
             static void ShowGitRepo(Form? ownerForm, string? workingDir)
             {
-                if (ownerForm is FormBrowse formBrowse)
+                if (ownerForm is FormBrowseWrapper formBrowse)
                 {
                     ThreadHelper.JoinableTaskFactory.Run(async () =>
                         {

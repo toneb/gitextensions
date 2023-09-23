@@ -15,6 +15,7 @@ namespace GitUI.CommandsDialogs
 
         private void InitMenusAndToolbars(string? revFilter, string? pathFilter)
         {
+#if false
             commandsToolStripMenuItem.DropDownOpening += CommandsToolStripMenuItem_DropDownOpening;
 
             InitFilters();
@@ -133,10 +134,13 @@ namespace GitUI.CommandsDialogs
                 }
 #endif
             }
+#endif
+            // throw new NotImplementedException("TODO - avalonia");
         }
 
         private void InsertFetchPullShortcuts()
         {
+#if false
             int i = ToolStripMain.Items.IndexOf(toolStripButtonPull);
             ToolStripMain.Items.Insert(i++, CreateCorrespondingToolbarButton(fetchToolStripMenuItem));
             ToolStripMain.Items.Insert(i++, CreateCorrespondingToolbarButton(fetchAllToolStripMenuItem));
@@ -162,10 +166,13 @@ namespace GitUI.CommandsDialogs
                 clonedToolStripMenuItem.Click += (_, _) => toolStripMenuItem.PerformClick();
                 return clonedToolStripMenuItem;
             }
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
 
         private void FillNextPullActionAsDefaultToolStripMenuItems()
         {
+#if false
             var setDefaultPullActionDropDown = (ToolStripDropDownMenu)setDefaultPullButtonActionToolStripMenuItem.DropDown;
 
             // Show both Check and Image margins in a menu
@@ -208,10 +215,13 @@ namespace GitUI.CommandsDialogs
                 AppSettings.DefaultPullAction = (AppSettings.PullAction)clickedMenuItem.Tag;
                 RefreshDefaultPullAction();
             }
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
 
         private void FillUserShells(string defaultShell)
         {
+#if false
             userShell.DropDownItems.Clear();
 
             bool userShellAccessible = false;
@@ -255,10 +265,13 @@ namespace GitUI.CommandsDialogs
                 userShell.ToolTipText = shell.Name;
                 userShell.Tag = shell;
             }
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
 
         private void RefreshDefaultPullAction()
         {
+#if false
             if (setDefaultPullButtonActionToolStripMenuItem is null)
             {
                 // We may get called while instantiating the form
@@ -304,10 +317,13 @@ namespace GitUI.CommandsDialogs
                     toolStripButtonPull.ToolTipText = _pullOpenDialog.Text;
                     break;
             }
+#endif
+            // throw new NotImplementedException("TODO - avalonia");
         }
 
         private Brush UpdateCommitButtonAndGetBrush(IReadOnlyList<GitItemStatus>? status, bool showCount)
         {
+#if false
             RepoStateVisualiser repoStateVisualiser = new();
             var (image, brush) = repoStateVisualiser.Invoke(status);
 
@@ -340,6 +356,8 @@ namespace GitUI.CommandsDialogs
             }
 
             return brush;
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
     }
 }

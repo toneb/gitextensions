@@ -1121,7 +1121,7 @@ namespace GitUI
         /// <param name="args">The start up arguments.</param>
         public bool StartBrowseDialog(IWin32Window? owner, BrowseArguments? args = null)
         {
-            FormBrowse form = new(this, args ?? new BrowseArguments());
+            FormBrowseWrapper form = new(this, args ?? new BrowseArguments());
 
             if (Application.MessageLoop)
             {
@@ -1743,7 +1743,7 @@ namespace GitUI
                 // when the filter gets set.
 
                 ShowModelessForm(owner: null, requiresValidWorkingDir: true, preEvent: null, postEvent: null,
-                                 () => new FormBrowse(commands: this, new BrowseArguments
+                                 () => new FormBrowseWrapper(commands: this, new BrowseArguments
                                  {
                                      RevFilter = filterByRevision ? revision?.ObjectId.ToString() : null,
                                      PathFilter = fileHistoryFileName,

@@ -209,7 +209,7 @@ namespace GitUI.CommandsDialogs.WorktreeDialog
 
         private void OpenWorktree(string workTreePath)
         {
-            ((FormBrowse)Owner).SetWorkingDir(System.IO.Path.GetFullPath(workTreePath));
+            ((FormBrowseWrapper)Owner).SetWorkingDir(System.IO.Path.GetFullPath(workTreePath));
             Close();
         }
 

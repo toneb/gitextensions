@@ -674,7 +674,7 @@ namespace GitUI.CommandsDialogs
 
         private void diffFilterFileInGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            (FindForm() as FormBrowse)?.SetPathFilter(string.Join(" ", DiffFiles.SelectedItems.Select(f => f.Item.Name.ToPosixPath().QuoteNE())));
+            (FindForm() as FormBrowseWrapper)?.SetPathFilter(string.Join(" ", DiffFiles.SelectedItems.Select(f => f.Item.Name.ToPosixPath().QuoteNE())));
         }
 
         private void UpdateStatusOfMenuItems()
@@ -786,7 +786,7 @@ namespace GitUI.CommandsDialogs
             // switch to view (and fills the first level of file tree data model if not already done)
             string name = DiffFiles.SelectedItems.First().Item.Name;
             int? line = DiffText.Visible ? DiffText.CurrentFileLine : BlameControl.CurrentFileLine;
-            (FindForm() as FormBrowse)?.ExecuteCommand(FormBrowse.Command.FocusFileTree);
+            (FindForm() as FormBrowseWrapper)?.ExecuteCommand(FormBrowse.Command.FocusFileTree);
             _revisionFileTree.ExpandToFile(name, line, requestBlame);
         }
 
@@ -1318,7 +1318,7 @@ namespace GitUI.CommandsDialogs
         {
             var submodules = DiffFiles.SelectedItems.Where(it => it.Item.IsSubmodule).Select(it => it.Item.Name).Distinct().ToList();
 
-            FormProcess.ShowDialog(FindForm() as FormBrowse, arguments: GitCommandHelpers.SubmoduleUpdateCmd(submodules), Module.WorkingDir, input: null, useDialogSettings: true);
+            FormProcess.ShowDialog(FindForm() as FormBrowseWrapper, arguments: GitCommandHelpers.SubmoduleUpdateCmd(submodules), Module.WorkingDir, input: null, useDialogSettings: true);
             RequestRefresh();
         }
 

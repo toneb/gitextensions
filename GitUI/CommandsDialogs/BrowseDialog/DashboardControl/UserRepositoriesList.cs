@@ -724,7 +724,7 @@ namespace GitUI.CommandsDialogs.BrowseDialog.DashboardControl
 
         private void RecentRepositoriesList_Load(object sender, EventArgs e)
         {
-            if (!(Parent.FindForm() is FormBrowse form))
+            if (!(Parent.FindForm() is FormBrowseWrapper form))
             {
                 return;
             }
