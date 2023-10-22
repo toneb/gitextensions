@@ -2,7 +2,7 @@
 
 namespace GitUI.UserControls
 {
-    public class NativeListView : System.Windows.Forms.ListView
+    public class NativeListView : ListView
     {
         internal static event EventHandler? BeginCreateHandle;
         internal static event EventHandler? EndCreateHandle;
@@ -23,7 +23,7 @@ namespace GitUI.UserControls
 
         protected override void WndProc(ref Message m)
         {
-            var message = m;
+            Message message = m;
             switch (m.Msg)
             {
                 default:

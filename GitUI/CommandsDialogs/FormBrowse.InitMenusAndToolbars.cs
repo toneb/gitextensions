@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
-using GitCommands;
+﻿using GitCommands;
+using GitExtUtils;
 using GitExtUtils.GitUI.Theming;
+using GitUI.Hotkey;
 using GitUI.Properties;
 using GitUI.Shells;
 using GitUI.UserControls;
@@ -124,13 +125,13 @@ namespace GitUI.CommandsDialogs
                 // 3. Assert all toolbars on the same row
                 foreach (ToolStrip toolStrip in toolStrips)
                 {
-                    Debug.Assert(toolStrip.Top == 0, $"{toolStrip.Name} must be placed on the 1st row");
+                    DebugHelpers.Assert(toolStrip.Top == 0, $"{toolStrip.Name} must be placed on the 1st row");
                 }
 
                 // 4. Assert the correct order of toolbars
                 for (int i = toolStrips.Length - 1; i > 0; i--)
                 {
-                    Debug.Assert(toolStrips[i].Left < toolStrips[i - 1].Left, $"{toolStrips[i - 1].Name} must be placed before {toolStrips[i].Name}");
+                    DebugHelpers.Assert(toolStrips[i].Left < toolStrips[i - 1].Left, $"{toolStrips[i - 1].Name} must be placed before {toolStrips[i].Name}");
                 }
 #endif
             }
@@ -173,7 +174,7 @@ namespace GitUI.CommandsDialogs
         private void FillNextPullActionAsDefaultToolStripMenuItems()
         {
 #if false
-            var setDefaultPullActionDropDown = (ToolStripDropDownMenu)setDefaultPullButtonActionToolStripMenuItem.DropDown;
+            ToolStripDropDownMenu setDefaultPullActionDropDown = (ToolStripDropDownMenu)setDefaultPullButtonActionToolStripMenuItem.DropDown;
 
             // Show both Check and Image margins in a menu
             setDefaultPullActionDropDown.ShowImageMargin = true;
@@ -188,7 +189,7 @@ namespace GitUI.CommandsDialogs
                 }
             };
 
-            var setDefaultPullActionDropDownItems = toolStripButtonPull.DropDownItems
+            IEnumerable<ToolStripItem> setDefaultPullActionDropDownItems = toolStripButtonPull.DropDownItems
                 .OfType<ToolStripMenuItem>()
                 .Where(tsmi => tsmi.Tag is AppSettings.PullAction)
                 .Select(tsmi =>
@@ -211,7 +212,7 @@ namespace GitUI.CommandsDialogs
 
             void SetDefaultPullActionMenuItemClick(object sender, EventArgs eventArgs)
             {
-                var clickedMenuItem = (ToolStripMenuItem)sender;
+                ToolStripMenuItem clickedMenuItem = (ToolStripMenuItem)sender;
                 AppSettings.DefaultPullAction = (AppSettings.PullAction)clickedMenuItem.Tag;
                 RefreshDefaultPullAction();
             }
@@ -260,7 +261,7 @@ namespace GitUI.CommandsDialogs
             // set the first available shell as default
             if (userShell.Visible && !userShellAccessible)
             {
-                var shell = (IShellDescriptor)userShell.DropDownItems[0].Tag;
+                IShellDescriptor shell = (IShellDescriptor)userShell.DropDownItems[0].Tag;
                 userShell.Image = shell.Icon;
                 userShell.ToolTipText = shell.Name;
                 userShell.Tag = shell;
@@ -278,7 +279,7 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var defaultPullAction = AppSettings.DefaultPullAction;
+            AppSettings.PullAction defaultPullAction = AppSettings.DefaultPullAction;
 
             foreach (ToolStripMenuItem menuItem in setDefaultPullButtonActionToolStripMenuItem.DropDown.Items)
             {
@@ -317,6 +318,8 @@ namespace GitUI.CommandsDialogs
                     toolStripButtonPull.ToolTipText = _pullOpenDialog.Text;
                     break;
             }
+
+            toolStripButtonPull.ToolTipText += GetShortcutKeys(Command.QuickPullOrFetch).ToShortcutKeyToolTipString();
 #endif
             // throw new NotImplementedException("TODO - avalonia");
         }
@@ -325,7 +328,7 @@ namespace GitUI.CommandsDialogs
         {
 #if false
             RepoStateVisualiser repoStateVisualiser = new();
-            var (image, brush) = repoStateVisualiser.Invoke(status);
+            (Image image, Brush brush) = repoStateVisualiser.Invoke(status);
 
             if (showCount)
             {

@@ -22,7 +22,7 @@ namespace GitExtensions.Plugins.ReleaseNotesGenerator
         ///    string html = "<b>Hello!</b>";
         ///    HtmlFragment.CopyToClipboard(html);
         ///    HtmlFragment html2 = HtmlFragment.FromClipboard();
-        ///    Debug.Assert(html2.Fragment == html);
+        ///    DebugHelpers.Assert(html2.Fragment == html);
         /// </example>
         public static HtmlFragment FromClipboard()
         {
@@ -161,7 +161,7 @@ namespace GitExtensions.Plugins.ReleaseNotesGenerator
         /// <param name="sourceUri">optional Source URL of the HTML document, for resolving relative links (can be null)</param>
         public static void CopyToClipboard(string htmlFragment, string? title = null, Uri? sourceUri = null)
         {
-            var dataObject = CreateHtmlFormatClipboardDataObject(htmlFragment, title, sourceUri);
+            DataObject dataObject = CreateHtmlFormatClipboardDataObject(htmlFragment, title, sourceUri);
 
             Clipboard.Clear();
             Clipboard.SetDataObject(dataObject);

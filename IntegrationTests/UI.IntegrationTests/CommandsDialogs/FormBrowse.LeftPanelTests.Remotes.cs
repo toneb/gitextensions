@@ -1,12 +1,12 @@
-﻿using CommonTestUtils;
-using CommonTestUtils.MEF;
+﻿using System.ComponentModel.Design;
+using CommonTestUtils;
 using FluentAssertions;
 using GitCommands;
 using GitCommands.Remotes;
 using GitUI;
 using GitUI.CommandsDialogs;
-using GitUIPluginInterfaces;
-using Microsoft.VisualStudio.Composition;
+using GitUI.ScriptsEngine;
+using NSubstitute;
 
 namespace GitExtensions.UITests.CommandsDialogs
 {
@@ -53,21 +53,13 @@ namespace GitExtensions.UITests.CommandsDialogs
             // we will be modifying .git/config and need to completely reset each time
             _referenceRepository = new ReferenceRepository();
 
-            foreach (var name in RemoteNames)
+            foreach (string name in RemoteNames)
             {
                 _referenceRepository.Module.AddRemote(name, $"http://localhost/remotes/{name}.git");
             }
 
-            _commands = new GitUICommands(_referenceRepository.Module);
+            _commands = new GitUICommands(GlobalServiceContainer.CreateDefaultMockServiceContainer(), _referenceRepository.Module);
             _remotesManager = new ConfigFileRemoteSettingsManager(() => _referenceRepository.Module);
-
-            var composition = TestComposition.Empty
-                .AddParts(typeof(MockLinkFactory))
-                .AddParts(typeof(MockWindowsJumpListManager))
-                .AddParts(typeof(MockRepositoryDescriptionProvider))
-                .AddParts(typeof(MockAppTitleGenerator));
-            ExportProvider mefExportProvider = composition.ExportProviderFactory.CreateExportProvider();
-            ManagedExtensibility.SetTestExportProvider(mefExportProvider);
         }
 
         [TearDown]
@@ -100,7 +92,7 @@ namespace GitExtensions.UITests.CommandsDialogs
                     // no-op: by the virtue of loading the form, the left panel has loaded its content
 
                     // assert
-                    var names = remotesNode.Nodes.OfType<TreeNode>().Select(x => x.Text).ToList();
+                    List<string> names = remotesNode.Nodes.OfType<TreeNode>().Select(x => x.Text).ToList();
                     names.Should().BeEquivalentTo(RemoteNames);
                     names.Should().BeInAscendingOrder();
                 });
@@ -169,7 +161,7 @@ namespace GitExtensions.UITests.CommandsDialogs
                     // no-op: by the virtue of loading the form, the left panel has loaded its content
 
                     // assert
-                    var inactiveNodes = remotesNode.Nodes.OfType<TreeNode>().Last().Nodes.OfType<TreeNode>().Select(n => n.Text).ToList();
+                    List<string> inactiveNodes = remotesNode.Nodes.OfType<TreeNode>().Last().Nodes.OfType<TreeNode>().Select(n => n.Text).ToList();
                     inactiveNodes.Count.Should().Be(3);
                     inactiveNodes.Should().BeEquivalentTo(RemoteNames[3], RemoteNames[0], RemoteNames[1]);
                     inactiveNodes.Should().BeInAscendingOrder();
@@ -188,8 +180,8 @@ namespace GitExtensions.UITests.CommandsDialogs
             // Await all async operation such as load of branches and remotes in the left panel
             ThreadHelper.JoinPendingOperations();
 
-            var treeView = form.GetTestAccessor().RepoObjectsTree.GetTestAccessor().TreeView;
-            var remotesNode = treeView.Nodes.OfType<TreeNode>().FirstOrDefault(n => n.Text == TranslatedStrings.Remotes);
+            GitUI.UserControls.NativeTreeView treeView = form.GetTestAccessor().RepoObjectsTree.GetTestAccessor().TreeView;
+            TreeNode remotesNode = treeView.Nodes.OfType<TreeNode>().FirstOrDefault(n => n.Text == TranslatedStrings.Remotes);
             remotesNode.Should().NotBeNull();
 
             return remotesNode;

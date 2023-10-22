@@ -1,6 +1,5 @@
 ﻿using GitCommands;
 using GitCommands.Git;
-using GitCommands.Git.Commands;
 using GitUIPluginInterfaces;
 using Microsoft;
 using ResourceManager;
@@ -18,14 +17,6 @@ namespace GitUI.CommandsDialogs
         private readonly IEnumerable<string> _defaultBranches;
         private string? _currentBranch;
         private HashSet<string>? _mergedBranches;
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormDeleteBranch()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
 
         public FormDeleteBranch(GitUICommands commands, IEnumerable<string> defaultBranches)
             : base(commands, enablePositionRestore: false)
@@ -75,7 +66,7 @@ namespace GitUI.CommandsDialogs
 
         private void Delete_Click(object sender, EventArgs e)
         {
-            var selectedBranches = Branches.GetSelectedBranches().ToArray();
+            IGitRef[] selectedBranches = Branches.GetSelectedBranches().ToArray();
             if (!selectedBranches.Any())
             {
                 return;
@@ -115,7 +106,7 @@ namespace GitUI.CommandsDialogs
                 }
             }
 
-            GitDeleteBranchCmd cmd = new(selectedBranches, force: true);
+            IGitCommand cmd = Commands.DeleteBranch(selectedBranches, force: true);
             bool success = UICommands.StartCommandLineProcessDialog(Owner, cmd);
             if (success)
             {

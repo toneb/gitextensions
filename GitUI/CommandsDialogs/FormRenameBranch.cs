@@ -12,14 +12,6 @@ namespace GitUI.CommandsDialogs
         private readonly GitBranchNameOptions _gitBranchNameOptions = new(AppSettings.AutoNormaliseSymbol);
         private readonly string _oldName;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormRenameBranch()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
         public FormRenameBranch(GitUICommands commands, string defaultBranch)
             : base(commands)
         {
@@ -38,8 +30,8 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var caretPosition = BranchNameTextBox.SelectionStart;
-            var branchName = _branchNameNormaliser.Normalise(BranchNameTextBox.Text, _gitBranchNameOptions);
+            int caretPosition = BranchNameTextBox.SelectionStart;
+            string branchName = _branchNameNormaliser.Normalise(BranchNameTextBox.Text, _gitBranchNameOptions);
             BranchNameTextBox.Text = branchName;
             BranchNameTextBox.SelectionStart = caretPosition;
         }
@@ -50,7 +42,7 @@ namespace GitUI.CommandsDialogs
             // if the user hits [Enter] at any point, we need to trigger BranchNameTextBox Leave event
             Ok.Focus();
 
-            var newName = BranchNameTextBox.Text;
+            string newName = BranchNameTextBox.Text;
 
             if (newName == _oldName)
             {
@@ -60,7 +52,7 @@ namespace GitUI.CommandsDialogs
 
             try
             {
-                var renameBranchResult = Module.RenameBranch(_oldName, newName);
+                string renameBranchResult = Module.RenameBranch(_oldName, newName);
 
                 if (!string.IsNullOrEmpty(renameBranchResult))
                 {

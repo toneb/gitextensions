@@ -26,14 +26,6 @@ namespace GitUI.CommandsDialogs.RepoHosting
         private readonly AsyncLoader _remoteLoader = new();
         private bool _ignoreFirstRemoteLoading = true;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private CreatePullRequestForm()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
         public CreatePullRequestForm(GitUICommands commands, IRepositoryHostPlugin repoHost, string? chooseRemote, string? chooseBranch)
             : base(commands)
         {
@@ -119,7 +111,7 @@ namespace GitUI.CommandsDialogs.RepoHosting
         {
             _yourBranchesCB.Items.Clear();
 
-            var myRemote = MyRemote;
+            IHostedRemote myRemote = MyRemote;
 
             if (myRemote is null)
             {
@@ -131,23 +123,20 @@ namespace GitUI.CommandsDialogs.RepoHosting
 
         private void PopulateBranchesComboAndEnableCreateButton(IHostedRemote remote, ComboBox comboBox)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(
-                    async () =>
+            ThreadHelper.FileAndForget(async () =>
                     {
-                        await TaskScheduler.Default;
-
                         try
                         {
                             IHostedRepository hostedRepository = remote.GetHostedRepository();
-                            var branches = hostedRepository.GetBranches();
+                            IReadOnlyList<IHostedBranch> branches = hostedRepository.GetBranches();
 
                             await this.SwitchToMainThreadAsync();
 
                             comboBox.Items.Clear();
 
-                            var selectItem = 0;
-                            var defaultBranch = hostedRepository.GetDefaultBranch();
-                            for (var i = 0; i < branches.Count; i++)
+                            int selectItem = 0;
+                            string defaultBranch = hostedRepository.GetDefaultBranch();
+                            for (int i = 0; i < branches.Count; i++)
                             {
                                 if (branches[i].Name == defaultBranch)
                                 {
@@ -175,15 +164,14 @@ namespace GitUI.CommandsDialogs.RepoHosting
                                     SizeToContent = true
                                 });
                         }
-                    })
-                .FileAndForget();
+                    });
         }
 
         private void _yourBranchCB_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_prevTitle == _titleTB.Text && !string.IsNullOrWhiteSpace(_yourBranchesCB.Text) && MyRemote is not null)
             {
-                var lastMsg = Module.GetPreviousCommitMessages(1, MyRemote.Name.Combine("/", _yourBranchesCB.Text)!).FirstOrDefault();
+                string lastMsg = Module.GetPreviousCommitMessages(1, MyRemote.Name.Combine("/", _yourBranchesCB.Text)!).FirstOrDefault();
                 _titleTB.Text = lastMsg?.SubstringUntil('\n');
                 _prevTitle = _titleTB.Text;
             }
@@ -196,8 +184,8 @@ namespace GitUI.CommandsDialogs.RepoHosting
                 return;
             }
 
-            var title = _titleTB.Text.Trim();
-            var body = _bodyTB.Text.Trim();
+            string title = _titleTB.Text.Trim();
+            string body = _bodyTB.Text.Trim();
             if (title.Length == 0)
             {
                 MessageBox.Show(this, _strYouMustSpecifyATitle.Text, TranslatedStrings.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -206,7 +194,7 @@ namespace GitUI.CommandsDialogs.RepoHosting
 
             try
             {
-                var hostedRepo = _currentHostedRemote.GetHostedRepository();
+                IHostedRepository hostedRepo = _currentHostedRemote.GetHostedRepository();
 
                 hostedRepo.CreatePullRequest(_yourBranchesCB.Text, _remoteBranchesCB.Text, title, body);
                 MessageBox.Show(this, _strDone.Text, _strPullRequest.Text, MessageBoxButtons.OK, MessageBoxIcon.Information);

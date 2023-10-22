@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using GitCommands;
 using GitCommands.Config;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitExtUtils.GitUI;
 using GitExtUtils.GitUI.Theming;
 using GitUI.CommandsDialogs.SubmodulesDialog;
@@ -19,12 +19,6 @@ namespace GitUI.CommandsDialogs
 
         private readonly BindingList<IGitSubmoduleInfo?> _modules = new();
         private GitSubmoduleInfo? _oldSubmoduleInfo;
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormSubmodules()
-        {
-            InitializeComponent();
-        }
 
         public FormSubmodules(GitUICommands commands)
             : base(commands)
@@ -72,7 +66,7 @@ namespace GitUI.CommandsDialogs
         private void Initialize()
         {
             _bw?.CancelAsync();
-            var waitScope = WaitCursorScope.Enter();
+            WaitCursorScope waitScope = WaitCursorScope.Enter();
             _oldSubmoduleInfo = null;
             if (Submodules.SelectedRows.Count == 1)
             {
@@ -91,7 +85,7 @@ namespace GitUI.CommandsDialogs
             };
             _bw.DoWork += (sender, e) =>
             {
-                foreach (var oldSubmodule in Module.GetSubmodulesInfo().Where(submodule => submodule is not null))
+                foreach (IGitSubmoduleInfo oldSubmodule in Module.GetSubmodulesInfo().Where(submodule => submodule is not null))
                 {
                     if (_bw.CancellationPending)
                     {
@@ -132,7 +126,7 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.SubmoduleSyncCmd(SubModuleLocalPath.Text), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.SubmoduleSync(SubModuleLocalPath.Text), Module.WorkingDir, input: null, useDialogSettings: true);
                 Initialize();
             }
         }
@@ -141,7 +135,7 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.SubmoduleUpdateCmd(SubModuleLocalPath.Text), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.SubmoduleUpdate(SubModuleLocalPath.Text), Module.WorkingDir, input: null, useDialogSettings: true);
                 Initialize();
             }
         }
@@ -182,7 +176,7 @@ namespace GitUI.CommandsDialogs
                     Module.UnstageFile(".gitmodules");
                 }
 
-                var configFile = Module.LocalConfigFile;
+                GitCommands.Settings.ConfigFileSettings configFile = Module.LocalConfigFile;
                 configFile.RemoveConfigSection("submodule \"" + SubModuleName.Text + "\"");
                 configFile.Save();
 
@@ -192,9 +186,9 @@ namespace GitUI.CommandsDialogs
 
         private void Pull_Click(object sender, EventArgs e)
         {
-            var submodule = Module.GetSubmodule(SubModuleLocalPath.Text);
+            GitModule submodule = Module.GetSubmodule(SubModuleLocalPath.Text);
 
-            new GitUICommands(submodule).StartPullDialog(this);
+            UICommands.WithGitModule(submodule).StartPullDialog(this);
 
             using (WaitCursorScope.Enter())
             {

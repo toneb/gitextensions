@@ -19,17 +19,17 @@ namespace GitUI
             }
 
             // FeatureControl settings are per-process
-            var appName = System.IO.Path.GetFileName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+            string appName = System.IO.Path.GetFileName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 
             const string featureControlRegKey = @"HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\Main\FeatureControl\";
 
-            if (TryGetBrowserEmulationMode(out var emulationMode))
+            if (TryGetBrowserEmulationMode(out uint emulationMode))
             {
                 try
                 {
                     Registry.SetValue(featureControlRegKey + "FEATURE_BROWSER_EMULATION", appName, emulationMode, RegistryValueKind.DWord);
                 }
-                catch (System.UnauthorizedAccessException)
+                catch (UnauthorizedAccessException)
                 {
                     // Don't fail when user have no rights to update the registry...
                 }
@@ -45,11 +45,11 @@ namespace GitUI
             try
             {
                 int browserVersion;
-                using (var ieKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Internet Explorer",
+                using (RegistryKey ieKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Internet Explorer",
                     RegistryKeyPermissionCheck.ReadSubTree,
                     System.Security.AccessControl.RegistryRights.QueryValues))
                 {
-                    var version = ieKey.GetValue("svcVersion");
+                    object version = ieKey.GetValue("svcVersion");
                     if (version is null)
                     {
                         version = ieKey.GetValue("Version");

@@ -1,12 +1,11 @@
-﻿using CommonTestUtils;
-using CommonTestUtils.MEF;
+﻿using System.ComponentModel.Design;
+using CommonTestUtils;
 using FluentAssertions;
 using GitCommands;
 using GitUI;
 using GitUI.CommandsDialogs;
 using GitUI.LeftPanel;
-using GitUIPluginInterfaces;
-using Microsoft.VisualStudio.Composition;
+using NSubstitute;
 
 namespace GitExtensions.UITests.CommandsDialogs
 {
@@ -64,7 +63,7 @@ namespace GitExtensions.UITests.CommandsDialogs
             _referenceRepository.Module.AddRemote(RemoteName, _remoteReferenceRepository.Module.WorkingDir);
             _referenceRepository.Fetch(RemoteName);
 
-            _commands = new GitUICommands(_referenceRepository.Module);
+            _commands = new GitUICommands(GlobalServiceContainer.CreateDefaultMockServiceContainer(), _referenceRepository.Module);
 
             _referenceRepository.CreateCommit("Commit1", "Commit1");
             _referenceRepository.CreateBranch("Branch1", _referenceRepository.CommitHash);
@@ -73,14 +72,6 @@ namespace GitExtensions.UITests.CommandsDialogs
             _referenceRepository.CreateBranch("Branch2", _referenceRepository.CommitHash);
 
             _referenceRepository.CreateCommit("head commit");
-
-            var composition = TestComposition.Empty
-                .AddParts(typeof(MockLinkFactory))
-                .AddParts(typeof(MockWindowsJumpListManager))
-                .AddParts(typeof(MockRepositoryDescriptionProvider))
-                .AddParts(typeof(MockAppTitleGenerator));
-            ExportProvider mefExportProvider = composition.ExportProviderFactory.CreateExportProvider();
-            ManagedExtensibility.SetTestExportProvider(mefExportProvider);
         }
 
         [TearDown]
@@ -121,9 +112,11 @@ namespace GitExtensions.UITests.CommandsDialogs
         private void RunRepoObjectsTreeTest(Action<ContextMenuStrip> testDriver)
         {
             RunFormTest(
-                form =>
+                async form =>
                 {
-                    var ta = form.GetTestAccessor().RepoObjectsTree.GetTestAccessor();
+                    await AsyncTestHelper.JoinPendingOperationsAsync(AsyncTestHelper.UnexpectedTimeout);
+
+                    RepoObjectsTree.TestAccessor ta = form.GetTestAccessor().RepoObjectsTree.GetTestAccessor();
 
                     // We are running several tests one after another to speed up the test execution
                     // as we don't need to re-create the host form
@@ -141,8 +134,6 @@ namespace GitExtensions.UITests.CommandsDialogs
                     ta.SelectNode<TagNode>(new[] { TranslatedStrings.Tags, "Branch1" });
                     ta.OpenContextMenu();
                     testDriver(contextMenu);
-
-                    return Task.CompletedTask;
                 });
         }
 

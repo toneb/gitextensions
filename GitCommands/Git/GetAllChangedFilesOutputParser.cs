@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
-using GitCommands.Git.Commands;
+using GitExtUtils;
 using GitUIPluginInterfaces;
 
 namespace GitCommands.Git
 {
     /// <summary>
-    /// Provides a parser for output of <see cref="GitCommandHelpers.GetAllChangedFilesCmd"/> command.
+    /// Provides a parser for output of <see cref="Commands.GetAllChangedFiles"/> command.
     /// </summary>
     public class GetAllChangedFilesOutputParser
     {
@@ -20,7 +20,7 @@ namespace GitCommands.Git
         /// Parse the output from git-status --porcelain=2 -z
         /// Note that the caller should check for fatal errors in the Git output.
         /// </summary>
-        /// <param name="getAllChangedFilesCommandOutput">An output of <see cref="GitCommandHelpers.GetAllChangedFilesCmd"/> command.</param>
+        /// <param name="getAllChangedFilesCommandOutput">An output of <see cref="Commands.GetAllChangedFiles"/> command.</param>
         /// <returns>list with the parsed GitItemStatus.</returns>
         /// <seealso href="https://git-scm.com/docs/git-status"/>
         public IReadOnlyList<GitItemStatus> Parse(string getAllChangedFilesCommandOutput)
@@ -32,7 +32,7 @@ namespace GitCommands.Git
         /// Parse git-status --porcelain=1 and git-diff --name-status
         /// Outputs are similar, except that git-status has status for both worktree and index.
         /// </summary>
-        /// <param name="getAllChangedFilesCommandOutput">An output of <see cref="GitCommandHelpers.GetAllChangedFilesCmd"/> command.</param>
+        /// <param name="getAllChangedFilesCommandOutput">An output of <see cref="Commands.GetAllChangedFiles"/> command.</param>
         /// <param name="fromDiff">Parse git-diff.</param>
         /// <param name="staged">The staged status <see cref="GitItemStatus"/>, only relevant for git-diff (parsed for git-status).</param>
         /// <returns>list with the git items.</returns>
@@ -48,10 +48,10 @@ namespace GitCommands.Git
             string trimmedStatus = RemoveWarnings(getAllChangedFilesCommandOutput);
 
             // Doesn't work with removed submodules
-            var submodules = GetModule().GetSubmodulesLocalPaths();
+            IReadOnlyList<string> submodules = GetModule().GetSubmodulesLocalPaths();
 
             // Split all files on '\0' (WE NEED ALL COMMANDS TO BE RUN WITH -z! THIS IS ALSO IMPORTANT FOR ENCODING ISSUES!)
-            var files = trimmedStatus.Split(Delimiters.Null, StringSplitOptions.RemoveEmptyEntries);
+            string[] files = trimmedStatus.Split(Delimiters.Null, StringSplitOptions.RemoveEmptyEntries);
             for (int n = 0; n < files.Length; n++)
             {
                 if (string.IsNullOrEmpty(files[n]))
@@ -106,7 +106,7 @@ namespace GitCommands.Git
                     || y != GitItemStatusConverter.UnmergedStatus)
                 {
                     GitItemStatus gitItemStatusX;
-                    var stagedX = fromDiff ? staged : StagedStatus.Index;
+                    StagedStatus stagedX = fromDiff ? staged : StagedStatus.Index;
                     if (x == GitItemStatusConverter.RenamedStatus || x == GitItemStatusConverter.CopiedStatus)
                     {
                         // Find renamed files...
@@ -133,7 +133,7 @@ namespace GitCommands.Git
                 }
 
                 GitItemStatus gitItemStatusY;
-                var stagedY = StagedStatus.WorkTree;
+                StagedStatus stagedY = StagedStatus.WorkTree;
                 if (y == GitItemStatusConverter.RenamedStatus || y == GitItemStatusConverter.CopiedStatus)
                 {
                     // Find renamed files...
@@ -174,7 +174,7 @@ namespace GitCommands.Git
             string trimmedStatus = RemoveWarnings(getAllChangedFilesCommandOutput);
 
             // Split all files on '\0'
-            var files = trimmedStatus.Split(Delimiters.Null, StringSplitOptions.RemoveEmptyEntries);
+            string[] files = trimmedStatus.Split(Delimiters.Null, StringSplitOptions.RemoveEmptyEntries);
             for (int n = 0; n < files.Length; n++)
             {
                 string line = files[n];
@@ -222,12 +222,12 @@ namespace GitCommands.Git
 
                 if (entryType == OrdinaryEntry)
                 {
-                    Debug.Assert(line.Length > 113, "Cannot parse line:" + line);
+                    DebugHelpers.Assert(line.Length > 113, "Cannot parse line:" + line);
                     fileName = line[113..];
                 }
                 else if (entryType == RenamedEntry)
                 {
-                    Debug.Assert(n + 1 < files.Length, "Cannot parse renamed:" + line);
+                    DebugHelpers.Assert(n + 1 < files.Length, "Cannot parse renamed:" + line);
 
                     // Find renamed files...
                     string[] renames = line[114..].Split(Delimiters.Space, 2);
@@ -237,7 +237,7 @@ namespace GitCommands.Git
                 }
                 else if (entryType == UnmergedEntry)
                 {
-                    Debug.Assert(line.Length > 161, "Cannot parse unmerged:" + line);
+                    DebugHelpers.Assert(line.Length > 161, "Cannot parse unmerged:" + line);
                     fileName = line[161..];
                 }
                 else
@@ -264,7 +264,7 @@ namespace GitCommands.Git
                     return;
                 }
 
-                var staged = isIndex ? StagedStatus.Index : StagedStatus.WorkTree;
+                StagedStatus staged = isIndex ? StagedStatus.Index : StagedStatus.WorkTree;
                 GitItemStatus gitItemStatus = GitItemStatusConverter.FromStatusCharacter(staged, fileName, x);
                 if (oldFileName is not null)
                 {
@@ -335,7 +335,7 @@ namespace GitCommands.Git
 
         private IGitModule GetModule()
         {
-            var module = _getModule();
+            IGitModule module = _getModule();
 
             if (module is null)
             {
@@ -348,7 +348,7 @@ namespace GitCommands.Git
         private static string RemoveWarnings(string statusString)
         {
             // The status string from git-diff can show warnings. See tests
-            var nl = new[] { '\n', '\r' };
+            char[] nl = new[] { '\n', '\r' };
             string trimmedStatus = statusString;
             int lastNewLinePos = trimmedStatus.LastIndexOfAny(nl);
             while (lastNewLinePos >= 0)

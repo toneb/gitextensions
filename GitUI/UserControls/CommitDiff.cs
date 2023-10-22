@@ -52,7 +52,7 @@ namespace GitUI.UserControls
                 DiffFiles.SetDiffs(new[] { revision });
                 if (fileToSelect is not null)
                 {
-                    var itemToSelect = DiffFiles.AllItems.FirstOrDefault(i => i.Item.Name == fileToSelect);
+                    FileStatusItem itemToSelect = DiffFiles.AllItems.FirstOrDefault(i => i.Item.Name == fileToSelect);
                     if (itemToSelect is not null)
                     {
                         DiffFiles.SelectedGitItem = itemToSelect.Item;
@@ -82,24 +82,17 @@ namespace GitUI.UserControls
 
         private void DiffFiles_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await ViewSelectedDiffAsync();
-            }).FileAndForget();
+            ViewSelectedDiff();
         }
 
         private void DiffText_ExtraDiffArgumentsChanged(object sender, EventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await ViewSelectedDiffAsync();
-            }).FileAndForget();
+            ViewSelectedDiff();
         }
 
-        private async Task ViewSelectedDiffAsync()
+        private void ViewSelectedDiff()
         {
-            await DiffText.ViewChangesAsync(DiffFiles.SelectedItem,
-                cancellationToken: _viewChangesSequence.Next());
+            DiffText.InvokeAndForget(() => DiffText.ViewChangesAsync(DiffFiles.SelectedItem, cancellationToken: _viewChangesSequence.Next()));
         }
     }
 }

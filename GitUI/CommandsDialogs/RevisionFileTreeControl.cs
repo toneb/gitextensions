@@ -90,9 +90,9 @@ See the changes in the commit form.");
                 return;
             }
 
-            var pathParts = filePath.Split(Delimiters.ForwardSlash);
+            string[] pathParts = filePath.Split(Delimiters.ForwardSlash);
 
-            var currentNodes = tvGitTree.Nodes;
+            TreeNodeCollection currentNodes = tvGitTree.Nodes;
             TreeNode? foundNode = null;
             bool isIncompleteMatch = false;
             for (int i = 0; i < pathParts.Length; i++)
@@ -100,7 +100,7 @@ See the changes in the commit form.");
                 string pathPart = pathParts[i];
                 string diffPathPart = pathPart.ToNativePath();
 
-                var currentFoundNode = currentNodes.Cast<TreeNode>().FirstOrDefault(a =>
+                TreeNode currentFoundNode = currentNodes.Cast<TreeNode>().FirstOrDefault(a =>
                 {
                     if (a.Tag is GitItem treeGitItem)
                     {
@@ -146,12 +146,12 @@ See the changes in the commit form.");
                 }
 
                 // AfterSelect will not fire when selecting again, show manually
-                tvGitTree.AfterSelect -= new System.Windows.Forms.TreeViewEventHandler(tvGitTree_AfterSelect);
+                tvGitTree.AfterSelect -= new TreeViewEventHandler(tvGitTree_AfterSelect);
                 tvGitTree.SelectedNode = foundNode;
-                tvGitTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(tvGitTree_AfterSelect);
+                tvGitTree.AfterSelect += new TreeViewEventHandler(tvGitTree_AfterSelect);
                 tvGitTree.SelectedNode.EnsureVisible();
 
-                ThreadHelper.JoinableTaskFactory.RunAsync(() => ShowGitItemAsync(gitItem, line));
+                this.InvokeAndForget(() => ShowGitItemAsync(gitItem, line));
             }
             else
             {
@@ -301,7 +301,7 @@ See the changes in the commit form.");
 
         public void ReloadHotkeys()
         {
-            Hotkeys = HotkeySettingsManager.LoadHotkeys(HotkeySettingsName);
+            LoadHotkeys(HotkeySettingsName);
             fileHistoryToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKeyDisplayString(Command.ShowHistory);
             blameToolStripMenuItem1.ShortcutKeyDisplayString = GetShortcutKeyDisplayString(Command.Blame);
             openWithDifftoolToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKeyDisplayString(Command.OpenWithDifftool);
@@ -338,6 +338,8 @@ See the changes in the commit form.");
 
         protected override void OnRuntimeLoad()
         {
+            base.OnRuntimeLoad();
+
             tvGitTree.ImageList = new ImageList(components)
             {
                 ColorDepth = ColorDepth.Depth32Bit,
@@ -349,16 +351,19 @@ See the changes in the commit form.");
                     Images.FolderSubmodule // Submodule
                 }
             };
+        }
+
+        protected override void OnUICommandsSourceSet(IGitUICommandsSource source)
+        {
+            base.OnUICommandsSourceSet(source);
 
             ReloadHotkeys();
-
-            base.OnRuntimeLoad();
         }
 
         private IEnumerable<string> FindFileMatches(string name)
         {
-            var candidates = _revision?.TreeGuid is null ? Enumerable.Empty<string>() : Module.GetFullTree(_revision.TreeGuid.ToString());
-            var predicate = _findFilePredicateProvider.Get(name, Module.WorkingDir);
+            IEnumerable<string> candidates = _revision?.TreeGuid is null ? Enumerable.Empty<string>() : Module.GetFullTree(_revision.TreeGuid.ToString());
+            Func<string?, bool> predicate = _findFilePredicateProvider.Get(name, Module.WorkingDir);
 
             return candidates.Where(predicate);
         }
@@ -389,7 +394,7 @@ See the changes in the commit form.");
             if (tvGitTree.SelectedNode?.Tag is GitItem { ObjectType: GitObjectType.Blob } gitItem &&
                 !string.IsNullOrWhiteSpace(gitItem.FileName))
             {
-                var fileName = gitItem.FileName.SubstringAfterLast('/').SubstringAfterLast('\\');
+                string fileName = gitItem.FileName.SubstringAfterLast('/').SubstringAfterLast('\\');
 
                 fileName = (Path.GetTempPath() + fileName).ToNativePath();
                 Module.SaveBlobAs(fileName, gitItem.Guid);
@@ -413,7 +418,9 @@ See the changes in the commit form.");
 
         private void tvGitTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(ViewItem);
+            this.InvokeAndForget(ViewItem);
+
+            return;
 
             Task ViewItem()
             {
@@ -501,7 +508,7 @@ See the changes in the commit form.");
             if (e.Item is TreeNode { Tag: GitItem gitItem })
             {
                 StringCollection fileList = new();
-                var fileName = _fullPathResolver.Resolve(gitItem.FileName);
+                string fileName = _fullPathResolver.Resolve(gitItem.FileName);
 
                 fileList.Add(fileName.ToNativePath());
 
@@ -533,7 +540,7 @@ See the changes in the commit form.");
             int? line = FileText.Visible ? FileText.CurrentFileLine : BlameControl.CurrentFileLine;
             blameToolStripMenuItem1.Checked = !blameToolStripMenuItem1.Checked;
 
-            ThreadHelper.JoinableTaskFactory.RunAsync(() => ShowGitItemAsync(gitItem, line));
+            this.InvokeAndForget(() => ShowGitItemAsync(gitItem, line));
         }
 
         private bool TryGetSelectedName([NotNullWhen(returnValue: true)] out string? name)
@@ -572,7 +579,7 @@ See the changes in the commit form.");
         private void findToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string? selectedItem;
-            using (var searchWindow = new SearchWindow<string>(FindFileMatches) { Owner = FindForm() })
+            using (SearchWindow<string> searchWindow = new(FindFileMatches) { Owner = FindForm() })
             {
                 searchWindow.ShowDialog(this);
                 selectedItem = searchWindow.SelectedItem;
@@ -583,12 +590,12 @@ See the changes in the commit form.");
                 return;
             }
 
-            var items = selectedItem.Split(Delimiters.ForwardSlash);
-            var nodes = tvGitTree.Nodes;
+            string[] items = selectedItem.Split(Delimiters.ForwardSlash);
+            TreeNodeCollection nodes = tvGitTree.Nodes;
 
-            for (var i = 0; i < items.Length - 1; i++)
+            for (int i = 0; i < items.Length - 1; i++)
             {
-                var selectedNode = _revisionFileTreeController.Find(nodes, items[i]);
+                TreeNode selectedNode = _revisionFileTreeController.Find(nodes, items[i]);
                 if (selectedNode is null)
                 {
                     return; // Item does not exist in the tree
@@ -598,7 +605,7 @@ See the changes in the commit form.");
                 nodes = selectedNode.Nodes;
             }
 
-            var lastItem = _revisionFileTreeController.Find(nodes, items[^1]);
+            TreeNode lastItem = _revisionFileTreeController.Find(nodes, items[^1]);
             if (lastItem is not null)
             {
                 tvGitTree.SelectedNode = lastItem;
@@ -612,7 +619,7 @@ See the changes in the commit form.");
                 return;
             }
 
-            var fileName = _fullPathResolver.Resolve(gitItem.FileName);
+            string fileName = _fullPathResolver.Resolve(gitItem.FileName);
             Validates.NotNull(fileName);
             int? lineNumber = BlameControl.Visible ? BlameControl.CurrentFileLine : FileText.CurrentFileLine;
             UICommands.StartFileEditorDialog(fileName, lineNumber: lineNumber);
@@ -754,7 +761,7 @@ See the changes in the commit form.");
 
         private void openFileWithToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var fileName = SaveSelectedItemToTempFile();
+            string fileName = SaveSelectedItemToTempFile();
             if (fileName is not null)
             {
                 OsShellUtil.OpenAs(fileName);
@@ -763,7 +770,7 @@ See the changes in the commit form.");
 
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var fileName = SaveSelectedItemToTempFile();
+            string fileName = SaveSelectedItemToTempFile();
             if (fileName is not null)
             {
                 OsShellUtil.Open(fileName);
@@ -782,7 +789,7 @@ See the changes in the commit form.");
         {
             if (tvGitTree.SelectedNode?.Tag is GitItem { ObjectType: GitObjectType.Blob } gitItem)
             {
-                var fileName = _fullPathResolver.Resolve(gitItem.FileName);
+                string fileName = _fullPathResolver.Resolve(gitItem.FileName);
                 if (File.Exists(fileName))
                 {
                     OsShellUtil.OpenAs(fileName.ToNativePath());
@@ -805,10 +812,10 @@ See the changes in the commit form.");
                 return;
             }
 
-            var fsi = _rememberFileContextMenuController.CreateFileStatusItem(gitItem.FileName, _revision);
-            var first = _rememberFileContextMenuController.GetGitCommit(Module.GetFileBlobHash,
+            FileStatusItem fsi = _rememberFileContextMenuController.CreateFileStatusItem(gitItem.FileName, _revision);
+            string first = _rememberFileContextMenuController.GetGitCommit(Module.GetFileBlobHash,
                 _rememberFileContextMenuController.RememberedDiffFileItem, isSecondRevision: true);
-            var second = _rememberFileContextMenuController.GetGitCommit(Module.GetFileBlobHash, fsi, isSecondRevision: true);
+            string second = _rememberFileContextMenuController.GetGitCommit(Module.GetFileBlobHash, fsi, isSecondRevision: true);
 
             Module.OpenFilesWithDifftool(first, second);
         }
@@ -820,7 +827,7 @@ See the changes in the commit form.");
                 return;
             }
 
-            var fsi = _rememberFileContextMenuController.CreateFileStatusItem(gitItem.FileName, _revision);
+            FileStatusItem fsi = _rememberFileContextMenuController.CreateFileStatusItem(gitItem.FileName, _revision);
             _rememberFileContextMenuController.RememberedDiffFileItem = fsi;
         }
 
@@ -839,7 +846,7 @@ See the changes in the commit form.");
         {
             if (tvGitTree.SelectedNode?.Tag is GitItem { ObjectType: GitObjectType.Blob } gitItem)
             {
-                var fullName = _fullPathResolver.Resolve(gitItem.FileName);
+                string fullName = _fullPathResolver.Resolve(gitItem.FileName);
                 using SaveFileDialog fileDialog =
                     new()
                     {
@@ -848,7 +855,7 @@ See the changes in the commit form.");
                         DefaultExt = Path.GetExtension(fullName),
                         AddExtension = true
                     };
-                var extension = Path.GetExtension(fileDialog.FileName);
+                string extension = Path.GetExtension(fileDialog.FileName);
 
                 fileDialog.Filter = $@"{_saveFileFilterCurrentFormat.Text}(*{extension})|*{extension}| {_saveFileFilterAllFiles.Text} (*.*)|*.*";
                 if (fileDialog.ShowDialog(this) == DialogResult.OK)
@@ -862,7 +869,7 @@ See the changes in the commit form.");
         {
             if (tvGitTree.SelectedNode?.Tag is GitItem item && item.ObjectType != GitObjectType.Tree)
             {
-                var filename = _fullPathResolver.Resolve(item.FileName);
+                string filename = _fullPathResolver.Resolve(item.FileName);
                 if (File.Exists(filename))
                 {
                     return filename;
@@ -874,7 +881,7 @@ See the changes in the commit form.");
 
         private void assumeUnchangedToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var selectedFile = GetSelectedFile();
+            string selectedFile = GetSelectedFile();
 
             if (selectedFile is null)
             {
@@ -883,7 +890,7 @@ See the changes in the commit form.");
 
             GitItemStatus itemStatus = new(name: selectedFile);
 
-            var answer = MessageBox.Show(_assumeUnchangedMessage.Text, _assumeUnchangedCaption.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            DialogResult answer = MessageBox.Show(_assumeUnchangedMessage.Text, _assumeUnchangedCaption.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
             if (answer == DialogResult.No)
             {
@@ -904,13 +911,13 @@ See the changes in the commit form.");
 
         private void stopTrackingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var filename = GetSelectedFile();
+            string filename = GetSelectedFile();
             if (filename is null)
             {
                 return;
             }
 
-            var answer = MessageBox.Show(string.Format(_stopTrackingMessage.Text, filename), _stopTrackingCaption.Text,
+            DialogResult answer = MessageBox.Show(string.Format(_stopTrackingMessage.Text, filename), _stopTrackingCaption.Text,
                 MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (answer == DialogResult.No)
             {

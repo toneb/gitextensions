@@ -23,7 +23,6 @@ namespace GitCommands
     /// <summary>
     /// Generates application title.
     /// </summary>
-    [Export(typeof(IAppTitleGenerator))]
     public sealed class AppTitleGenerator : IAppTitleGenerator
     {
         private readonly IRepositoryDescriptionProvider _descriptionProvider;
@@ -31,7 +30,6 @@ namespace GitCommands
         private static string? _extraInfo;
 #endif
 
-        [ImportingConstructor]
         public AppTitleGenerator(IRepositoryDescriptionProvider descriptionProvider)
         {
             _descriptionProvider = descriptionProvider;
@@ -53,7 +51,7 @@ namespace GitCommands
             // Pathname normally have quotes already
             pathName = GetFileName(pathName);
 
-            var description = _descriptionProvider.Get(workingDir);
+            string description = _descriptionProvider.Get(workingDir);
 
 #if DEBUG
             return $"{pathName}{description} ({branchName}) - {AppSettings.ApplicationName}{_extraInfo}";
@@ -84,7 +82,7 @@ namespace GitCommands
         public static void Initialise(string sha, string buildBranch)
         {
 #if DEBUG
-            if (ObjectId.TryParse(sha, out var objectId))
+            if (ObjectId.TryParse(sha, out ObjectId? objectId))
             {
                 _extraInfo = $" {objectId.ToShortString()}";
                 if (!string.IsNullOrWhiteSpace(buildBranch))

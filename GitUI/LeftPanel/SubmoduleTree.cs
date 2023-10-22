@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using GitCommands;
 using GitCommands.Submodules;
+using GitExtUtils;
 using GitUI.CommandsDialogs;
 using Microsoft;
 using Microsoft.VisualStudio.Threading;
@@ -9,14 +10,24 @@ namespace GitUI.LeftPanel
 {
     internal sealed class SubmoduleTree : Tree
     {
+        private readonly ISubmoduleStatusProvider _submoduleStatusProvider;
         private SubmoduleStatusEventArgs? _currentSubmoduleInfo;
         private Nodes? _currentNodes = null;
 
-        public SubmoduleTree(TreeNode treeNode, IGitUICommandsSource uiCommands)
-            : base(treeNode, uiCommands)
+        public SubmoduleTree(TreeNode treeNode, IGitUICommandsSource commandsSource)
+            : base(treeNode, commandsSource)
         {
-            SubmoduleStatusProvider.Default.StatusUpdating += Provider_StatusUpdating;
-            SubmoduleStatusProvider.Default.StatusUpdated += Provider_StatusUpdated;
+            _submoduleStatusProvider = UICommands.GetRequiredService<ISubmoduleStatusProvider>();
+            _submoduleStatusProvider.StatusUpdating += Provider_StatusUpdating;
+            _submoduleStatusProvider.StatusUpdated += Provider_StatusUpdated;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            _submoduleStatusProvider.StatusUpdating -= Provider_StatusUpdating;
+            _submoduleStatusProvider.StatusUpdated -= Provider_StatusUpdated;
         }
 
         private void Provider_StatusUpdating(object sender, EventArgs e)
@@ -36,7 +47,7 @@ namespace GitUI.LeftPanel
 
         private void OnStatusUpdated(SubmoduleStatusEventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            TreeViewNode.TreeView.InvokeAndForget(async () =>
             {
                 CancellationTokenSource? cts = null;
                 Task<Nodes>? loadNodesTask = null;
@@ -49,12 +60,12 @@ namespace GitUI.LeftPanel
                 if (_currentNodes is not null)
                 {
                     // Structure is up-to-date, update status
-                    var infos = e.Info.AllSubmodules.ToDictionary(info => info.Path, info => info);
+                    Dictionary<string, SubmoduleInfo> infos = e.Info.AllSubmodules.ToDictionary(info => info.Path, info => info);
                     Validates.NotNull(e.Info.TopProject);
                     infos[e.Info.TopProject.Path] = e.Info.TopProject;
-                    var nodes = _currentNodes.DepthEnumerator<SubmoduleNode>().ToList();
+                    List<SubmoduleNode> nodes = _currentNodes.DepthEnumerator<SubmoduleNode>().ToList();
 
-                    foreach (var node in nodes)
+                    foreach (SubmoduleNode node in nodes)
                     {
                         if (infos.ContainsKey(node.Info.Path))
                         {
@@ -64,7 +75,7 @@ namespace GitUI.LeftPanel
                         else
                         {
                             // structure no longer matching
-                            Debug.Assert(true, $"Status info with {1 + e.Info.AllSubmodules.Count} records do not match current nodes ({nodes.Count})");
+                            DebugHelpers.Assert(true, $"Status info with {1 + e.Info.AllSubmodules.Count} records do not match current nodes ({nodes.Count})");
                             _currentNodes = null;
                             break;
                         }
@@ -81,13 +92,15 @@ namespace GitUI.LeftPanel
 
                 if (_currentNodes is null)
                 {
-                    // Module.GetRefs() is not used for Submodules
-                    await ReloadNodesAsync((token, _) =>
-                    {
-                        cts = CancellationTokenSource.CreateLinkedTokenSource(e.Token, token);
-                        loadNodesTask = LoadNodesAsync(e.Info, cts.Token);
-                        return loadNodesTask;
-                    }, null).ConfigureAwait(false);
+                    // Module.GetRefs() is not used for submodules
+                    JoinableTask joinableTask = ReloadNodesDetached((token, _) =>
+                        {
+                            cts = CancellationTokenSource.CreateLinkedTokenSource(e.Token, token);
+                            loadNodesTask = LoadNodesAsync(e.Info, cts.Token);
+                            return loadNodesTask;
+                        },
+                        getRefs: null);
+                    await joinableTask.JoinAsync(e.Token);
                 }
 
                 if (cts is not null && loadNodesTask is not null)
@@ -109,7 +122,7 @@ namespace GitUI.LeftPanel
                 }
 
                 Interlocked.CompareExchange(ref _currentSubmoduleInfo, null, e);
-            }).FileAndForget();
+            });
         }
 
         private async Task<Nodes> LoadNodesAsync(SubmoduleInfoResult info, CancellationToken token)
@@ -177,7 +190,7 @@ namespace GitUI.LeftPanel
         {
             Validates.NotNull(result.TopProject);
 
-            var threadModule = (GitModule?)result.Module;
+            GitModule threadModule = (GitModule?)result.Module;
 
             Validates.NotNull(threadModule);
 
@@ -195,10 +208,10 @@ namespace GitUI.LeftPanel
         {
             // result.OurSubmodules/AllSubmodules contain a recursive list of submodules, but don't provide info about the super
             // project path. So we deduce these by substring matching paths against an ordered list of all paths.
-            var modulePaths = result.AllSubmodules.Select(info => info.Path).ToList();
+            List<string> modulePaths = result.AllSubmodules.Select(info => info.Path).ToList();
 
             // Add current and parent module paths
-            var parentModule = threadModule;
+            GitModule parentModule = threadModule;
 
             while (parentModule is not null)
             {
@@ -209,7 +222,7 @@ namespace GitUI.LeftPanel
             // Sort descending so we find the nearest outer folder first
             modulePaths = modulePaths.OrderByDescending(path => path).ToList();
 
-            foreach (var submoduleInfo in result.AllSubmodules)
+            foreach (SubmoduleInfo submoduleInfo in result.AllSubmodules)
             {
                 string? superPath = GetSubmoduleSuperPath(submoduleInfo.Path);
 
@@ -221,7 +234,7 @@ namespace GitUI.LeftPanel
 
                 string localPath = Path.GetDirectoryName(submoduleInfo.Path[superPath.Length..]).ToPosixPath();
 
-                var isCurrent = submoduleInfo.Bold;
+                bool isCurrent = submoduleInfo.Bold;
 
                 nodes.Add(new SubmoduleNode(this,
                     submoduleInfo,
@@ -275,25 +288,25 @@ namespace GitUI.LeftPanel
             // Input 'nodes' is an array of SubmoduleNodes for all the submodules; now we need to create SubmoduleFolderNodes
             // and insert everything into a tree.
 
-            var topModule = threadModule.GetTopModule();
+            GitModule topModule = threadModule.GetTopModule();
 
             // Build a mapping of top-module-relative path to node
             Dictionary<string, Node> pathToNodes = new();
 
             // Add existing SubmoduleNodes
-            foreach (var node in submoduleNodes)
+            foreach (SubmoduleNode node in submoduleNodes)
             {
                 pathToNodes[GetNodeRelativePath(topModule, node)] = node;
             }
 
             // Create and add missing SubmoduleFolderNodes
-            foreach (var node in submoduleNodes)
+            foreach (SubmoduleNode node in submoduleNodes)
             {
-                var parts = GetNodeRelativePath(topModule, node).Split(Delimiters.ForwardSlash);
+                string[] parts = GetNodeRelativePath(topModule, node).Split(Delimiters.ForwardSlash);
 
                 for (int i = 0; i < parts.Length - 1; ++i)
                 {
-                    var path = string.Join("/", parts.Take(i + 1));
+                    string path = string.Join("/", parts.Take(i + 1));
 
                     if (!pathToNodes.ContainsKey(path))
                     {
@@ -305,15 +318,15 @@ namespace GitUI.LeftPanel
             // Now build the tree
             DummyNode rootNode = new();
             HashSet<Node> nodesInTree = new();
-            foreach (var node in submoduleNodes)
+            foreach (SubmoduleNode node in submoduleNodes)
             {
                 Node parentNode = rootNode;
-                var parts = GetNodeRelativePath(topModule, node).Split(Delimiters.ForwardSlash);
+                string[] parts = GetNodeRelativePath(topModule, node).Split(Delimiters.ForwardSlash);
 
                 for (int i = 0; i < parts.Length; ++i)
                 {
-                    var path = string.Join("/", parts.Take(i + 1));
-                    var nodeToAdd = pathToNodes[path];
+                    string path = string.Join("/", parts.Take(i + 1));
+                    Node nodeToAdd = pathToNodes[path];
 
                     // If node is not already in the tree, add it
                     if (!nodesInTree.Contains(nodeToAdd))
@@ -380,13 +393,13 @@ namespace GitUI.LeftPanel
 
         public void StashSubmodule(IWin32Window owner, SubmoduleNode node)
         {
-            GitUICommands uiCmds = new(new GitModule(node.Info.Path));
+            GitUICommands uiCmds = UICommands.WithWorkingDirectory(node.Info.Path);
             uiCmds.StashSave(owner, AppSettings.IncludeUntrackedFilesInManualStash);
         }
 
         public void CommitSubmodule(IWin32Window owner, SubmoduleNode node)
         {
-            GitUICommands submodulCommands = new(node.Info.Path.EnsureTrailingPathSeparator());
+            GitUICommands submodulCommands = UICommands.WithWorkingDirectory(node.Info.Path.EnsureTrailingPathSeparator());
             submodulCommands.StartCommitDialog(owner);
         }
     }

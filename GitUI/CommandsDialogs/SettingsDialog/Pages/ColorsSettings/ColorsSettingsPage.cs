@@ -18,10 +18,10 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
         private static readonly TranslationString DefaultThemeName =
             new("default");
 
-        public ColorsSettingsPage()
+        public ColorsSettingsPage(IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             InitializeComponent();
-            Text = "Colors";
             sbOpenThemeFolder.AutoSize = false;
 
             _NO_TRANSLATE_cbSelectTheme.SelectedIndexChanged += ComboBoxTheme_SelectedIndexChanged;
@@ -135,7 +135,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
         public void PopulateThemeMenu(IEnumerable<ThemeId> themeIds)
         {
             _NO_TRANSLATE_cbSelectTheme.Items.Clear();
-            var formattedThemeIds = themeIds
+            object[] formattedThemeIds = themeIds
                 .Select(id => new FormattedThemeId(id))
                 .Cast<object>()
                 .ToArray();

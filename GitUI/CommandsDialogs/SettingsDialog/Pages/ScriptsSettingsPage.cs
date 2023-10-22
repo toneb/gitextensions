@@ -6,7 +6,7 @@ using GitCommands;
 using GitCommands.Utils;
 using GitExtUtils.GitUI;
 using GitExtUtils.GitUI.Theming;
-using GitUI.Script;
+using GitUI.ScriptsEngine;
 using ResourceManager;
 
 namespace GitUI.CommandsDialogs.SettingsDialog.Pages
@@ -77,7 +77,9 @@ Current Branch:
         {
             ColorDepth = ColorDepth.Depth32Bit
         };
+
         private readonly BindingList<ScriptInfoProxy> _scripts = new();
+        private readonly IScriptsManager _scriptsManager;
         private SimpleHelpDisplayDialog? _argumentsCheatSheet;
         private bool _handlingCheck;
 
@@ -85,10 +87,12 @@ Current Branch:
         // we need to track that so we load images before we bind the list
         private bool _imagsLoaded;
 
-        public ScriptsSettingsPage()
+        public ScriptsSettingsPage(IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
+            _scriptsManager = serviceProvider.GetRequiredService<IScriptsManager>();
+
             InitializeComponent();
-            Text = "Scripts";
 
             // stop the localisation of the propertygrid
             propertyGrid1.Text = string.Empty;
@@ -101,7 +105,7 @@ Current Branch:
             }
 
             tableLayoutPanel1.Dock = DockStyle.Fill;
-            var margin = propertyGrid1.Margin.Left;
+            int margin = propertyGrid1.Margin.Left;
             propertyGrid1.Margin = new Padding(margin, margin, panelButtons.Width, margin);
 
             propertyGrid1.SelectedGridItemChanged += (s, e) =>
@@ -160,7 +164,7 @@ Current Branch:
         {
             _scripts.Clear();
 
-            foreach (var script in ScriptManager.GetScripts())
+            foreach (ScriptInfo script in _scriptsManager.GetScripts())
             {
                 _scripts.Add(script);
             }
@@ -177,7 +181,7 @@ Current Branch:
         {
             // TODO: this is an abomination, the whole script persistence must be scorched and rewritten
 
-            BindingList<ScriptInfo> scripts = ScriptManager.GetScripts();
+            BindingList<ScriptInfo> scripts = _scriptsManager.GetScripts();
             scripts.Clear();
 
             foreach (ScriptInfoProxy proxy in _scripts)
@@ -185,7 +189,7 @@ Current Branch:
                 scripts.Add(proxy);
             }
 
-            AppSettings.OwnScripts = ScriptManager.SerializeIntoXml();
+            AppSettings.OwnScripts = _scriptsManager.SerializeIntoXml();
 
             base.PageToSettings();
         }
@@ -207,7 +211,7 @@ Current Branch:
 
                 foreach (ScriptInfoProxy script in scripts)
                 {
-                    var color = !script.Enabled ? SystemColors.GrayText : SystemColors.WindowText;
+                    Color color = !script.Enabled ? SystemColors.GrayText : SystemColors.WindowText;
 
                     ListViewItem lvitem = new(script.Name)
                     {
@@ -256,7 +260,7 @@ Current Branch:
         private void btnAdd_Click(object sender, EventArgs e)
         {
             ScriptInfoProxy script = _scripts.AddNew();
-            script.HotkeyCommandIdentifier = Math.Max(ScriptManager.MinimumUserScriptID, _scripts.Max(s => s.HotkeyCommandIdentifier)) + 1;
+            script.HotkeyCommandIdentifier = Math.Max(GitUI.ScriptsEngine.ScriptsManager.MinimumUserScriptID, _scripts.Max(s => s.HotkeyCommandIdentifier)) + 1;
             script.Name = "<New Script>";
             script.Enabled = true;
 

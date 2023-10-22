@@ -1,12 +1,12 @@
-﻿using CommonTestUtils;
-using CommonTestUtils.MEF;
+﻿using System.ComponentModel.Design;
+using CommonTestUtils;
 using FluentAssertions;
 using GitCommands;
 using GitCommands.Submodules;
 using GitUI;
 using GitUI.CommandsDialogs;
-using GitUIPluginInterfaces;
-using Microsoft.VisualStudio.Composition;
+using GitUI.ScriptsEngine;
+using NSubstitute;
 
 namespace GitExtensions.UITests.CommandsDialogs
 {
@@ -64,24 +64,19 @@ namespace GitExtensions.UITests.CommandsDialogs
 
             _repo2.AddSubmodule(_repo3, "repo3");
             _repo1.AddSubmodule(_repo2, "repo2");
-            var submodules = _repo1.GetSubmodulesRecursive();
+            IEnumerable<GitModule> submodules = _repo1.GetSubmodulesRecursive();
 
             _repo1Module = _repo1.Module;
             _repo2Module = submodules.ElementAt(0);
             _repo3Module = submodules.ElementAt(1);
 
-            // Use the singleton provider, which is also used by the left panel, so we can synchronize on updates
-            _provider = SubmoduleStatusProvider.Default;
+            _provider = new SubmoduleStatusProvider();
 
-            _commands = new GitUICommands(_repo1Module);
+            IServiceContainer serviceContainer = GlobalServiceContainer.CreateDefaultMockServiceContainer();
+            serviceContainer.RemoveService<ISubmoduleStatusProvider>();
+            serviceContainer.AddService(_provider);
 
-            var composition = TestComposition.Empty
-                .AddParts(typeof(MockLinkFactory))
-                .AddParts(typeof(MockWindowsJumpListManager))
-                .AddParts(typeof(MockRepositoryDescriptionProvider))
-                .AddParts(typeof(MockAppTitleGenerator));
-            ExportProvider mefExportProvider = composition.ExportProviderFactory.CreateExportProvider();
-            ManagedExtensibility.SetTestExportProvider(mefExportProvider);
+            _commands = new GitUICommands(serviceContainer, _repo1Module);
         }
 
         [TearDown]
@@ -103,19 +98,19 @@ namespace GitExtensions.UITests.CommandsDialogs
                     await SubmoduleTestHelpers.UpdateSubmoduleStructureAndWaitForResultAsync(_provider, _repo1Module);
 
                     // assert
-                    var submodulesNode = GetSubmoduleNode(form);
+                    TreeNode submodulesNode = GetSubmoduleNode(form);
 
                     submodulesNode.Nodes.Count.Should().Be(1);
 
-                    var repo1Node = submodulesNode.Nodes[0];
+                    TreeNode repo1Node = submodulesNode.Nodes[0];
                     repo1Node.Name.Should().StartWith("repo1");
                     repo1Node.Nodes.Count.Should().Be(1);
 
-                    var repo2Node = repo1Node.Nodes[0];
+                    TreeNode repo2Node = repo1Node.Nodes[0];
                     repo2Node.Name.Should().StartWith("repo2");
                     repo2Node.Nodes.Count.Should().Be(1);
 
-                    var repo3Node = repo2Node.Nodes[0];
+                    TreeNode repo3Node = repo2Node.Nodes[0];
                     repo3Node.Name.Should().StartWith("repo3");
                     repo3Node.Nodes.Count.Should().Be(0);
                 });
@@ -123,8 +118,8 @@ namespace GitExtensions.UITests.CommandsDialogs
 
         private static TreeNode GetSubmoduleNode(FormBrowse form)
         {
-            var treeView = form.GetTestAccessor().RepoObjectsTree.GetTestAccessor().TreeView;
-            var remotesNode = treeView.Nodes.OfType<TreeNode>().FirstOrDefault(n => n.Text == TranslatedStrings.Submodules);
+            GitUI.UserControls.NativeTreeView treeView = form.GetTestAccessor().RepoObjectsTree.GetTestAccessor().TreeView;
+            TreeNode remotesNode = treeView.Nodes.OfType<TreeNode>().FirstOrDefault(n => n.Text == TranslatedStrings.Submodules);
             remotesNode.Should().NotBeNull();
             return remotesNode;
         }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using GitExtUtils;
 using GitUIPluginInterfaces;
 
 namespace GitUI.UserControls.RevisionGrid.Graph
@@ -65,9 +66,9 @@ namespace GitUI.UserControls.RevisionGrid.Graph
             stack.Push(this);
             while (stack.Count > 0)
             {
-                var revision = stack.Pop();
+                RevisionGraphRevision revision = stack.Pop();
 
-                foreach (var parent in revision.Parents)
+                foreach (RevisionGraphRevision parent in revision.Parents)
                 {
                     if (parent.Score > revision.Score)
                     {
@@ -76,7 +77,7 @@ namespace GitUI.UserControls.RevisionGrid.Graph
 
                     parent.Score = revision.Score + 1;
 
-                    Debug.Assert(parent.Score > revision.Score, "Reorder score failed.");
+                    DebugHelpers.Assert(parent.Score > revision.Score, "Reorder score failed.");
 
                     maxScore = Math.Max(parent.Score, maxScore);
                     stack.Push(parent);
@@ -114,11 +115,11 @@ namespace GitUI.UserControls.RevisionGrid.Graph
 
             while (stack.Count > 0)
             {
-                var revision = stack.Pop();
+                RevisionGraphRevision revision = stack.Pop();
 
                 revision.IsRelative = true;
 
-                foreach (var parent in revision.Parents)
+                foreach (RevisionGraphRevision parent in revision.Parents)
                 {
                     if (parent.IsRelative)
                     {

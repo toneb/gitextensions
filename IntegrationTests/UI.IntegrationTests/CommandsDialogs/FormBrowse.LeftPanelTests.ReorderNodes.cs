@@ -1,13 +1,14 @@
 ﻿using System.Collections;
+using System.ComponentModel.Design;
 using CommonTestUtils;
-using CommonTestUtils.MEF;
 using FluentAssertions;
 using GitCommands;
 using GitUI;
 using GitUI.CommandsDialogs;
 using GitUI.LeftPanel;
-using GitUIPluginInterfaces;
-using Microsoft.VisualStudio.Composition;
+using GitUI.ScriptsEngine;
+using NSubstitute;
+using ResourceManager;
 
 namespace GitExtensions.UITests.CommandsDialogs
 {
@@ -69,15 +70,8 @@ namespace GitExtensions.UITests.CommandsDialogs
         public void SetUp()
         {
             _repo1 = new GitModuleTestHelper("repo1");
-            _commands = new GitUICommands(_repo1.Module);
 
-            var composition = TestComposition.Empty
-                .AddParts(typeof(MockLinkFactory))
-                .AddParts(typeof(MockWindowsJumpListManager))
-                .AddParts(typeof(MockRepositoryDescriptionProvider))
-                .AddParts(typeof(MockAppTitleGenerator));
-            ExportProvider mefExportProvider = composition.ExportProviderFactory.CreateExportProvider();
-            ManagedExtensibility.SetTestExportProvider(mefExportProvider);
+            _commands = new GitUICommands(GlobalServiceContainer.CreateDefaultMockServiceContainer(), _repo1.Module);
         }
 
         [TearDown]
@@ -92,10 +86,10 @@ namespace GitExtensions.UITests.CommandsDialogs
             RunRepoObjectsTreeTest(
                 repoObjectTree =>
                 {
-                    var testAccessor = repoObjectTree.GetTestAccessor();
+                    RepoObjectsTree.TestAccessor testAccessor = repoObjectTree.GetTestAccessor();
 
                     // act
-                    var currNodes = testAccessor.TreeView.Nodes;
+                    TreeNodeCollection currNodes = testAccessor.TreeView.Nodes;
                     List<TreeNode> initialNodes = currNodes.OfType<TreeNode>().ToList();
 
                     // assert
@@ -121,10 +115,10 @@ namespace GitExtensions.UITests.CommandsDialogs
             RunRepoObjectsTreeTest(
                 repoObjectTree =>
                 {
-                    var testAccessor = repoObjectTree.GetTestAccessor();
+                    RepoObjectsTree.TestAccessor testAccessor = repoObjectTree.GetTestAccessor();
 
                     // act
-                    var currNodes = testAccessor.TreeView.Nodes;
+                    TreeNodeCollection currNodes = testAccessor.TreeView.Nodes;
                     List<TreeNode> initialNodes = currNodes.OfType<TreeNode>().ToList();
 
                     // assert
@@ -155,10 +149,10 @@ namespace GitExtensions.UITests.CommandsDialogs
             RunRepoObjectsTreeTest(
                 repoObjectTree =>
                 {
-                    var testAccessor = repoObjectTree.GetTestAccessor();
+                    RepoObjectsTree.TestAccessor testAccessor = repoObjectTree.GetTestAccessor();
 
                     // act
-                    var currNodes = testAccessor.TreeView.Nodes;
+                    TreeNodeCollection currNodes = testAccessor.TreeView.Nodes;
                     List<TreeNode> initialNodes = currNodes.OfType<TreeNode>().ToList();
                     AssertListCount(initialNodes, 5);
 

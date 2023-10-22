@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using GitCommands;
 using GitCommands.Config;
@@ -12,7 +11,7 @@ using GitExtUtils.GitUI.Theming;
 using GitUI.HelperDialogs;
 using GitUI.Infrastructure;
 using GitUI.Properties;
-using GitUI.Script;
+using GitUI.ScriptsEngine;
 using GitUIPluginInterfaces;
 using ResourceManager;
 
@@ -125,14 +124,6 @@ namespace GitUI.CommandsDialogs
 
         public bool ErrorOccurred { get; private set; }
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormPull()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
         public FormPull(GitUICommands commands, string? defaultRemoteBranch, string? defaultRemote, AppSettings.PullAction pullAction)
             : base(commands, enablePositionRestore: false)
         {
@@ -191,7 +182,7 @@ namespace GitUI.CommandsDialogs
 
                     break;
                 case AppSettings.PullAction.Default:
-                    Debug.Assert(false, "pullAction is not a valid action");
+                    DebugHelpers.Assert(false, "pullAction is not a valid action");
                     break;
             }
 
@@ -219,7 +210,7 @@ namespace GitUI.CommandsDialogs
         private void BindRemotesDropDown(string? selectedRemoteName)
         {
             // refresh registered git remotes
-            var remotes = _remotesManager.LoadRemotes(false);
+            IEnumerable<ConfigFileRemote> remotes = _remotesManager.LoadRemotes(false);
 
             _NO_TRANSLATE_Remotes.Sorted = false;
             _NO_TRANSLATE_Remotes.DataSource = new[] { new ConfigFileRemote { Name = AllRemotes } }.Union(remotes).ToList();
@@ -232,7 +223,7 @@ namespace GitUI.CommandsDialogs
                 selectedRemoteName = Module.GetSetting(string.Format(SettingKeyString.BranchRemote, _branch));
             }
 
-            var currentBranchRemote = remotes.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, selectedRemoteName));
+            ConfigFileRemote currentBranchRemote = remotes.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name, selectedRemoteName));
             if (currentBranchRemote is not null)
             {
                 _NO_TRANSLATE_Remotes.SelectedItem = currentBranchRemote;
@@ -335,7 +326,7 @@ namespace GitUI.CommandsDialogs
                         // doesn't return heads that are new on the server. This can be updated using
                         // update branch info in the manage remotes dialog.
                         _heads = new List<IGitRef>();
-                        foreach (var head in Module.GetRefs(RefsFilter.Remotes))
+                        foreach (IGitRef head in Module.GetRefs(RefsFilter.Remotes))
                         {
                             if (!head.Name.StartsWith(_NO_TRANSLATE_Remotes.Text, StringComparison.CurrentCultureIgnoreCase))
                             {
@@ -417,13 +408,13 @@ namespace GitUI.CommandsDialogs
 
             if (PullFromUrl.Checked && Directory.Exists(comboBoxPullSource.Text))
             {
-                var path = comboBoxPullSource.Text;
+                string path = comboBoxPullSource.Text;
                 ThreadHelper.JoinableTaskFactory.Run(() => RepositoryHistoryManager.Remotes.AddAsMostRecentAsync(path));
             }
 
-            var source = CalculateSource();
+            string source = CalculateSource();
 
-            if (!CalculateLocalBranch(source, out var curLocalBranch, out var curRemoteBranch))
+            if (!CalculateLocalBranch(source, out string? curLocalBranch, out string? curRemoteBranch))
             {
                 return DialogResult.No;
             }
@@ -433,9 +424,9 @@ namespace GitUI.CommandsDialogs
                 return DialogResult.No;
             }
 
-            var stashed = CalculateStashedValue(owner);
+            bool stashed = CalculateStashedValue(owner);
 
-            using var form = CreateFormProcess(source, curLocalBranch, curRemoteBranch);
+            using FormProcess form = CreateFormProcess(source, curLocalBranch, curRemoteBranch);
             if (!IsPullAll())
             {
                 form.Remote = source;
@@ -608,24 +599,24 @@ namespace GitUI.CommandsDialogs
                 // Request to pull/merge in addition to the fetch
                 if (!Fetch.Checked)
                 {
-                    bool success = ScriptManager.RunEventScripts(this, ScriptEvent.BeforePull);
+                    bool success = ScriptsRunner.RunEventScripts(ScriptEvent.BeforePull, this);
                     if (!success)
                     {
                         return false;
                     }
                 }
 
-                return ScriptManager.RunEventScripts(this, ScriptEvent.BeforeFetch);
+                return ScriptsRunner.RunEventScripts(ScriptEvent.BeforeFetch, this);
             }
 
             void executeAfterScripts()
             {
-                ScriptManager.RunEventScripts(this, ScriptEvent.AfterFetch);
+                ScriptsRunner.RunEventScripts(ScriptEvent.AfterFetch, this);
 
                 // Request to pull/merge in addition to the fetch
                 if (!Fetch.Checked)
                 {
-                    ScriptManager.RunEventScripts(this, ScriptEvent.AfterPull);
+                    ScriptsRunner.RunEventScripts(ScriptEvent.AfterPull, this);
                 }
             }
         }
@@ -680,7 +671,7 @@ namespace GitUI.CommandsDialogs
                 return new FormRemoteProcess(UICommands, Module.FetchCmd(source, curRemoteBranch, curLocalBranch, GetTagsArg(), Unshallow.Checked, Prune.Checked, PruneTags.Checked));
             }
 
-            Debug.Assert(Merge.Checked || Rebase.Checked, "Merge.Checked || Rebase.Checked");
+            DebugHelpers.Assert(Merge.Checked || Rebase.Checked, "Merge.Checked || Rebase.Checked");
 
             return new FormRemoteProcess(UICommands, Module.PullCmd(source, curRemoteBranch, Rebase.Checked, GetTagsArg(), Unshallow.Checked))
             {
@@ -892,16 +883,16 @@ namespace GitUI.CommandsDialogs
             }
 
             HashSet<string> files = new(new PathEqualityComparer());
-            foreach (var remote in GetSelectedRemotes())
+            foreach (string remote in GetSelectedRemotes())
             {
-                var sshKeyFile = Module.GetPuttyKeyFileForRemote(remote);
+                string sshKeyFile = Module.GetPuttyKeyFileForRemote(remote);
                 if (!string.IsNullOrEmpty(sshKeyFile))
                 {
                     files.Add(sshKeyFile);
                 }
             }
 
-            foreach (var sshKeyFile in files)
+            foreach (string sshKeyFile in files)
             {
                 PuttyHelpers.StartPageantIfConfigured(() => sshKeyFile);
             }
@@ -917,7 +908,7 @@ namespace GitUI.CommandsDialogs
 
                 if (IsPullAll())
                 {
-                    foreach (var remote in (IEnumerable<ConfigFileRemote>)_NO_TRANSLATE_Remotes.DataSource)
+                    foreach (ConfigFileRemote remote in (IEnumerable<ConfigFileRemote>)_NO_TRANSLATE_Remotes.DataSource)
                     {
                         if (!string.IsNullOrWhiteSpace(remote.Name) && remote.Name != AllRemotes)
                         {
@@ -941,7 +932,7 @@ namespace GitUI.CommandsDialogs
 
         private void UpdateFormTitleAndButton()
         {
-            var format = Fetch.Checked
+            string format = Fetch.Checked
                 ? _formTitleFetch.Text
                 : _formTitlePull.Text;
 
@@ -1013,7 +1004,7 @@ namespace GitUI.CommandsDialogs
             }
             else
             {
-                var selectedRemote = _NO_TRANSLATE_Remotes.Text;
+                string selectedRemote = _NO_TRANSLATE_Remotes.Text;
                 UICommands.StartRemotesDialog(this, selectedRemote);
             }
 

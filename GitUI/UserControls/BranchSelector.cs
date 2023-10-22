@@ -1,7 +1,6 @@
 ﻿using GitCommands;
 using GitCommands.Git;
 using GitUIPluginInterfaces;
-using Microsoft.VisualStudio.Threading;
 
 namespace GitUI.UserControls
 {
@@ -76,7 +75,7 @@ namespace GitUI.UserControls
 
                 if (_containRevisions.Count > 0)
                 {
-                    var branches = Module.GetAllBranchesWhichContainGivenCommit(_containRevisions[0], LocalBranch.Checked,
+                    IEnumerable<string> branches = Module.GetAllBranchesWhichContainGivenCommit(_containRevisions[0], LocalBranch.Checked,
                             !LocalBranch.Checked)
                         .Where(a => !DetachedHeadParser.IsDetachedHead(a) &&
                                     !a.EndsWith("/HEAD"));
@@ -85,8 +84,8 @@ namespace GitUI.UserControls
 
                 for (int index = 1; index < _containRevisions.Count; index++)
                 {
-                    var containRevision = _containRevisions[index];
-                    var branches =
+                    ObjectId containRevision = _containRevisions[index];
+                    IEnumerable<string> branches =
                         Module.GetAllBranchesWhichContainGivenCommit(containRevision, LocalBranch.Checked,
                                 !LocalBranch.Checked)
                             .Where(a => !DetachedHeadParser.IsDetachedHead(a) &&
@@ -109,8 +108,8 @@ namespace GitUI.UserControls
             }
             else
             {
-                var branchName = SelectedBranchName;
-                var currentCheckout = CommitToCompare ?? Module.GetCurrentCheckout();
+                string branchName = SelectedBranchName;
+                ObjectId currentCheckout = CommitToCompare ?? Module.GetCurrentCheckout();
 
                 if (currentCheckout is null)
                 {
@@ -118,11 +117,9 @@ namespace GitUI.UserControls
                     return;
                 }
 
-                ThreadHelper.JoinableTaskFactory.RunAsync(
-                    async () =>
+                ThreadHelper.FileAndForget(async () =>
                     {
-                        await TaskScheduler.Default.SwitchTo(alwaysYield: true);
-                        var text = Module.GetCommitCountString(currentCheckout.ToString(), branchName);
+                        string text = Module.GetCommitCountString(currentCheckout.ToString(), branchName);
                         await this.SwitchToMainThreadAsync();
                         lbChanges.Text = text;
                     });

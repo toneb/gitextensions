@@ -6,14 +6,9 @@ using ResourceManager;
 
 namespace GitUI.CommandsDialogs
 {
-    public sealed class FormSparseWorkingCopy : GitModuleForm
+    public sealed partial class FormSparseWorkingCopy : GitModuleForm
     {
         private IDisposable? _disposable1;
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormSparseWorkingCopy()
-        {
-        }
 
         public FormSparseWorkingCopy(GitUICommands commands)
             : base(commands)
@@ -97,7 +92,7 @@ namespace GitUI.CommandsDialogs
 
             Panel panelHeader = CreateViewHeader();
 
-            Panel panelFooter = CreateViewFooter(sparse, tooltip, out var btnSave, out var btnCancel);
+            Panel panelFooter = CreateViewFooter(sparse, tooltip, out Button btnSave, out Button btnCancel);
 
             Control panelOnOff = CreateViewOnOff(sparse, tooltip);
 

@@ -49,7 +49,7 @@ namespace GitUI
                 return;
             }
 
-            var firstId = item.FirstRevision?.ObjectId ?? item.SecondRevision.FirstParentId;
+            ObjectId? firstId = item.FirstRevision?.ObjectId ?? item.SecondRevision.FirstParentId;
 
             openWithDiffTool ??= OpenWithDiffTool;
 
@@ -123,7 +123,7 @@ namespace GitUI
             {
                 if (firstId == ObjectId.CombinedDiffId)
                 {
-                    var diffOfConflict = fileViewer.Module.GetCombinedDiffContent(selectedId, file.Name,
+                    string diffOfConflict = fileViewer.Module.GetCombinedDiffContent(selectedId, file.Name,
                         fileViewer.GetExtraDiffArguments(), fileViewer.Encoding);
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -132,12 +132,12 @@ namespace GitUI
                         : diffOfConflict;
                 }
 
-                var task = file.GetSubmoduleStatusAsync();
+                Task<GitSubmoduleStatus?> task = file.GetSubmoduleStatusAsync();
 
                 if (file.IsSubmodule && task is not null)
                 {
                     // Patch already evaluated
-                    var status = await task;
+                    GitSubmoduleStatus? status = await task;
 
                     cancellationToken.ThrowIfCancellationRequested();
                     return status is not null
@@ -202,7 +202,7 @@ namespace GitUI
 
         public static void UnMask(this Control control)
         {
-            var panel = FindMaskPanel(control);
+            LoadingControl panel = FindMaskPanel(control);
             if (panel is not null)
             {
                 control.Controls.Remove(panel);
@@ -231,35 +231,6 @@ namespace GitUI
                     yield return subNode;
                 }
             }
-        }
-
-        public static async Task InvokeAsync(this Control control, Action action, CancellationToken token = default)
-        {
-            await control.SwitchToMainThreadAsync(token);
-            action();
-        }
-
-        public static async Task InvokeAsync<T>(this Control control, Action<T> action, T state, CancellationToken token = default)
-        {
-            await control.SwitchToMainThreadAsync(token);
-            action(state);
-        }
-
-        public static void InvokeSync(this Control control, Action action)
-        {
-            ThreadHelper.JoinableTaskFactory.Run(
-                async () =>
-                {
-                    try
-                    {
-                        await InvokeAsync(control, action);
-                    }
-                    catch (Exception e)
-                    {
-                        e.Data["StackTrace" + e.Data.Count] = e.StackTrace;
-                        throw;
-                    }
-                });
         }
 
         public static Control FindFocusedControl(this ContainerControl container)

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using GitCommands;
 using GitExtUtils;
 using GitUIPluginInterfaces;
@@ -82,13 +81,13 @@ namespace GitUI.CommandsDialogs
                     throw new ArgumentException("Raw source must be non-empty string", raw);
                 }
 
-                var patternMatch = RawDataRegex.Match(raw);
+                Match patternMatch = RawDataRegex.Match(raw);
 
                 // show failed assertion for unsupported cases (for developers)
                 // if you get this message,
                 //     you can implement this format parsing
                 //     or post an issue to https://github.com/gitextensions/gitextensions/issues
-                Debug.Assert(patternMatch.Success, "Lost object's extracted diagnostics format not implemented", raw);
+                DebugHelpers.Assert(patternMatch.Success, "Lost object's extracted diagnostics format not implemented");
 
                 // skip unsupported raw data format (for end users)
                 if (!patternMatch.Success)
@@ -96,22 +95,22 @@ namespace GitUI.CommandsDialogs
                     return null;
                 }
 
-                var matchedGroups = patternMatch.Groups;
-                var rawType = matchedGroups[1].Value;
-                var objectType = GetObjectType(matchedGroups[3]);
-                var objectId = ObjectId.Parse(raw, matchedGroups[4]);
+                GroupCollection matchedGroups = patternMatch.Groups;
+                string rawType = matchedGroups[1].Value;
+                LostObjectType objectType = GetObjectType(matchedGroups[3]);
+                ObjectId objectId = ObjectId.Parse(raw, matchedGroups[4]);
                 LostObject result = new(objectType, rawType, objectId);
 
                 if (objectType == LostObjectType.Commit)
                 {
-                    var commitLog = GetLostCommitLog();
-                    var logPatternMatch = LogRegex.Match(commitLog);
+                    string commitLog = GetLostCommitLog();
+                    Match logPatternMatch = LogRegex.Match(commitLog);
                     if (logPatternMatch.Success)
                     {
                         result.Author = module.ReEncodeStringFromLossless(logPatternMatch.Groups["author"].Value);
                         result.Subject = module.ReEncodeCommitMessage(logPatternMatch.Groups["subject"].Value) ?? "";
                         result.Date = DateTimeUtils.ParseUnixTime(logPatternMatch.Groups["date"].Value);
-                        var firstParent = logPatternMatch.Groups["first_parent"].Value;
+                        string firstParent = logPatternMatch.Groups["first_parent"].Value;
                         if (!string.IsNullOrEmpty(firstParent))
                         {
                             result.Parent = ObjectId.Parse(firstParent);
@@ -120,8 +119,8 @@ namespace GitUI.CommandsDialogs
                 }
                 else if (objectType == LostObjectType.Tag)
                 {
-                    var tagData = GetLostTagData();
-                    var tagPatternMatch = TagRegex.Match(tagData);
+                    string tagData = GetLostTagData();
+                    Match tagPatternMatch = TagRegex.Match(tagData);
                     if (tagPatternMatch.Success)
                     {
                         result.Parent = ObjectId.Parse(tagData, tagPatternMatch.Groups[1]);
@@ -133,8 +132,8 @@ namespace GitUI.CommandsDialogs
                 }
                 else if (objectType == LostObjectType.Blob)
                 {
-                    var hash = objectId.ToString();
-                    var blobPath = Path.Combine(module.WorkingDirGitDir, "objects", hash[..2], hash[2..ObjectId.Sha1CharCount]);
+                    string hash = objectId.ToString();
+                    string blobPath = Path.Combine(module.WorkingDirGitDir, "objects", hash[..2], hash[2..ObjectId.Sha1CharCount]);
                     result.Date = new FileInfo(blobPath).CreationTime;
                 }
 

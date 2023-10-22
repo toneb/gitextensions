@@ -2,19 +2,12 @@
 {
     public partial class FormEdit : GitModuleForm
     {
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormEdit()
-        {
-            InitializeComponent();
-        }
-
         public FormEdit(GitUICommands commands, string text)
             : base(commands)
         {
             InitializeComponent();
             InitializeComplete();
-            ThreadHelper.JoinableTaskFactory.RunAsync(
-                () => Viewer.ViewTextAsync("", text));
+            Viewer.InvokeAndForget(() => Viewer.ViewTextAsync("", text));
             Viewer.IsReadOnly = false;
         }
 

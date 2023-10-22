@@ -258,7 +258,7 @@ namespace GitUI.Editor
             {
                 _encoding = value;
 
-                this.InvokeAsync(() =>
+                this.InvokeAndForget(() =>
                 {
                     if (_encoding is not null)
                     {
@@ -268,7 +268,7 @@ namespace GitUI.Editor
                     {
                         encodingToolStripComboBox.SelectedIndex = -1;
                     }
-                }).FileAndForget();
+                });
             }
         }
 
@@ -339,7 +339,7 @@ namespace GitUI.Editor
 
         public void ReloadHotkeys()
         {
-            Hotkeys = HotkeySettingsManager.LoadHotkeys(HotkeySettingsName);
+            LoadHotkeys(HotkeySettingsName);
             findToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKeyDisplayString(Command.Find);
             stageSelectedLinesToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKeyDisplayString(Command.StageLines);
             unstageSelectedLinesToolStripMenuItem.ShortcutKeyDisplayString = GetShortcutKeyDisplayString(Command.UnstageLines);
@@ -488,7 +488,7 @@ namespace GitUI.Editor
                     {
                         try
                         {
-                            var summary = new StringBuilder()
+                            StringBuilder summary = new StringBuilder()
                                 .AppendLine("Binary file:")
                                 .AppendLine()
                                 .AppendLine(fileName)
@@ -553,14 +553,14 @@ namespace GitUI.Editor
                 return ViewTextAsync(file.Name, $"Cannot get treeId from Git for {file.Name} for commit {objectId}.");
             }
 
-            var sha = file.TreeGuid.ToString();
-            var isSubmodule = file.IsSubmodule;
+            string sha = file.TreeGuid.ToString();
+            bool isSubmodule = file.IsSubmodule;
 
             if (!isSubmodule && file.IsNew && file.Staged == StagedStatus.Index)
             {
                 // File system access for other than Worktree,
                 // to handle that git-status does not detect details for untracked (git-diff --no-index will not give info)
-                var fullPath = Path.Combine(Module.WorkingDir, file.Name);
+                string fullPath = Path.Combine(Module.WorkingDir, file.Name);
                 if (Directory.Exists(fullPath) && GitModule.IsValidGitWorkingDir(fullPath))
                 {
                     isSubmodule = true;
@@ -587,7 +587,7 @@ namespace GitUI.Editor
             {
                 try
                 {
-                    using var stream = Module.GetFileStream(sha);
+                    using MemoryStream stream = Module.GetFileStream(sha);
                     if (stream is not null)
                     {
                         return CreateImage(file.Name, stream);
@@ -614,7 +614,7 @@ namespace GitUI.Editor
         {
             string? fullPath = _fullPathResolver.Resolve(fileName);
             Validates.NotNull(fullPath);
-            Debug.Assert(Path.IsPathFullyQualified(fullPath), "Path must be resolved and fully qualified");
+            DebugHelpers.Assert(Path.IsPathFullyQualified(fullPath), "Path must be resolved and fully qualified");
 
             if (!isSubmodule)
             {
@@ -653,7 +653,7 @@ namespace GitUI.Editor
             {
                 try
                 {
-                    using var stream = File.OpenRead(fullPath);
+                    using FileStream stream = File.OpenRead(fullPath);
                     return CreateImage(fileName, stream);
                 }
                 catch
@@ -664,10 +664,10 @@ namespace GitUI.Editor
 
             string GetFileText()
             {
-                using var stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using FileStream stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using StreamReader reader = new(stream, Module.FilesEncoding);
 #pragma warning disable VSTHRD103 // Call async methods when in an async method
-                var content = reader.ReadToEnd();
+                string content = reader.ReadToEnd();
 #pragma warning restore VSTHRD103 // Call async methods when in an async method
                 FilePreamble = reader.CurrentEncoding.GetPreamble();
                 return content;
@@ -729,7 +729,7 @@ namespace GitUI.Editor
                 _async.Dispose();
                 components?.Dispose();
 
-                if (TryGetUICommands(out var uiCommands))
+                if (TryGetUICommandsDirect(out GitUICommands uiCommands))
                 {
                     uiCommands.PostSettings -= UICommands_PostSettings;
                 }
@@ -746,12 +746,20 @@ namespace GitUI.Editor
 
         protected override void OnRuntimeLoad()
         {
-            ReloadHotkeys();
+            base.OnRuntimeLoad();
+
             Font = AppSettings.FixedWidthFont;
 
-            var encodings = AppSettings.AvailableEncodings.Values.Select(e => e.EncodingName).ToArray();
+            string[] encodings = AppSettings.AvailableEncodings.Values.Select(e => e.EncodingName).ToArray();
             encodingToolStripComboBox.Items.AddRange(encodings);
             encodingToolStripComboBox.ResizeDropDownWidth(50, 250);
+        }
+
+        protected override void OnUICommandsSourceSet(IGitUICommandsSource source)
+        {
+            base.OnUICommandsSourceSet(source);
+
+            ReloadHotkeys();
         }
 
         // Private methods
@@ -801,9 +809,9 @@ namespace GitUI.Editor
                     code = " " + code;
                 }
 
-                var lines = code.LazySplit('\n')
+                IEnumerable<string> lines = code.LazySplit('\n')
                     .Where(s => s.Length == 0 || s[0] != startChar || (s.Length > 2 && s[1] == s[0] && s[2] == s[0]));
-                var hpos = fileText.IndexOf("\n@@");
+                int hpos = fileText.IndexOf("\n@@");
 
                 // if header is selected then don't remove diff extra chars
                 if (hpos <= pos)
@@ -820,7 +828,7 @@ namespace GitUI.Editor
 
         private StagedStatus ViewItemStagedStatus()
         {
-            var stagedStatus = _viewItem?.Item?.Staged ?? StagedStatus.Unknown;
+            StagedStatus stagedStatus = _viewItem?.Item?.Staged ?? StagedStatus.Unknown;
             if (stagedStatus == StagedStatus.Unknown)
             {
                 stagedStatus = GitModule.GetStagedStatus(_viewItem?.FirstRevision?.ObjectId,
@@ -839,7 +847,7 @@ namespace GitUI.Editor
         {
             // stage and reset has different implementation depending on the viewItem
             // For the user it looks the same and they expect the same menu item (and hotkey)
-            var isIndex = ViewItemStagedStatus() == StagedStatus.Index;
+            bool isIndex = ViewItemStagedStatus() == StagedStatus.Index;
             stageSelectedLinesToolStripMenuItem.Visible = SupportLinePatching && !isIndex;
             unstageSelectedLinesToolStripMenuItem.Visible = SupportLinePatching && isIndex;
             resetSelectedLinesToolStripMenuItem.Visible = SupportLinePatching;
@@ -883,7 +891,7 @@ namespace GitUI.Editor
             {
                 try
                 {
-                    Debug.Assert(Path.IsPathFullyQualified(fullPath), "Path must be resolved and fully qualified");
+                    DebugHelpers.Assert(Path.IsPathFullyQualified(fullPath), "Path must be resolved and fully qualified");
                     if (File.Exists(fullPath))
                     {
                         return new FileInfo(fullPath).Length;
@@ -997,6 +1005,8 @@ namespace GitUI.Editor
         /// <param name="text">Metadata for linepatching.</param>
         private void ResetView(ViewMode viewMode, string? fileName, FileStatusItem? item = null, string? text = null)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             _viewMode = viewMode;
             _viewItem = item;
             if (_viewMode == ViewMode.Text
@@ -1071,7 +1081,7 @@ namespace GitUI.Editor
                                 {
                                     ResetView(ViewMode.Text, null);
 
-                                    var text = getFileText();
+                                    string text = getFileText();
                                     StringBuilder summary = new StringBuilder()
                                         .AppendLine(string.Format(_cannotViewImage.Text, fileName))
                                         .AppendLine()
@@ -1084,7 +1094,7 @@ namespace GitUI.Editor
                                 }
 
                                 ResetView(ViewMode.Image, fileName, item);
-                                var size = DpiUtil.Scale(image.Size);
+                                Size size = DpiUtil.Scale(image.Size);
                                 if (size.Height > PictureBox.Size.Height || size.Width > PictureBox.Size.Width)
                                 {
                                     PictureBox.SizeMode = PictureBoxSizeMode.Zoom;
@@ -1116,12 +1126,12 @@ namespace GitUI.Editor
             // Do not freeze GE when selecting large binary files
             // Show only the header of the binary file to indicate contents and files incorrectly handled
             // Use a dedicated editor to view the complete file
-            var limit = Math.Min(bytes.Length, columnWidth * columnCount * 256);
-            var i = 0;
+            int limit = Math.Min(bytes.Length, columnWidth * columnCount * 256);
+            int i = 0;
 
             while (i < limit)
             {
-                var baseIndex = i;
+                int baseIndex = i;
 
                 if (i != 0)
                 {
@@ -1132,7 +1142,7 @@ namespace GitUI.Editor
                 str.Append($"{baseIndex:X4}    ");
 
                 // BYTES
-                for (var columnIndex = 0; columnIndex < columnCount; columnIndex++)
+                for (int columnIndex = 0; columnIndex < columnCount; columnIndex++)
                 {
                     // space between columns
                     if (columnIndex != 0)
@@ -1140,7 +1150,7 @@ namespace GitUI.Editor
                         str.Append("  ");
                     }
 
-                    for (var j = 0; j < columnWidth; j++)
+                    for (int j = 0; j < columnWidth; j++)
                     {
                         if (j != 0)
                         {
@@ -1158,7 +1168,7 @@ namespace GitUI.Editor
 
                 // ASCII
                 i = baseIndex;
-                for (var columnIndex = 0; columnIndex < columnCount; columnIndex++)
+                for (int columnIndex = 0; columnIndex < columnCount; columnIndex++)
                 {
                     // space between columns
                     if (columnIndex != 0)
@@ -1166,11 +1176,11 @@ namespace GitUI.Editor
                         str.Append(' ');
                     }
 
-                    for (var j = 0; j < columnWidth; j++)
+                    for (int j = 0; j < columnWidth; j++)
                     {
                         if (i < bytes.Length)
                         {
-                            var c = (char)bytes[i];
+                            char c = (char)bytes[i];
                             str.Append(char.IsControl(c) ? '.' : c);
                         }
                         else
@@ -1220,7 +1230,7 @@ namespace GitUI.Editor
                 e.OldCommands.PostSettings -= UICommands_PostSettings;
             }
 
-            var commandSource = sender as IGitUICommandsSource;
+            IGitUICommandsSource commandSource = sender as IGitUICommandsSource;
             if (commandSource?.UICommands is not null)
             {
                 commandSource.UICommands.PostSettings += UICommands_PostSettings;
@@ -1232,11 +1242,7 @@ namespace GitUI.Editor
 
         private void UICommands_PostSettings(object sender, GitUIPostActionEventArgs? e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await internalFileViewer.SwitchToMainThreadAsync();
-                internalFileViewer.VRulerPosition = AppSettings.DiffVerticalRulerPosition;
-            }).FileAndForget();
+            internalFileViewer.InvokeAndForget(() => internalFileViewer.VRulerPosition = AppSettings.DiffVerticalRulerPosition);
         }
 
         private void IgnoreWhitespaceAtEolToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1291,7 +1297,7 @@ namespace GitUI.Editor
             OnExtraDiffArgumentsChanged();
         }
 
-        private void ShowSyntaxHighlighting_Click(object sender, System.EventArgs e)
+        private void ShowSyntaxHighlighting_Click(object sender, EventArgs e)
         {
             ShowSyntaxHighlightingInDiff = !ShowSyntaxHighlightingInDiff;
             showSyntaxHighlighting.Checked = ShowSyntaxHighlightingInDiff;
@@ -1323,8 +1329,8 @@ namespace GitUI.Editor
 
         private void PictureBox_MouseWheel(object sender, MouseEventArgs e)
         {
-            var isScrollingTowardTop = e.Delta > 0;
-            var isScrollingTowardBottom = e.Delta < 0;
+            bool isScrollingTowardTop = e.Delta > 0;
+            bool isScrollingTowardBottom = e.Delta < 0;
 
             if (isScrollingTowardTop)
             {
@@ -1452,7 +1458,7 @@ namespace GitUI.Editor
             {
                 Validates.NotNull(FilePreamble);
 
-                var treeGuid = !stage ? _viewItem.Item.TreeGuid?.ToString() : null;
+                string treeGuid = !stage ? _viewItem.Item.TreeGuid?.ToString() : null;
                 patch = PatchManager.GetSelectedLinesAsNewPatch(
                     Module,
                     _viewItem.Item.Name,
@@ -1510,12 +1516,12 @@ namespace GitUI.Editor
             }
 
             byte[]? patch;
-            var currentItemStaged = _viewItem.SecondRevision.ObjectId == ObjectId.IndexId;
+            bool currentItemStaged = _viewItem.SecondRevision.ObjectId == ObjectId.IndexId;
             if (_viewItem.Item.IsNew)
             {
                 Validates.NotNull(FilePreamble);
 
-                var treeGuid = currentItemStaged ? _viewItem.Item.TreeGuid?.ToString() : null;
+                string treeGuid = currentItemStaged ? _viewItem.Item.TreeGuid?.ToString() : null;
                 patch = PatchManager.GetSelectedLinesAsNewPatch(
                     Module,
                     _viewItem.Item.Name,
@@ -1588,7 +1594,7 @@ namespace GitUI.Editor
             {
                 Validates.NotNull(FilePreamble);
 
-                var treeGuid = reverse ? _viewItem.Item.TreeGuid?.ToString() : null;
+                string treeGuid = reverse ? _viewItem.Item.TreeGuid?.ToString() : null;
                 patch = PatchManager.GetSelectedLinesAsNewPatch(
                     Module,
                     _viewItem.Item.Name,
@@ -1715,13 +1721,13 @@ namespace GitUI.Editor
 
             string RemovePrefix(string line)
             {
-                var specials = _viewMode == ViewMode.RangeDiff
+                string[] specials = _viewMode == ViewMode.RangeDiff
                     ? _rangeDiffFullPrefixes
                     : DiffHighlightService.IsCombinedDiff(internalFileViewer.GetText())
                         ? _combinedDiffFullPrefixes
                         : _normalDiffFullPrefixes;
 
-                foreach (var special in specials.Where(line.StartsWith))
+                foreach (string special in specials.Where(line.StartsWith))
                 {
                     return line[special.Length..];
                 }
@@ -1737,7 +1743,7 @@ namespace GitUI.Editor
         /// <param name="e">event args.</param>
         private void CopyPatchToolStripMenuItemClick(object sender, EventArgs e)
         {
-            var selectedText = internalFileViewer.GetSelectedText();
+            string selectedText = internalFileViewer.GetSelectedText();
 
             if (!string.IsNullOrEmpty(selectedText))
             {
@@ -1745,7 +1751,7 @@ namespace GitUI.Editor
                 return;
             }
 
-            var text = internalFileViewer.GetText();
+            string text = internalFileViewer.GetText();
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -1774,21 +1780,21 @@ namespace GitUI.Editor
         {
             Focus();
 
-            var inChange = _viewMode == ViewMode.RangeDiff
+            string[] inChange = _viewMode == ViewMode.RangeDiff
                 ? _rangeDiffPrefixes
                 : DiffHighlightService.IsCombinedDiff(internalFileViewer.GetText())
                     ? _combinedDiffPrefixes
                     : _normalDiffPrefixes;
 
             // skip the first pseudo-change containing the file names for normal diffs
-            var headerEndLine = _viewMode == ViewMode.RangeDiff ? 0 : 4;
-            var currentVisibleLine = internalFileViewer.LineAtCaret;
-            var startLine = Math.Max(headerEndLine, currentVisibleLine + 1);
-            var totalNumberOfLines = internalFileViewer.TotalNumberOfLines;
-            var emptyLineCheck = _viewMode == ViewMode.RangeDiff;
-            for (var line = startLine; line < totalNumberOfLines; line++)
+            int headerEndLine = _viewMode == ViewMode.RangeDiff ? 0 : 4;
+            int currentVisibleLine = internalFileViewer.LineAtCaret;
+            int startLine = Math.Max(headerEndLine, currentVisibleLine + 1);
+            int totalNumberOfLines = internalFileViewer.TotalNumberOfLines;
+            bool emptyLineCheck = _viewMode == ViewMode.RangeDiff;
+            for (int line = startLine; line < totalNumberOfLines; line++)
             {
-                var lineContent = internalFileViewer.GetLineText(line);
+                string lineContent = internalFileViewer.GetLineText(line);
 
                 if (_viewMode == ViewMode.RangeDiff ^ lineContent.StartsWithAny(inChange))
                 {
@@ -1813,8 +1819,8 @@ namespace GitUI.Editor
         {
             Focus();
 
-            var startLine = internalFileViewer.LineAtCaret;
-            var inChange = _viewMode == ViewMode.RangeDiff
+            int startLine = internalFileViewer.LineAtCaret;
+            string[] inChange = _viewMode == ViewMode.RangeDiff
                 ? _rangeDiffPrefixes
                 : DiffHighlightService.IsCombinedDiff(internalFileViewer.GetText())
                     ? _combinedDiffPrefixes
@@ -1827,7 +1833,7 @@ namespace GitUI.Editor
                 startLine--;
             }
 
-            var headerEndLine = _viewMode == ViewMode.RangeDiff ? 0 : 4;
+            int headerEndLine = _viewMode == ViewMode.RangeDiff ? 0 : 4;
             while (startLine > headerEndLine &&
                    internalFileViewer.GetLineText(startLine).StartsWithAny(inChange))
             {
@@ -1841,10 +1847,10 @@ namespace GitUI.Editor
                 return;
             }
 
-            var emptyLineCheck = false;
-            for (var line = startLine; line > headerEndLine; line--)
+            bool emptyLineCheck = false;
+            for (int line = startLine; line > headerEndLine; line--)
             {
-                var lineContent = internalFileViewer.GetLineText(line);
+                string lineContent = internalFileViewer.GetLineText(line);
 
                 if (lineContent.StartsWithAny(inChange))
                 {
@@ -1954,30 +1960,42 @@ namespace GitUI.Editor
 
         protected override CommandStatus ExecuteCommand(int cmd)
         {
-            var command = (Command)cmd;
+            Command command = (Command)cmd;
 
             switch (command)
             {
                 case Command.Find: internalFileViewer.Find(); break;
-                case Command.FindNextOrOpenWithDifftool: ThreadHelper.JoinableTaskFactory.RunAsync(() => internalFileViewer.FindNextAsync(searchForwardOrOpenWithDifftool: true)); break;
-                case Command.FindPrevious: ThreadHelper.JoinableTaskFactory.RunAsync(() => internalFileViewer.FindNextAsync(searchForwardOrOpenWithDifftool: false)); break;
-                case Command.GoToLine: goToLineToolStripMenuItem.PerformClick(); break;
-                case Command.IncreaseNumberOfVisibleLines: increaseNumberOfLinesToolStripMenuItem.PerformClick(); break;
-                case Command.DecreaseNumberOfVisibleLines: decreaseNumberOfLinesToolStripMenuItem.PerformClick(); break;
-                case Command.ShowEntireFile: showEntireFileToolStripMenuItem.PerformClick(); break;
-                case Command.TreatFileAsText: treatAllFilesAsTextToolStripMenuItem.PerformClick(); break;
-                case Command.NextChange: nextChangeButton.PerformClick(); break;
-                case Command.PreviousChange: previousChangeButton.PerformClick(); break;
+                case Command.FindNextOrOpenWithDifftool: internalFileViewer.InvokeAndForget(() => internalFileViewer.FindNextAsync(searchForwardOrOpenWithDifftool: true)); break;
+                case Command.FindPrevious: internalFileViewer.InvokeAndForget(() => internalFileViewer.FindNextAsync(searchForwardOrOpenWithDifftool: false)); break;
+                case Command.GoToLine: return PerformClickIfAvailable(goToLineToolStripMenuItem);
+                case Command.IncreaseNumberOfVisibleLines: return PerformClickIfAvailable(increaseNumberOfLinesToolStripMenuItem);
+                case Command.DecreaseNumberOfVisibleLines: return PerformClickIfAvailable(decreaseNumberOfLinesToolStripMenuItem);
+                case Command.ShowEntireFile: return PerformClickIfAvailable(showEntireFileToolStripMenuItem);
+                case Command.TreatFileAsText: return PerformClickIfAvailable(treatAllFilesAsTextToolStripMenuItem);
+                case Command.NextChange: return PerformClickIfAvailable(nextChangeButton);
+                case Command.PreviousChange: return PerformClickIfAvailable(previousChangeButton);
                 case Command.NextOccurrence: internalFileViewer.GoToNextOccurrence(); break;
                 case Command.PreviousOccurrence: internalFileViewer.GoToPreviousOccurrence(); break;
                 case Command.StageLines: return StageSelectedLines();
                 case Command.UnstageLines: return UnstageSelectedLines();
                 case Command.ResetLines: return ResetSelectedLines();
-                case Command.IgnoreAllWhitespace: ignoreAllWhitespaceChangesToolStripMenuItem.PerformClick(); break;
+                case Command.IgnoreAllWhitespace: return PerformClickIfAvailable(ignoreAllWhitespaceChangesToolStripMenuItem);
                 default: return base.ExecuteCommand(cmd);
             }
 
             return true;
+
+            bool PerformClickIfAvailable(ToolStripItem item)
+            {
+                if (item.Enabled && item.Available)
+                {
+                    item.PerformClick();
+                    return true;
+                }
+
+                // Don't handle the hotkey to let the control handle it if an action is bound to it
+                return false;
+            }
         }
 
         private string GetShortcutKeyDisplayString(Command cmd)
@@ -2037,7 +2055,7 @@ namespace GitUI.Editor
                 FileStatusItem f = new(new GitRevision(ObjectId.Random()),
                     new GitRevision(ObjectId.Random()),
                     new GitItemStatus(name: fileName ?? ""));
-                var fileViewer = _fileViewer;
+                FileViewer fileViewer = _fileViewer;
                 ThreadHelper.JoinableTaskFactory.Run(
                     () => fileViewer.ViewPatchAsync(f, text, line: null, openWithDifftool));
             }

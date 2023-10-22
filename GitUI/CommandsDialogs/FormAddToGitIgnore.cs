@@ -15,14 +15,6 @@ namespace GitUI.CommandsDialogs
         private readonly IFullPathResolver _fullPathResolver;
         private readonly bool _localExclude;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormAddToGitIgnore()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
         public FormAddToGitIgnore(GitUICommands commands, bool localExclude, params string[] filePatterns)
             : base(commands)
         {
@@ -61,7 +53,7 @@ namespace GitUI.CommandsDialogs
 
         private void AddToIgnoreClick(object sender, EventArgs e)
         {
-            var patterns = GetCurrentPatterns().ToArray();
+            string[] patterns = GetCurrentPatterns().ToArray();
             if (patterns.Length == 0)
             {
                 Close();
@@ -70,7 +62,7 @@ namespace GitUI.CommandsDialogs
 
             try
             {
-                var fileName = ExcludeFile;
+                string fileName = ExcludeFile;
                 Validates.NotNull(fileName);
                 FileInfoExtensions.MakeFileTemporaryWritable(fileName, x =>
                 {
@@ -81,7 +73,7 @@ namespace GitUI.CommandsDialogs
                         gitIgnoreFileAddition.Append(Environment.NewLine);
                     }
 
-                    foreach (var pattern in patterns)
+                    foreach (string pattern in patterns)
                     {
                         gitIgnoreFileAddition.Append(pattern);
                         gitIgnoreFileAddition.Append(Environment.NewLine);

@@ -1,4 +1,5 @@
-﻿using GitUI.UserControls.RevisionGrid;
+﻿using System.Diagnostics;
+using GitUI.UserControls.RevisionGrid;
 using GitUI.UserControls.RevisionGrid.Columns;
 
 namespace GitUI
@@ -16,22 +17,26 @@ namespace GitUI
             _gridView = gridView;
         }
 
-        public void OnCellMouseEnter()
+        /// <summary>
+        /// Hides the tooltip.
+        /// </summary>
+        /// <returns>Returns <cref>true</cref> if the tooltip was active.</returns>
+        public bool Hide()
         {
+            bool wasActive = _toolTip.Active;
             _toolTip.Active = false;
             _toolTip.AutoPopDelay = 32767;
+            return wasActive;
         }
 
         public void OnCellMouseMove(DataGridViewCellMouseEventArgs e)
         {
-            var revision = _gridView.GetRevision(e.RowIndex);
+            GitUIPluginInterfaces.GitRevision revision = _gridView.GetRevision(e.RowIndex);
 
             if (revision is null)
             {
                 return;
             }
-
-            var oldText = _toolTip.GetToolTip(_gridView);
 
             // Always generated tooltip text of first column (graph) because it **really** depends of the pixel hovered
             if (e.ColumnIndex != 0 && _previousRowIndex == e.RowIndex && _previousColumnIndex == e.ColumnIndex)
@@ -42,9 +47,8 @@ namespace GitUI
             _previousRowIndex = e.RowIndex;
             _previousColumnIndex = e.ColumnIndex;
 
-            var newText = GetToolTipText();
-
-            if (newText != oldText)
+            string newText = GetToolTipText();
+            if (_toolTip.GetToolTip(_gridView) != newText)
             {
                 _toolTip.SetToolTip(_gridView, newText);
             }
@@ -61,21 +65,22 @@ namespace GitUI
                 try
                 {
                     if (_gridView.Columns[e.ColumnIndex].Tag is ColumnProvider provider &&
-                        provider.TryGetToolTip(e, revision, out var toolTip) &&
+                        provider.TryGetToolTip(e, revision, out string? toolTip) &&
                         !string.IsNullOrWhiteSpace(toolTip))
                     {
                         return toolTip;
                     }
 
-                    if (_isTruncatedByCellPos.TryGetValue(new Point(e.ColumnIndex, e.RowIndex), out var showToolTip)
+                    if (_isTruncatedByCellPos.TryGetValue(new Point(e.ColumnIndex, e.RowIndex), out bool showToolTip)
                         && showToolTip)
                     {
                         return _gridView.Rows[e.RowIndex].Cells[e.ColumnIndex].FormattedValue?.ToString() ?? "";
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // Ignore exception when fetching tooltip. It's not worth crashing for.
+                    Trace.WriteLine(ex);
                 }
 
                 // no tooltip unless always active or truncated

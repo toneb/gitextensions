@@ -83,7 +83,7 @@ namespace GitUIPluginInterfaces
                 {
 #if false // Composition caching currently disabled
                     Directory.CreateDirectory(Path.Combine(applicationDataFolder, "Plugins"));
-                    using var cacheStream = File.OpenWrite(cacheFile);
+                    using FileStream cacheStream = File.OpenWrite(cacheFile);
                     ThreadHelper.JoinableTaskFactory.Run(() => new CachedComposition().SaveAsync(runtimeComposition, cacheStream));
 #endif
                 }
@@ -106,24 +106,28 @@ namespace GitUIPluginInterfaces
             }
         }
 
-        public static void Initialise(IEnumerable<Assembly> assemblies, string userPluginsPath = null)
+        public static void Initialise(IReadOnlyCollection<Assembly>? assemblies = null, string userPluginsPath = null)
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             SetUserPluginsPath(userPluginsPath);
 
-            PartDiscovery? discovery = PartDiscovery.Combine(
-              new AttributedPartDiscoveryV1(Resolver.DefaultInstance),
-              new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true));
-            DiscoveredParts? parts = ThreadHelper.JoinableTaskFactory.Run(() => discovery.CreatePartsAsync(assemblies));
+            DiscoveredParts? parts = null;
+            if (assemblies is not null && assemblies.Count > 0)
+            {
+                PartDiscovery? discovery = PartDiscovery.Combine(
+                  new AttributedPartDiscoveryV1(Resolver.DefaultInstance),
+                  new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true));
+                parts = ThreadHelper.JoinableTaskFactory.Run(() => discovery.CreatePartsAsync(assemblies));
+            }
 
-            ComposableCatalog? catalog = ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
+            ComposableCatalog? catalog = ComposableCatalog.Create(Resolver.DefaultInstance);
+
+            if (parts is not null)
+            {
+                catalog = catalog.AddParts(parts);
+            }
 
             _aggregateCatalog = catalog;
-        }
-
-        public static Lazy<T> GetExport<T>()
-        {
-            return GetOrCreateLazyExportProvider(null).Value.GetExport<T>();
         }
 
         public static IEnumerable<Lazy<T>> GetExports<T>()

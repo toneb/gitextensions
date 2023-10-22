@@ -7,10 +7,10 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
     {
         private Font? _consoleFont;
 
-        public ConsoleStyleSettingsPage()
+        public ConsoleStyleSettingsPage(IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             InitializeComponent();
-            Text = "Console style";
             InitializeComplete();
         }
 
@@ -36,7 +36,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
             return new SettingsPageReferenceByType(typeof(ConsoleStyleSettingsPage));
         }
 
-        private void consoleFontChangeButton_Click(object sender, System.EventArgs e)
+        private void consoleFontChangeButton_Click(object sender, EventArgs e)
         {
             consoleFontDialog.Font = _consoleFont;
             DialogResult result = consoleFontDialog.ShowDialog(this);

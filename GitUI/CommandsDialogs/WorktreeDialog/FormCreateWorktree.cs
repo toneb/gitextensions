@@ -16,12 +16,6 @@ namespace GitUI.CommandsDialogs.WorktreeDialog
 
         public IReadOnlyList<IGitRef>? ExistingBranches { get; set; }
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormCreateWorktree()
-        {
-            InitializeComponent();
-        }
-
         public FormCreateWorktree(GitUICommands commands, string? path)
             : base(commands)
         {
@@ -38,10 +32,10 @@ namespace GitUI.CommandsDialogs.WorktreeDialog
 
             void LoadBranchesAsync()
             {
-                var selectedBranch = UICommands.GitModule.GetSelectedBranch();
+                string selectedBranch = UICommands.GitModule.GetSelectedBranch();
                 ExistingBranches = Module.GetRefs(RefsFilter.Heads);
                 comboBoxBranches.Text = TranslatedStrings.LoadingData;
-                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                ThreadHelper.FileAndForget(async () =>
                 {
                     await _branchesLoader.LoadAsync(
                         () => ExistingBranches.Where(r => r.Name != selectedBranch).ToList(),
@@ -169,7 +163,7 @@ namespace GitUI.CommandsDialogs.WorktreeDialog
 
             void UpdateWorktreePath()
             {
-                var branchNameNormalized = NormalizeBranchName(radioButtonCheckoutExistingBranch.Checked
+                string branchNameNormalized = NormalizeBranchName(radioButtonCheckoutExistingBranch.Checked
                     ? ((IGitRef)comboBoxBranches.SelectedItem)?.Name ?? string.Empty
                     : textBoxNewBranchName.Text);
                 newWorktreeDirectory.Text = $"{_initialDirectoryPath}_{branchNameNormalized}";

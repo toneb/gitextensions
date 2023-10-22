@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using GitCommands;
 using GitCommands.Config;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitExtUtils;
 using NUnit.Framework;
 
@@ -42,7 +42,7 @@ namespace CommonTestUtils
 
             string GetTemporaryPath()
             {
-                var tempPath = Path.GetTempPath();
+                string tempPath = Path.GetTempPath();
 
                 // workaround macOS symlinking its temp folder
                 if (tempPath.StartsWith("/var"))
@@ -158,9 +158,9 @@ namespace CommonTestUtils
             Assert.That(fileEnabled == "always");
 
             // Even though above is set, adding a file protocol submodule fails unless -c... is used for protocol.file.allow config.
-            IEnumerable<GitConfigItem> cfgs = GitCommandHelpers.GetAllowFileConfig();
+            IEnumerable<GitConfigItem> cfgs = Commands.GetAllowFileConfig();
 
-            var result = Module.GitExecutable.Execute(GitCommandHelpers.AddSubmoduleCmd(subModuleHelper.Module.WorkingDir.ToPosixPath(), path, null, true, cfgs));
+            GitUIPluginInterfaces.ExecutionResult result = Module.GitExecutable.Execute(Commands.AddSubmodule(subModuleHelper.Module.WorkingDir.ToPosixPath(), path, null, true, cfgs));
             Debug.WriteLine(result.AllOutput);
 
             Module.GitExecutable.GetOutput(@"commit -am ""Add submodule""");
@@ -172,11 +172,11 @@ namespace CommonTestUtils
         /// <returns>All submodule Modules</returns>
         public IEnumerable<GitModule> GetSubmodulesRecursive()
         {
-            IEnumerable<GitConfigItem> configs = GitCommandHelpers.GetAllowFileConfig();
-            ArgumentString args = GitCommandHelpers.SubmoduleUpdateCmd(name: null, configs: configs);
+            IEnumerable<GitConfigItem> configs = Commands.GetAllowFileConfig();
+            ArgumentString args = Commands.SubmoduleUpdate(name: null, configs: configs);
 
             Module.GitExecutable.Execute(args);
-            var paths = Module.GetSubmodulesLocalPaths(recursive: true);
+            IReadOnlyList<string> paths = Module.GetSubmodulesLocalPaths(recursive: true);
             return paths.Select(path =>
             {
                 GitModule module = new(Path.Combine(Module.WorkingDir, path).ToNativePath());
@@ -197,7 +197,7 @@ namespace CommonTestUtils
                 Module.EffectiveSettings.SettingsCache.Dispose();
 
                 // Directory.Delete seems to intermittently fail, so delete the files first before deleting folders
-                foreach (var file in Directory.GetFiles(TemporaryPath, "*", SearchOption.AllDirectories))
+                foreach (string file in Directory.GetFiles(TemporaryPath, "*", SearchOption.AllDirectories))
                 {
                     if (File.GetAttributes(file).HasFlag(FileAttributes.ReparsePoint))
                     {

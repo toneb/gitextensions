@@ -28,15 +28,6 @@ Do you want to register the host's fingerprint and restart the process?");
         private bool _restart;
         private string _urlTryingToConnect = string.Empty;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormRemoteProcess()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-            : base()
-        {
-            InitializeComponent();
-        }
-
         public FormRemoteProcess(GitUICommands commands, ArgumentString arguments)
             : base(commands, arguments, commands.Module.WorkingDir, input: null, useDialogSettings: true)
         {
@@ -82,7 +73,7 @@ Do you want to register the host's fingerprint and restart the process?");
             // An error occurred!
             if (isError && Plink)
             {
-                var output = GetOutputString();
+                string output = GetOutputString();
 
                 // there might be another error, this condition is too weak
                 /*
@@ -96,7 +87,7 @@ Do you want to register the host's fingerprint and restart the process?");
                 // If the authentication failed because of a missing key, ask the user to supply one.
                 if (output.Contains("FATAL ERROR") && output.Contains("authentication"))
                 {
-                    if (FormPuttyError.AskForKey(this, out var loadedKey))
+                    if (FormPuttyError.AskForKey(this, out string? loadedKey))
                     {
                         // To prevent future authentication errors, save this key for this remote.
                         if (!string.IsNullOrEmpty(loadedKey) && !string.IsNullOrEmpty(Remote) &&

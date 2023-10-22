@@ -1,4 +1,3 @@
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -22,7 +21,6 @@ namespace ResourceManager
         void ExecuteLink(string? linkUri, Action<CommandEventArgs>? handleInternalLink = null, Action<string?>? showAll = null);
     }
 
-    [Export(typeof(ILinkFactory))]
     public sealed class LinkFactory : ILinkFactory
     {
         private const string InternalScheme = "gitext";
@@ -92,7 +90,7 @@ namespace ResourceManager
                 return;
             }
 
-            if (ParseInternalScheme(uri, out var commandEventArgs))
+            if (ParseInternalScheme(uri, out CommandEventArgs? commandEventArgs))
             {
                 if (commandEventArgs.Command == ShowAll)
                 {

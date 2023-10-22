@@ -1,13 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel.Design;
+using System.Diagnostics;
 using CommonTestUtils;
-using CommonTestUtils.MEF;
 using FluentAssertions;
 using GitCommands;
-using GitExtensions.UITests.CommandsDialogs;
 using GitUI;
 using GitUI.CommandsDialogs;
 using GitUIPluginInterfaces;
-using Microsoft.VisualStudio.Composition;
+using NSubstitute;
+using ResourceManager;
 
 namespace GitExtensions.UITests.UserControls.RevisionGrid
 {
@@ -48,17 +48,9 @@ namespace GitExtensions.UITests.UserControls.RevisionGrid
             _referenceRepository.CreateCommit("head commit");
             _headCommit = _referenceRepository.CommitHash;
 
-            _commands = new GitUICommands(_referenceRepository.Module);
+            _commands = new GitUICommands(GlobalServiceContainer.CreateDefaultMockServiceContainer(), _referenceRepository.Module);
 
             AppSettings.RevisionGraphShowArtificialCommits = true;
-
-            var composition = TestComposition.Empty
-                .AddParts(typeof(MockLinkFactory))
-                .AddParts(typeof(MockWindowsJumpListManager))
-                .AddParts(typeof(MockRepositoryDescriptionProvider))
-                .AddParts(typeof(MockAppTitleGenerator));
-            ExportProvider mefExportProvider = composition.ExportProviderFactory.CreateExportProvider();
-            ManagedExtensibility.SetTestExportProvider(mefExportProvider);
         }
 
         [TearDown]
@@ -130,7 +122,7 @@ namespace GitExtensions.UITests.UserControls.RevisionGrid
                 {
                     WaitForRevisionsToBeLoaded(revisionGridControl);
 
-                    var ta = revisionGridControl.GetTestAccessor();
+                    RevisionGridControl.TestAccessor ta = revisionGridControl.GetTestAccessor();
                     Assert.False(revisionGridControl.CurrentFilter.IsShowFilteredBranchesChecked);
 #if DEBUG
                     // https://github.com/gitextensions/gitextensions/issues/10170
@@ -172,7 +164,7 @@ namespace GitExtensions.UITests.UserControls.RevisionGrid
                 {
                     WaitForRevisionsToBeLoaded(revisionGridControl);
 
-                    var ta = revisionGridControl.GetTestAccessor();
+                    RevisionGridControl.TestAccessor ta = revisionGridControl.GetTestAccessor();
                     Assert.True(revisionGridControl.CurrentFilter.IsShowFilteredBranchesChecked);
                     ta.VisibleRevisionCount.Should().Be(2);
 
@@ -388,7 +380,7 @@ namespace GitExtensions.UITests.UserControls.RevisionGrid
 
                     formBrowse.RevisionGridControl.LatestSelectedRevision.Guid.Should().Be(_headCommit);
 
-                    var ta = formBrowse.GetTestAccessor();
+                    FormBrowse.TestAccessor ta = formBrowse.GetTestAccessor();
                     ta.CommitInfoTabControl.SelectedTab = ta.TreeTabPage;
 
                     // let the focus events be handled

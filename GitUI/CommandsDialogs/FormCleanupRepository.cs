@@ -1,5 +1,5 @@
 ﻿using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitCommands.Utils;
 using GitExtUtils;
 using GitUI.HelperDialogs;
@@ -12,12 +12,6 @@ namespace GitUI.CommandsDialogs
         private readonly TranslationString _reallyCleanupQuestion =
             new("Are you sure you want to cleanup the repository?");
         private readonly TranslationString _reallyCleanupQuestionCaption = new("Cleanup");
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormCleanupRepository()
-        {
-            InitializeComponent();
-        }
 
         public FormCleanupRepository(GitUICommands commands)
             : base(commands)
@@ -55,16 +49,16 @@ namespace GitUI.CommandsDialogs
             string includePathArgument = GetInclusivePathArgumentFromGui();
             string excludePathArguments = GetExclusivePathArgumentFromGui();
             CleanMode mode = GetCleanMode();
-            ArgumentString cleanUpCmd = GitCommandHelpers.CleanCmd(mode, dryRun, directories: RemoveDirectories.Checked,
+            ArgumentString cleanUpCmd = Commands.Clean(mode, dryRun, directories: RemoveDirectories.Checked,
                 paths: includePathArgument, excludes: excludePathArguments);
 
-            string cmdOutput = FormProcess.ReadDialog(this, arguments: cleanUpCmd, Module.WorkingDir, input: null, useDialogSettings: true);
+            string cmdOutput = FormProcess.ReadDialog(this, UICommands, arguments: cleanUpCmd, Module.WorkingDir, input: null, useDialogSettings: true);
             PreviewOutput.Text = EnvUtils.ReplaceLinuxNewLinesDependingOnPlatform(cmdOutput);
 
             if (CleanSubmodules.Checked)
             {
-                ArgumentString cleanSubmodulesCmd = GitCommandHelpers.CleanSubmodules(mode, dryRun, directories: RemoveDirectories.Checked, paths: includePathArgument);
-                cmdOutput = FormProcess.ReadDialog(this, arguments: cleanSubmodulesCmd, Module.WorkingDir, input: null, useDialogSettings: true);
+                ArgumentString cleanSubmodulesCmd = Commands.CleanSubmodules(mode, dryRun, directories: RemoveDirectories.Checked, paths: includePathArgument);
+                cmdOutput = FormProcess.ReadDialog(this, UICommands, arguments: cleanSubmodulesCmd, Module.WorkingDir, input: null, useDialogSettings: true);
                 PreviewOutput.Text += EnvUtils.ReplaceLinuxNewLinesDependingOnPlatform(cmdOutput);
             }
         }
@@ -176,7 +170,7 @@ namespace GitUI.CommandsDialogs
                 SelectedPath = Module.WorkingDir,
             };
 
-            var result = dialog.ShowDialog(this);
+            DialogResult result = dialog.ShowDialog(this);
 
             string subFoldersToClean;
             if (result != DialogResult.OK
@@ -205,7 +199,7 @@ namespace GitUI.CommandsDialogs
             openFileDialog.InitialDirectory = Module.WorkingDir;
             openFileDialog.RestoreDirectory = true;
 
-            var result = openFileDialog.ShowDialog(this);
+            DialogResult result = openFileDialog.ShowDialog(this);
 
             string fileToExclude;
             if (result != DialogResult.OK

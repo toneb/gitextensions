@@ -33,7 +33,7 @@ namespace GitCommandsTests
         private CommitMessageManager _manager;
 
         // We don't expect any failures so that we won't be switching to the main thread or showing messages
-        private readonly Control? _owner = null!;
+        private readonly Control _owner = ReferenceRepository.DummyOwner;
 
         public CommitMessageManagerTests()
         {
@@ -59,7 +59,7 @@ namespace GitCommandsTests
             _file.ReadAllTextAsync(_mergeMessagePath, _encoding, cancellationToken: default).Returns(_mergeMessage);
             _directory = Substitute.For<DirectoryBase>();
 
-            var path = Substitute.For<PathBase>();
+            PathBase path = Substitute.For<PathBase>();
             path.Combine(Arg.Any<string>(), Arg.Any<string>()).Returns(x => Path.Combine((string)x[0], (string)x[1]));
 
             _fileSystem = Substitute.For<IFileSystem>();

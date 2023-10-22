@@ -44,7 +44,7 @@ namespace GitUI
                 return;
             }
 
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            ThreadHelper.FileAndForget(async () =>
             {
                 // get the tools, possibly with a delay as requesting requires considerable time
                 // cache is shared
@@ -60,10 +60,10 @@ namespace GitUI
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                foreach (var menu in menus)
+                foreach (CustomDiffMergeTool menu in menus)
                 {
                     menu.MenuItem.DropDown = new ContextMenuStrip(components);
-                    foreach (var tool in tools)
+                    foreach (string tool in tools)
                     {
                         ToolStripMenuItem item = new(tool) { Tag = tool };
 
@@ -103,12 +103,12 @@ namespace GitUI
                         menu.MenuItem.DropDown.Items.Add(disableItem);
                     }
                 }
-            }).FileAndForget();
+            });
             return;
 
             static void InitMenus(IList<CustomDiffMergeTool> menus)
             {
-                foreach (var menu in menus)
+                foreach (CustomDiffMergeTool menu in menus)
                 {
                     menu.MenuItem.DropDown = null;
                 }

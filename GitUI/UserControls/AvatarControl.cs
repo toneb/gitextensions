@@ -21,7 +21,7 @@ namespace GitUI
 
             clearImagecacheToolStripMenuItem.Click += delegate { ClearCache(); };
 
-            foreach (var avatarProvider in EnumHelper.GetValues<AvatarProvider>())
+            foreach (AvatarProvider avatarProvider in EnumHelper.GetValues<AvatarProvider>())
             {
                 ToolStripMenuItem item = new()
                 {
@@ -40,7 +40,7 @@ namespace GitUI
                 avatarProviderToolStripMenuItem.DropDownItems.Add(item);
             }
 
-            foreach (var defaultImageType in EnumHelper.GetValues<AvatarFallbackType>())
+            foreach (AvatarFallbackType defaultImageType in EnumHelper.GetValues<AvatarFallbackType>())
             {
                 ToolStripMenuItem item = new()
                 {
@@ -61,15 +61,12 @@ namespace GitUI
 
         public void ClearCache()
         {
-            ThreadHelper.JoinableTaskFactory
-                .RunAsync(
-                    async () =>
+            this.InvokeAndForget(async () =>
                     {
                         AvatarService.UpdateAvatarProvider();
                         await _avatarCacheCleaner.ClearCacheAsync().ConfigureAwait(true);
                         await UpdateAvatarAsync().ConfigureAwait(false);
-                    })
-                .FileAndForget();
+                    });
         }
 
         /// <summary>
@@ -103,7 +100,7 @@ namespace GitUI
 
             Email = email;
             AuthorName = name;
-            ThreadHelper.JoinableTaskFactory.RunAsync(() => UpdateAvatarAsync()).FileAndForget();
+            ThreadHelper.FileAndForget(UpdateAvatarAsync);
         }
 
         private void RefreshImage(Image? image)
@@ -123,7 +120,7 @@ namespace GitUI
 
             Size = _avatarImage.Size = size;
 
-            var email = Email;
+            string email = Email;
 
             if (!AppSettings.ShowAuthorAvatarInCommitInfo || string.IsNullOrWhiteSpace(email))
             {
@@ -131,8 +128,8 @@ namespace GitUI
                 return;
             }
 
-            var token = _cancellationTokenSequence.Next();
-            var image = await _avatarProvider.GetAvatarAsync(email, AuthorName, Math.Max(size.Width, size.Height));
+            CancellationToken token = _cancellationTokenSequence.Next();
+            Image image = await _avatarProvider.GetAvatarAsync(email, AuthorName, Math.Max(size.Width, size.Height));
 
             if (!token.IsCancellationRequested)
             {
@@ -144,7 +141,7 @@ namespace GitUI
 
         private void OnClearCacheClick(object sender, EventArgs e)
         {
-            var email = Email;
+            string email = Email;
 
             if (string.IsNullOrWhiteSpace(email))
             {

@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using GitCommands;
+﻿using GitCommands;
+using GitExtUtils;
 using GitUI.CommandsDialogs.BrowseDialog;
 using Microsoft;
 using ResourceManager;
@@ -87,7 +87,7 @@ namespace GitUI.CommandsDialogs
 
             foreach (ToolStrip toolStrip in toolStrips)
             {
-                Debug.Assert(!string.IsNullOrEmpty(toolStrip.Text), "Toolstrip must specify its name via Text property.");
+                DebugHelpers.Assert(!string.IsNullOrEmpty(toolStrip.Text), "Toolstrip must specify its name via Text property.");
 
                 _toolStripContextMenu.Items.Add(CreateItem(toolStrip));
                 _toolbarsMenuItem.DropDownItems.Add(CreateItem(toolStrip));
@@ -169,7 +169,7 @@ namespace GitUI.CommandsDialogs
                 {
                     toolbarItem.Visible = !toolbarItem.Visible;
 
-                    if (!BelongToAGroup(toolbarItem, out var group))
+                    if (!BelongToAGroup(toolbarItem, out string group))
                     {
                         SaveVisibilitySetting(toolbarItem.Name, toolbarItem.Visible, IsVisibleByDefault(toolbarItem.Name));
                     }
@@ -229,7 +229,7 @@ namespace GitUI.CommandsDialogs
             shouldHideNextSeparator = true;
             for (int i = senderToolStrip.Items.Count - 1; i >= 0; i--)
             {
-                var item = senderToolStrip.Items[i];
+                ToolStripItem item = senderToolStrip.Items[i];
 
                 if (item is ToolStripSeparator { Visible: false })
                 {
@@ -386,9 +386,9 @@ namespace GitUI.CommandsDialogs
             toolStripMenuItemTarget.DropDownItems.Clear();
 
             List<ToolStripItem> toolStripItems = new();
-            foreach (var menuCommand in menuCommands)
+            foreach (MenuCommand menuCommand in menuCommands)
             {
-                var toolStripItem = MenuCommand.CreateToolStripItem(menuCommand);
+                ToolStripItem toolStripItem = MenuCommand.CreateToolStripItem(menuCommand);
                 toolStripItems.Add(toolStripItem);
 
                 if (toolStripItem is ToolStripMenuItem toolStripMenuItem)
@@ -423,9 +423,9 @@ namespace GitUI.CommandsDialogs
 
         public void OnMenuCommandsPropertyChanged()
         {
-            var menuCommands = GetNavigateAndViewMenuCommands();
+            IEnumerable<MenuCommand> menuCommands = GetNavigateAndViewMenuCommands();
 
-            foreach (var menuCommand in menuCommands)
+            foreach (MenuCommand menuCommand in menuCommands)
             {
                 menuCommand.SetCheckForRegisteredMenuItems();
                 menuCommand.UpdateMenuItemsShortcutKeyDisplayString();
@@ -452,7 +452,7 @@ namespace GitUI.CommandsDialogs
         {
             foreach (ToolStripMenuItem item in toolStripItems)
             {
-                Debug.Assert(item.Tag is ToolStrip, "Toolbars context menu items must reference Toolstrips via Tag property.");
+                DebugHelpers.Assert(item.Tag is ToolStrip, "Toolbars context menu items must reference Toolstrips via Tag property.");
                 item.Checked = ((ToolStrip)item.Tag).Visible;
             }
         }

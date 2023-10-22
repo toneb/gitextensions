@@ -19,7 +19,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         public void SetUp()
         {
             ReferenceRepository.ResetRepo(ref _referenceRepository);
-            _commands = new GitUICommands(_referenceRepository.Module);
+            _commands = new GitUICommands(GlobalServiceContainer.CreateDefaultMockServiceContainer(), _referenceRepository.Module);
         }
 
         [OneTimeTearDown]
@@ -43,7 +43,7 @@ namespace GitExtensions.UITests.CommandsDialogs
             RunFormTest(
                 form =>
                 {
-                    var accessor = form.GetTestAccessor();
+                    FormPush.TestAccessor accessor = form.GetTestAccessor();
 
                     accessor.ForcePushTags.Checked = forcePushTagChecked;
                     accessor.ckForceWithLease.Checked = forcePushBranchWithLeaseChecked;

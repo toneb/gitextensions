@@ -16,12 +16,6 @@ namespace GitUI.CommandsDialogs
 
         private bool _hasChanges;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormEditor()
-        {
-            InitializeComponent();
-        }
-
         public FormEditor(GitUICommands commands, string? fileName, bool showWarning, bool readOnly = false, int? lineNumber = null)
             : base(commands)
         {
@@ -77,7 +71,7 @@ namespace GitUI.CommandsDialogs
             // only offer to save if there's something to save.
             if (HasChanges)
             {
-                var saveChangesAnswer = MessageBox.Show(this, _saveChanges.Text, _saveChangesCaption.Text,
+                DialogResult saveChangesAnswer = MessageBox.Show(this, _saveChanges.Text, _saveChangesCaption.Text,
                                          MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 switch (saveChangesAnswer)
                 {

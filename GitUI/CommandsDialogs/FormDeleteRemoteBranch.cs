@@ -1,9 +1,9 @@
 using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitExtUtils.GitUI;
 using GitUI.HelperDialogs;
 using GitUI.Infrastructure;
-using GitUI.Script;
+using GitUI.ScriptsEngine;
 using GitUIPluginInterfaces;
 using ResourceManager;
 
@@ -18,14 +18,6 @@ namespace GitUI.CommandsDialogs
         private readonly string _defaultRemoteBranch;
         private readonly TaskManager _taskManager = ThreadHelper.CreateTaskManager();
         private HashSet<string> _mergedBranches;
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormDeleteRemoteBranch()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
 
         public FormDeleteRemoteBranch(GitUICommands commands, string defaultRemoteBranch)
             : base(commands, enablePositionRestore: false)
@@ -102,13 +94,13 @@ namespace GitUI.CommandsDialogs
             {
                 EnsurePageant(remote);
 
-                bool success = ScriptManager.RunEventScripts(this, ScriptEvent.BeforePush);
+                bool success = ScriptsRunner.RunEventScripts(ScriptEvent.BeforePush, this);
                 if (!success)
                 {
                     return;
                 }
 
-                GitDeleteRemoteBranchesCmd cmd = new(remote, branches.Select(x => x.LocalName));
+                IGitCommand cmd = Commands.DeleteRemoteBranches(remote, branches.Select(x => x.LocalName));
                 using FormRemoteProcess form = new(UICommands, cmd.Arguments)
                 {
                     Remote = remote
@@ -117,7 +109,7 @@ namespace GitUI.CommandsDialogs
 
                 if (!form.ErrorOccurred() && !Module.InTheMiddleOfAction())
                 {
-                    ScriptManager.RunEventScripts(this, ScriptEvent.AfterPush);
+                    ScriptsRunner.RunEventScripts(ScriptEvent.AfterPush, this);
                 }
             }
 

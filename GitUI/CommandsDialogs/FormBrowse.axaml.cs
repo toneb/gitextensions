@@ -11,7 +11,6 @@ using ConEmu.WinForms;
 using GitCommands;
 using GitCommands.Config;
 using GitCommands.Git;
-using GitCommands.Git.Commands;
 using GitCommands.Gpg;
 using GitCommands.Submodules;
 using GitCommands.UserRepositoryHistory;
@@ -28,14 +27,13 @@ using GitUI.Infrastructure.Telemetry;
 using GitUI.LeftPanel;
 using GitUI.NBugReports;
 using GitUI.Properties;
-using GitUI.Script;
+using GitUI.ScriptsEngine;
 using GitUI.Shells;
 using GitUI.UserControls;
 using GitUI.UserControls.RevisionGrid;
 using GitUIPluginInterfaces;
 using GitUIPluginInterfaces.RepositoryHosts;
 using Microsoft;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using ResourceManager;
@@ -51,15 +49,6 @@ namespace GitUI.CommandsDialogs
     {
         private FormBrowse _formBrowseAvalonia;
         private WinFormsAvaloniaControlHost _avaloniaHost = new();
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public FormBrowseWrapper()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-            InitializeComplete();
-        }
 
         /// <summary>
         /// Open Browse - main GUI including dashboard.
@@ -291,6 +280,7 @@ namespace GitUI.CommandsDialogs
         private readonly IAheadBehindDataProvider? _aheadBehindDataProvider;
         private readonly IWindowsJumpListManager _windowsJumpListManager;
         private readonly ISubmoduleStatusProvider _submoduleStatusProvider;
+        private readonly IScriptsManager _scriptsManager;
         private List<ToolStripItem>? _currentSubmoduleMenuItems;
         private readonly FormBrowseDiagnosticsReporter _formBrowseDiagnosticsReporter;
 #if false
@@ -347,8 +337,9 @@ namespace GitUI.CommandsDialogs
 
             WorkaroundPaddingIncreaseBug();
 
-            _appTitleGenerator = ManagedExtensibility.GetExport<IAppTitleGenerator>().Value;
-            _windowsJumpListManager = ManagedExtensibility.GetExport<IWindowsJumpListManager>().Value;
+            _appTitleGenerator = commands.GetRequiredService<IAppTitleGenerator>();
+            _windowsJumpListManager = commands.GetRequiredService<IWindowsJumpListManager>();
+            _scriptsManager = commands.GetRequiredService<IScriptsManager>();
 
             _formBrowseDiagnosticsReporter = new FormBrowseDiagnosticsReporter(this);
 
@@ -357,13 +348,12 @@ namespace GitUI.CommandsDialogs
             MainSplitContainer.SplitterDistance = DpiUtil.Scale(260);
 #endif
 
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            ThreadHelper.FileAndForget(async () =>
             {
-                await TaskScheduler.Default;
                 PluginRegistry.Initialize();
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await this.SwitchToMainThreadAsync();
                 RegisterPlugins();
-            }).FileAndForget();
+            });
 
             InitCountArtificial(out _gitStatusMonitor);
 
@@ -384,7 +374,7 @@ namespace GitUI.CommandsDialogs
             InitializeComplete();
 
             HotkeysEnabled = true;
-            Hotkeys = HotkeySettingsManager.LoadHotkeys(HotkeySettingsName);
+            LoadHotkeys(HotkeySettingsName);
 
             UICommands.PostRepositoryChanged += UICommands_PostRepositoryChanged;
             UICommands.BrowseRepo = this;
@@ -392,12 +382,12 @@ namespace GitUI.CommandsDialogs
             _controller = new FormBrowseController(new GitGpgController(() => Module));
             _commitDataManager = new CommitDataManager(() => Module);
 
-            _submoduleStatusProvider = SubmoduleStatusProvider.Default;
+            _submoduleStatusProvider = commands.GetRequiredService<ISubmoduleStatusProvider>();
             _submoduleStatusProvider.StatusUpdating += SubmoduleStatusProvider_StatusUpdating;
             _submoduleStatusProvider.StatusUpdated += SubmoduleStatusProvider_StatusUpdated;
 
 #if false // TODO - avalonia
-            foreach (var control in this.FindDescendants())
+            foreach (Control control in this.FindDescendants())
             {
                 control.AllowDrop = true;
                 control.DragEnter += FormBrowse_DragEnter;
@@ -432,7 +422,7 @@ namespace GitUI.CommandsDialogs
 
                 gitStatusMonitor.GitStatusMonitorStateChanged += (s, e) =>
                 {
-                    var status = e.State;
+                    GitStatusMonitorState status = e.State;
                     if (status == GitStatusMonitorState.Stopped)
                     {
                         // fall back to operation without info in the button
@@ -472,11 +462,10 @@ namespace GitUI.CommandsDialogs
                         {
                             Validates.NotNull(_submoduleStatusProvider);
 
-                            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                            ThreadHelper.FileAndForget(async () =>
                             {
                                 try
                                 {
-                                    await TaskScheduler.Default;
                                     await _submoduleStatusProvider.UpdateSubmodulesStatusAsync(Module.WorkingDir, status);
                                 }
                                 catch (GitConfigurationException ex)
@@ -602,7 +591,7 @@ namespace GitUI.CommandsDialogs
                         new WindowsThumbnailToolbarButton(_closeAll.Text, Images.DeleteFile, (s, e) => NativeMethods.PostMessageW(NativeMethods.HWND_BROADCAST, _closeAllMessage))));
             }
 
-            this.InvokeAsync(OnActivate).FileAndForget();
+            this.InvokeAndForget(OnActivate);
             base.OnActivated(e);
         }
 
@@ -610,7 +599,7 @@ namespace GitUI.CommandsDialogs
         {
             SaveApplicationSettings();
 
-            foreach (var control in this.FindDescendants())
+            foreach (Control control in this.FindDescendants())
             {
                 control.DragEnter -= FormBrowse_DragEnter;
                 control.DragDrop -= FormBrowse_DragDrop;
@@ -640,7 +629,7 @@ namespace GitUI.CommandsDialogs
 
         protected override void OnUICommandsChanged(GitUICommandsChangedEventArgs e)
         {
-            var oldCommands = e.OldCommands;
+            GitUICommands oldCommands = e.OldCommands;
             RefreshDefaultPullAction();
 
             if (oldCommands is not null)
@@ -781,13 +770,13 @@ namespace GitUI.CommandsDialogs
         private void RefreshSelection()
         {
 #if false
-            var selectedRevisions = RevisionGrid.GetSelectedRevisions();
+            IReadOnlyList<GitRevision> selectedRevisions = RevisionGrid.GetSelectedRevisions();
             GitRevision? selectedRevision = selectedRevisions.Count > 0 ? selectedRevisions[0] : null;
 
             FillFileTree(selectedRevision);
             FillDiff(selectedRevisions);
 
-            var oldBody = selectedRevision?.Body;
+            string oldBody = selectedRevision?.Body;
             FillCommitInfo(selectedRevision);
 
             // If the revision's body has been updated then the grid needs to be refreshed to display it
@@ -796,7 +785,7 @@ namespace GitUI.CommandsDialogs
                 RevisionGrid.Refresh();
             }
 
-            ThreadHelper.JoinableTaskFactory.RunAsync(() => FillGpgInfoAsync(selectedRevision));
+            revisionGpgInfo1.InvokeAndForget(() => FillGpgInfoAsync(selectedRevision));
             FillBuildReport(selectedRevision);
             repoObjectsTree.SelectionChanged(selectedRevisions);
 #endif
@@ -905,18 +894,18 @@ namespace GitUI.CommandsDialogs
         {
 #if false
             const string PluginManagerName = "Plugin Manager";
-            var existingPluginMenus = pluginsToolStripMenuItem.DropDownItems.OfType<ToolStripMenuItem>().ToLookup(c => c.Tag);
+            ILookup<object, ToolStripMenuItem> existingPluginMenus = pluginsToolStripMenuItem.DropDownItems.OfType<ToolStripMenuItem>().ToLookup(c => c.Tag);
 
             lock (PluginRegistry.Plugins)
             {
-                var pluginEntries = PluginRegistry.Plugins
+                IOrderedEnumerable<IGitPlugin> pluginEntries = PluginRegistry.Plugins
                     .OrderByDescending(entry => entry.Name, StringComparer.CurrentCultureIgnoreCase);
 
                 // pluginsToolStripMenuItem.DropDownItems menu already contains at least 2 items:
                 //    [1] Separator
                 //    [0] Plugin Settings
                 // insert all plugins except 'Plugin Manager' above the separator
-                foreach (var plugin in pluginEntries)
+                foreach (IGitPlugin plugin in pluginEntries)
                 {
                     // don't add the plugin to the Plugins menu, if already added
                     if (existingPluginMenus.Contains(plugin))
@@ -1116,7 +1105,7 @@ namespace GitUI.CommandsDialogs
                     _formBrowseMenus.InsertRevisionGridMainMenuItems(repositoryToolStripMenuItem);
 
                     // Request all branches if left panel is shown
-                    var aheadBehindData = _aheadBehindDataProvider?.GetData(MainSplitContainer.Panel1Collapsed ? RevisionGrid.CurrentBranch.Value : "");
+                    IDictionary<string, AheadBehindData> aheadBehindData = _aheadBehindDataProvider?.GetData(MainSplitContainer.Panel1Collapsed ? RevisionGrid.CurrentBranch.Value : "");
                     toolStripButtonPush.DisplayAheadBehindInformation(aheadBehindData, RevisionGrid.CurrentBranch.Value);
 
                     ActiveControl = RevisionGrid;
@@ -1136,7 +1125,7 @@ namespace GitUI.CommandsDialogs
 
             void LoadUserMenu()
             {
-                var scripts = ScriptManager.GetScripts()
+                List<ScriptInfo> scripts = _scriptsManager.GetScripts()
                     .Where(script => script.Enabled && script.OnEvent == ScriptEvent.ShowInUserMenuBar)
                     .ToList();
 
@@ -1155,7 +1144,7 @@ namespace GitUI.CommandsDialogs
                 }
 
                 ToolStripScripts.GripStyle = ToolStripGripStyle.Visible;
-                foreach (var script in scripts)
+                foreach (ScriptInfo script in scripts)
                 {
                     ToolStripButton button = new()
                     {
@@ -1170,7 +1159,7 @@ namespace GitUI.CommandsDialogs
 
                     button.Click += delegate
                     {
-                        if (ScriptRunner.RunScript(this, Module, script.Name, UICommands, RevisionGrid).NeedsGridRefresh)
+                        if (ScriptsRunner.RunScript(script.HotkeyCommandIdentifier, this, RevisionGrid).NeedsGridRefresh)
                         {
                             RefreshRevisions();
                         }
@@ -1231,18 +1220,17 @@ namespace GitUI.CommandsDialogs
         {
             if (AppSettings.ShowStashCount)
             {
-                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                ThreadHelper.FileAndForget(async () =>
                 {
                     // Add a delay to not interfere with GUI updates when switching repository
-                    await TaskScheduler.Default;
                     await Task.Delay(500);
 
-                    var result = Module.GetStashes(noLocks: true).Count;
+                    int result = Module.GetStashes(noLocks: true).Count;
 
                     await _wrapper.SwitchToMainThreadAsync();
 
                     toolStripSplitStash.Content = $"({result})";
-                }).FileAndForget();
+                });
             }
             else
             {
@@ -1256,7 +1244,7 @@ namespace GitUI.CommandsDialogs
         private void RefreshWorkingDirComboText()
         {
 #if false
-            var path = Module.WorkingDir;
+            string path = Module.WorkingDir;
 
             // it appears at times Module.WorkingDir path is an empty string, this caused issues like #4874
             if (string.IsNullOrWhiteSpace(path))
@@ -1265,11 +1253,11 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var recentRepositoryHistory = ThreadHelper.JoinableTaskFactory.Run(
+            IList<Repository> recentRepositoryHistory = ThreadHelper.JoinableTaskFactory.Run(
                 () => RepositoryHistoryManager.Locals.AddAsMostRecentAsync(path));
 
             List<RecentRepoInfo> pinnedRepos = new();
-            using var graphics = CreateGraphics();
+            using Graphics graphics = CreateGraphics();
             RecentRepoSplitter splitter = new()
             {
                 MeasureFont = _NO_TRANSLATE_WorkingDir.Font,
@@ -1278,14 +1266,14 @@ namespace GitUI.CommandsDialogs
 
             splitter.SplitRecentRepos(recentRepositoryHistory, pinnedRepos, pinnedRepos);
 
-            var ri = pinnedRepos.Find(e => e.Repo.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
+            RecentRepoInfo ri = pinnedRepos.Find(e => e.Repo.Path.Equals(path, StringComparison.InvariantCultureIgnoreCase));
 
             _NO_TRANSLATE_WorkingDir.Text = PathUtil.GetDisplayPath(ri?.Caption ?? path);
 
             if (AppSettings.RecentReposComboMinWidth > 0)
             {
                 _NO_TRANSLATE_WorkingDir.AutoSize = false;
-                var captionWidth = graphics.MeasureString(_NO_TRANSLATE_WorkingDir.Text, _NO_TRANSLATE_WorkingDir.Font).Width;
+                float captionWidth = graphics.MeasureString(_NO_TRANSLATE_WorkingDir.Text, _NO_TRANSLATE_WorkingDir.Font).Width;
                 captionWidth = captionWidth + _NO_TRANSLATE_WorkingDir.DropDownButtonWidth + 5;
                 _NO_TRANSLATE_WorkingDir.Width = Math.Max(AppSettings.RecentReposComboMinWidth, (int)captionWidth);
             }
@@ -1364,14 +1352,14 @@ namespace GitUI.CommandsDialogs
         {
 #if false
             // Don't show the "File Tree" tab for artificial commits
-            var showFileTreeTab = revision?.IsArtificial != true;
+            bool showFileTreeTab = revision?.IsArtificial != true;
 
             if (showFileTreeTab)
             {
                 if (TreeTabPage.Parent is null)
                 {
-                    var index = CommitInfoTabControl.TabPages.IndexOf(DiffTabPage);
-                    Debug.Assert(index != -1, "TabControl should contain diff tab page");
+                    int index = CommitInfoTabControl.TabPages.IndexOf(DiffTabPage);
+                    DebugHelpers.Assert(index != -1, "TabControl should contain diff tab page");
                     CommitInfoTabControl.TabPages.Insert(index + 1, TreeTabPage);
                 }
             }
@@ -1430,7 +1418,7 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var children = RevisionGrid.GetRevisionChildren(revision.ObjectId);
+            IReadOnlyList<ObjectId> children = RevisionGrid.GetRevisionChildren(revision.ObjectId);
             RevisionInfo.SetRevisionWithChildren(revision, children);
 #endif
             throw new NotImplementedException("TODO - avalonia");
@@ -1449,7 +1437,7 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var info = await _controller.LoadGpgInfoAsync(revision);
+            GpgInfo info = await _controller.LoadGpgInfoAsync(revision);
             revisionGpgInfo1.DisplayGpgInfo(info);
 #endif
             throw new NotImplementedException("TODO - avalonia");
@@ -1585,7 +1573,7 @@ namespace GitUI.CommandsDialogs
         private void CherryPickToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
 #if false
-            var revisions = RevisionGrid.GetSelectedRevisions(SortDirection.Descending);
+            IReadOnlyList<GitRevision> revisions = RevisionGrid.GetSelectedRevisions(SortDirection.Descending);
 
             UICommands.StartCherryPickDialog(this, revisions);
 #endif
@@ -1624,7 +1612,7 @@ namespace GitUI.CommandsDialogs
                 LayoutRevisionInfo();
             }
 
-            Hotkeys = HotkeySettingsManager.LoadHotkeys(HotkeySettingsName);
+            LoadHotkeys(HotkeySettingsName);
             RevisionGrid.ReloadHotkeys();
             RevisionGrid.ReloadTranslation();
             fileTree.ReloadHotkeys();
@@ -1633,11 +1621,8 @@ namespace GitUI.CommandsDialogs
             SetShortcutKeyDisplayStringsFromHotkeySettings();
 
             // Clear the separate caches for diff/merge tools
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await new CustomDiffMergeToolProvider().ClearAsync(isDiff: false);
-            }).FileAndForget();
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            ThreadHelper.FileAndForget(() => new CustomDiffMergeToolProvider().ClearAsync(isDiff: false));
+            ThreadHelper.FileAndForget(async () =>
             {
                 revisionDiff.CancelLoadCustomDifftools();
                 RevisionGrid.CancelLoadCustomDifftools();
@@ -1645,9 +1630,10 @@ namespace GitUI.CommandsDialogs
                 await new CustomDiffMergeToolProvider().ClearAsync(isDiff: true);
 
                 // The tool lists are created when the forms are init, must be redone after clearing the cache
+                await this.SwitchToMainThreadAsync();
                 revisionDiff.LoadCustomDifftools();
                 RevisionGrid.LoadCustomDifftools();
-            }).FileAndForget();
+            });
 
             _dashboard?.RefreshContent();
 
@@ -1684,7 +1670,7 @@ namespace GitUI.CommandsDialogs
         private void ArchiveToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
 #if false
-            var revisions = RevisionGrid.GetSelectedRevisions();
+            IReadOnlyList<GitRevision> revisions = RevisionGrid.GetSelectedRevisions();
             if (revisions.Count is (< 1 or > 2))
             {
                 MessageBoxes.SelectOnlyOneOrTwoRevisions(this);
@@ -1705,13 +1691,13 @@ namespace GitUI.CommandsDialogs
 
         private void EditLocalGitConfigToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
-            var fileName = Path.Combine(Module.ResolveGitInternalPath("config"));
+            string fileName = Path.Combine(Module.ResolveGitInternalPath("config"));
             UICommands.StartFileEditorDialog(fileName, true);
         }
 
         private void CompressGitDatabaseToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
-            FormProcess.ReadDialog(_wrapper, arguments: "gc", Module.WorkingDir, input: null, useDialogSettings: true);
+            FormProcess.ReadDialog(_wrapper, UICommands, arguments: "gc", Module.WorkingDir, input: null, useDialogSettings: true);
         }
 
         private void recoverLostObjectsToolStripMenuItemClick(object sender, RoutedEventArgs e)
@@ -1727,7 +1713,7 @@ namespace GitUI.CommandsDialogs
         private void RebaseToolStripMenuItemClick(object sender, RoutedEventArgs e)
         {
 #if false
-            var revisions = RevisionGrid.GetSelectedRevisions();
+            IReadOnlyList<GitRevision> revisions = RevisionGrid.GetSelectedRevisions();
 
             if (revisions.Count == 0 || revisions[0].IsArtificial)
             {
@@ -1783,9 +1769,9 @@ namespace GitUI.CommandsDialogs
         {
             if (sender is ToolStripMenuItem toolStripMenuItem)
             {
-                var submodule = toolStripMenuItem.Tag as string;
+                string submodule = toolStripMenuItem.Tag as string;
                 Validates.NotNull(Module.SuperprojectModule);
-                FormProcess.ShowDialog(_wrapper, arguments: GitCommandHelpers.SubmoduleUpdateCmd(submodule), Module.SuperprojectModule.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(_wrapper, UICommands, arguments: Commands.SubmoduleUpdate(submodule), Module.SuperprojectModule.WorkingDir, input: null, useDialogSettings: true);
             }
 
             RefreshRevisions();
@@ -1874,18 +1860,17 @@ namespace GitUI.CommandsDialogs
 #if false
             string originalWorkingDir = Module.WorkingDir;
 
-            var module = e.GitModule;
             HideVariableMainMenuItems();
             PluginRegistry.Unregister(UICommands);
             RevisionGrid.OnRepositoryChanged();
             _gitStatusMonitor.InvalidateGitWorkingDirectoryStatus();
             _submoduleStatusProvider.Init();
 
-            UICommands = new GitUICommands(module);
+            UICommands = UICommands.WithGitModule(e.GitModule);
             if (Module.IsValidGitWorkingDir())
             {
                 RevisionGrid.SuspendRefreshRevisions();
-                var path = Module.WorkingDir;
+                string path = Module.WorkingDir;
                 ThreadHelper.JoinableTaskFactory.Run(() => RepositoryHistoryManager.Locals.AddAsMostRecentAsync(path));
                 AppSettings.RecentWorkingDir = path;
 
@@ -2137,6 +2122,7 @@ namespace GitUI.CommandsDialogs
             // Toolbar
             AddNotes = 8,
             FindFileInSelectedCommit = 9,
+            QuickPullOrFetch = 48,
             QuickFetch = 11,
             QuickPull = 12,
             QuickPush = 13,
@@ -2204,19 +2190,19 @@ namespace GitUI.CommandsDialogs
 
         private void QuickFetch()
         {
-            bool success = ScriptManager.RunEventScripts(_wrapper, ScriptEvent.BeforeFetch);
+            bool success = ScriptsRunner.RunEventScripts(ScriptEvent.BeforeFetch, _wrapper);
             if (!success)
             {
                 return;
             }
 
-            success = FormProcess.ShowDialog(_wrapper, arguments: Module.FetchCmd(string.Empty, string.Empty, string.Empty), Module.WorkingDir, input: null, useDialogSettings: true);
+            success = FormProcess.ShowDialog(_wrapper, UICommands, arguments: Module.FetchCmd(string.Empty, string.Empty, string.Empty), Module.WorkingDir, input: null, useDialogSettings: true);
             if (!success)
             {
                 return;
             }
 
-            ScriptManager.RunEventScripts(_wrapper, ScriptEvent.AfterFetch);
+            ScriptsRunner.RunEventScripts(ScriptEvent.AfterFetch, _wrapper);
             RefreshRevisions();
         }
 
@@ -2276,6 +2262,7 @@ namespace GitUI.CommandsDialogs
                 case Command.CheckoutBranch: UICommands.StartCheckoutBranch(this); break;
                 case Command.QuickFetch: QuickFetch(); break;
                 case Command.QuickPull: DoPull(pullAction: AppSettings.PullAction.Merge, isSilent: true); break;
+                case Command.QuickPullOrFetch: toolStripButtonPull.PerformButtonClick(); break;
                 case Command.QuickPush: UICommands.StartPushDialog(this, true); break;
                 case Command.CloseRepository: SetWorkingDir(""); break;
                 case Command.Stash: UICommands.StashSave(this, AppSettings.IncludeUntrackedFilesInManualStash); break;
@@ -2328,7 +2315,7 @@ namespace GitUI.CommandsDialogs
             {
                 if (control is not null)
                 {
-                    var tabPage = control.Parent as TabPage;
+                    TabPage tabPage = control.Parent as TabPage;
                     if (CommitInfoTabControl.TabPages.IndexOf(tabPage) >= 0)
                     {
                         bool alreadyContainedFocus = control.ContainsFocus;
@@ -2428,7 +2415,7 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            foreach (var item in diffFiles.SelectedItems)
+            foreach (FileStatusItem item in diffFiles.SelectedItems)
             {
                 string filePath = Path.Combine(module.WorkingDir, item.Item.Name.ToNativePath());
 
@@ -2471,7 +2458,7 @@ namespace GitUI.CommandsDialogs
         {
 #if false
             // Most options do not make sense for artificial commits or no revision selected at all
-            var selectedRevisions = RevisionGrid.GetSelectedRevisions();
+            IReadOnlyList<GitRevision> selectedRevisions = RevisionGrid.GetSelectedRevisions();
             bool singleNormalCommit = selectedRevisions.Count == 1 && !selectedRevisions[0].IsArtificial;
 
             // Some commands like stash, undo commit etc has no relation to selections
@@ -2520,7 +2507,7 @@ namespace GitUI.CommandsDialogs
             // Clicking on the Pull button toolbar button will perform the default selected action silently,
             // except if that action is to open the dialog (PullAction.None)
             bool isSilent = AppSettings.DefaultPullAction != AppSettings.PullAction.None;
-            var pullAction = AppSettings.DefaultPullAction != AppSettings.PullAction.None ?
+            AppSettings.PullAction pullAction = AppSettings.DefaultPullAction != AppSettings.PullAction.None ?
                 AppSettings.DefaultPullAction : AppSettings.FormPullAction;
             DoPull(pullAction: pullAction, isSilent: isSilent);
         }
@@ -2578,7 +2565,7 @@ namespace GitUI.CommandsDialogs
 #endif
         }
 
-        private void RevisionInfo_CommandClicked(object sender, ResourceManager.CommandEventArgs e)
+        private void RevisionInfo_CommandClicked(object sender, CommandEventArgs e)
         {
 #if false
             // TODO this code duplicated in FormFileHistory.Blame_CommandClick
@@ -2602,7 +2589,7 @@ namespace GitUI.CommandsDialogs
                 case "gotobranch":
                 case "gototag":
                     Validates.NotNull(e.Data);
-                    CommitData? commit = _commitDataManager.GetCommitData(e.Data, out _);
+                    CommitData? commit = _commitDataManager.GetCommitData(e.Data);
                     if (commit is null)
                     {
                         break;
@@ -2700,15 +2687,14 @@ namespace GitUI.CommandsDialogs
         private void UpdateSubmodulesStructure()
         {
             // Submodule status is updated on git-status updates. To make sure supermodule status is updated, update immediately (once)
-            var updateStatus = AppSettings.ShowSubmoduleStatus && _gitStatusMonitor.Active;
+            bool updateStatus = AppSettings.ShowSubmoduleStatus && _gitStatusMonitor.Active;
 
             ToolTip.SetTip(toolStripButtonLevelUp, "");
 
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            ThreadHelper.FileAndForget(async () =>
             {
                 try
                 {
-                    await TaskScheduler.Default;
                     await _submoduleStatusProvider.UpdateSubmodulesStructureAsync(Module.WorkingDir, TranslatedStrings.NoBranch, updateStatus);
                 }
                 catch (GitConfigurationException ex)
@@ -2722,40 +2708,38 @@ namespace GitUI.CommandsDialogs
         private void SubmoduleStatusProvider_StatusUpdating(object sender, EventArgs e)
         {
 #if false
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            this.InvokeAndForget(() =>
             {
-                await this.SwitchToMainThreadAsync();
                 RemoveSubmoduleButtons();
                 toolStripButtonLevelUp.DropDownItems.Add(_loading.Text);
-            }).FileAndForget();
+            });
 #endif
             throw new NotImplementedException("TODO - avalonia");
         }
 
         private void SubmoduleStatusProvider_StatusUpdated(object sender, SubmoduleStatusEventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            this.InvokeAndForget(() =>
             {
                 if (e.StructureUpdated || _currentSubmoduleMenuItems is null)
                 {
-                    _currentSubmoduleMenuItems = await PopulateToolbarAsync(e.Info, e.Token);
+                    _currentSubmoduleMenuItems = PopulateToolbar(e.Info);
                 }
 
-                await UpdateSubmoduleMenuStatusAsync(e.Info, e.Token);
-            }).FileAndForget();
+                UpdateSubmoduleMenuStatus(e.Info);
+            },
+            cancellationToken: e.Token);
         }
 
-        private /*async*/ Task<List<ToolStripItem>> PopulateToolbarAsync(SubmoduleInfoResult result, CancellationToken cancelToken)
+        private List<ToolStripItem> PopulateToolbar(SubmoduleInfoResult result)
         {
 #if false
             // Second task: Populate submodule toolbar menu on UI thread.
-            await this.SwitchToMainThreadAsync(cancelToken);
-
             // Suspend before clearing dropdowns to show loading text until updated
             toolStripButtonLevelUp.DropDown.SuspendLayout();
             RemoveSubmoduleButtons();
 
-            var newItems = result.OurSubmodules
+            List<ToolStripItem> newItems = result.OurSubmodules
                 .Select(submodule => CreateSubmoduleMenuItem(submodule))
                 .ToList();
 
@@ -2807,21 +2791,19 @@ namespace GitUI.CommandsDialogs
             throw new NotImplementedException("TODO - avalonia");
         }
 
-        private async Task UpdateSubmoduleMenuStatusAsync(SubmoduleInfoResult result, CancellationToken cancelToken)
+        private void UpdateSubmoduleMenuStatus(SubmoduleInfoResult result)
         {
             if (_currentSubmoduleMenuItems is null)
             {
                 return;
             }
 
-            await _host.SwitchToMainThreadAsync(cancelToken);
-
             Validates.NotNull(result.TopProject);
-            var infos = result.AllSubmodules.ToDictionary(info => info.Path, info => info);
+            Dictionary<string, SubmoduleInfo> infos = result.AllSubmodules.ToDictionary(info => info.Path, info => info);
             infos[result.TopProject.Path] = result.TopProject;
-            foreach (var item in _currentSubmoduleMenuItems)
+            foreach (ToolStripItem item in _currentSubmoduleMenuItems)
             {
-                var path = item.Tag as string;
+                string path = item.Tag as string;
                 if (string.IsNullOrWhiteSpace(path))
                 {
                     // not a submodule
@@ -2834,7 +2816,7 @@ namespace GitUI.CommandsDialogs
                 }
                 else
                 {
-                    Debug.Fail($"Status info for {path} ({1 + result.AllSubmodules.Count} records) has no match in current nodes ({_currentSubmoduleMenuItems.Count})");
+                    DebugHelpers.Fail($"Status info for {path} ({1 + result.AllSubmodules.Count} records) has no match in current nodes ({_currentSubmoduleMenuItems.Count})");
                 }
             }
         }
@@ -2842,7 +2824,7 @@ namespace GitUI.CommandsDialogs
         private void RemoveSubmoduleButtons()
         {
 #if false
-            foreach (var item in toolStripButtonLevelUp.DropDownItems)
+            foreach (object item in toolStripButtonLevelUp.DropDownItems)
             {
                 if (item is ToolStripMenuItem toolStripButton)
                 {
@@ -3018,7 +3000,7 @@ namespace GitUI.CommandsDialogs
                 Lazy<IReadOnlyCollection<GitRevision>> getStashRevs = new(() =>
                     !AppSettings.ShowStashes
                     ? Array.Empty<GitRevision>()
-                    : new RevisionReader(new(UICommands.GitModule.WorkingDir), hasReflogSelector: true).GetStashes(CancellationToken.None));
+                    : new RevisionReader(new GitModule(UICommands.GitModule.WorkingDir)).GetStashes(CancellationToken.None));
 
                 RefreshLeftPanel(new FilteredGitRefsProvider(UICommands.GitModule).GetRefs, getStashRevs, forceRefresh: true);
                 repoObjectsTree.RefreshRevisionsLoaded();
@@ -3077,7 +3059,7 @@ namespace GitUI.CommandsDialogs
             toggleSplitViewLayout.Checked = AppSettings.ShowSplitViewLayout;
 
             int commitInfoPositionNumber = (int)AppSettings.CommitInfoPosition;
-            var selectedMenuItem = menuCommitInfoPosition.DropDownItems[commitInfoPositionNumber];
+            ToolStripItem selectedMenuItem = menuCommitInfoPosition.DropDownItems[commitInfoPositionNumber];
             menuCommitInfoPosition.Image = selectedMenuItem.Image;
             menuCommitInfoPosition.ToolTipText = selectedMenuItem.Text?.Replace("&", string.Empty);
 #endif
@@ -3093,7 +3075,7 @@ namespace GitUI.CommandsDialogs
             CommitInfoTabControl.SuspendLayout();
             RevisionsSplitContainer.SuspendLayout();
 
-            var commitInfoPosition = AppSettings.CommitInfoPosition;
+            CommitInfoPosition commitInfoPosition = AppSettings.CommitInfoPosition;
             if (commitInfoPosition == CommitInfoPosition.BelowList)
             {
                 CommitInfoTabControl.SelectedIndexChanged -= CommitInfoTabControl_SelectedIndexChanged;
@@ -3165,7 +3147,7 @@ namespace GitUI.CommandsDialogs
         {
             if (AppSettings.DontConfirmUndoLastCommit || MessageBox.Show(_wrapper, _undoLastCommitText.Text, _undoLastCommitCaption.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                var args = GitCommandHelpers.ResetCmd(ResetMode.Soft, "HEAD~1");
+                ArgumentString args = Commands.Reset(ResetMode.Soft, "HEAD~1");
                 Module.GitExecutable.GetOutput(args);
                 refreshToolStripMenuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
                 RefreshGitStatusMonitor();
@@ -3212,7 +3194,7 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var itemPath = (e.Data.GetData(DataFormats.Text) ?? e.Data.GetData(DataFormats.UnicodeText)) as string;
+            string itemPath = (e.Data.GetData(DataFormats.Text) ?? e.Data.GetData(DataFormats.UnicodeText)) as string;
             if (IsFileExistingInRepo(itemPath))
             {
                 CommitInfoTabControl.SelectedTab = TreeTabPage;

@@ -59,14 +59,6 @@ namespace GitUI.CommandsDialogs
 
         private readonly IGitIgnoreDialogModel _dialogModel;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormGitIgnore()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
         public FormGitIgnore(GitUICommands commands, bool localExclude)
             : base(commands)
         {
@@ -145,7 +137,7 @@ namespace GitUI.CommandsDialogs
                         ExcludeFile,
                         x =>
                         {
-                            var fileContent = _NO_TRANSLATE_GitIgnoreEdit.GetText();
+                            string fileContent = _NO_TRANSLATE_GitIgnoreEdit.GetText();
                             if (!fileContent.EndsWith(Environment.NewLine))
                             {
                                 fileContent += Environment.NewLine;
@@ -198,10 +190,10 @@ namespace GitUI.CommandsDialogs
 
         private void AddDefaultClick(object sender, EventArgs e)
         {
-            var defaultIgnorePatterns = File.Exists(DefaultIgnorePatternsFile) ? File.ReadAllLines(DefaultIgnorePatternsFile) : DefaultIgnorePatterns;
+            string[] defaultIgnorePatterns = File.Exists(DefaultIgnorePatternsFile) ? File.ReadAllLines(DefaultIgnorePatternsFile) : DefaultIgnorePatterns;
 
-            var currentFileContent = _NO_TRANSLATE_GitIgnoreEdit.GetText();
-            var patternsToAdd = defaultIgnorePatterns
+            string currentFileContent = _NO_TRANSLATE_GitIgnoreEdit.GetText();
+            string[] patternsToAdd = defaultIgnorePatterns
                 .Except(currentFileContent.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 .ToArray();
             if (patternsToAdd.Length == 0)
@@ -211,13 +203,14 @@ namespace GitUI.CommandsDialogs
 
             // workaround to prevent GitIgnoreFileLoaded event handling (it causes wrong _originalGitIgnoreFileContent update)
             // TODO: implement in FileViewer separate events for loading text from file and for setting text directly via ViewText
-            _NO_TRANSLATE_GitIgnoreEdit.TextLoaded -= GitIgnoreFileLoaded;
-            ThreadHelper.JoinableTaskFactory.RunAsync(
-                () => _NO_TRANSLATE_GitIgnoreEdit.ViewTextAsync(
-                    ExcludeFile,
-                    currentFileContent + Environment.NewLine +
-                    string.Join(Environment.NewLine, patternsToAdd) + Environment.NewLine + string.Empty));
-            _NO_TRANSLATE_GitIgnoreEdit.TextLoaded += GitIgnoreFileLoaded;
+            _NO_TRANSLATE_GitIgnoreEdit.InvokeAndForget(async () =>
+                {
+                    _NO_TRANSLATE_GitIgnoreEdit.TextLoaded -= GitIgnoreFileLoaded;
+                    await _NO_TRANSLATE_GitIgnoreEdit.ViewTextAsync(
+                        ExcludeFile,
+                        $"{currentFileContent}{Environment.NewLine}{string.Join(Environment.NewLine, patternsToAdd)}{Environment.NewLine}");
+                    _NO_TRANSLATE_GitIgnoreEdit.TextLoaded += GitIgnoreFileLoaded;
+                });
         }
 
         private void AddPattern_Click(object sender, EventArgs e)

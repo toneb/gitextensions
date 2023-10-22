@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.ComponentModel.Design;
 using CommonTestUtils;
 using FluentAssertions;
 using GitCommands;
@@ -6,9 +7,11 @@ using GitExtUtils.GitUI.Theming;
 using GitUI;
 using GitUI.CommandsDialogs;
 using GitUI.Editor;
+using GitUI.ScriptsEngine;
 using GitUI.UserControls;
 using GitUIPluginInterfaces;
 using ICSharpCode.TextEditor;
+using NSubstitute;
 
 namespace GitExtensions.UITests.CommandsDialogs
 {
@@ -29,7 +32,15 @@ namespace GitExtensions.UITests.CommandsDialogs
         public void SetUp()
         {
             ReferenceRepository.ResetRepo(ref _referenceRepository);
-            _commands = new GitUICommands(_referenceRepository.Module);
+
+            ServiceContainer serviceContainer = GlobalServiceContainer.CreateDefaultMockServiceContainer();
+            serviceContainer.RemoveService<IScriptsRunner>();
+
+            IScriptsRunner scriptsRunner = Substitute.For<IScriptsRunner>();
+            scriptsRunner.RunEventScripts(Arg.Any<ScriptEvent>(), Arg.Any<FormCommit>()).Returns(true);
+            serviceContainer.AddService(scriptsRunner);
+
+            _commands = new GitUICommands(serviceContainer, _referenceRepository.Module);
         }
 
         [OneTimeSetUp]
@@ -57,7 +68,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         {
             RunFormTest(async form =>
             {
-                var commitAuthorStatus = form.GetTestAccessor().CommitAuthorStatusToolStripStatusLabel;
+                ToolStripStatusLabel commitAuthorStatus = form.GetTestAccessor().CommitAuthorStatusToolStripStatusLabel;
 
                 await Task.Delay(1000);
                 await AsyncTestHelper.JoinPendingOperationsAsync(AsyncTestHelper.UnexpectedTimeout);
@@ -71,7 +82,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         {
             RunFormTest(async form =>
             {
-                var commitAuthorStatus = form.GetTestAccessor().CommitAuthorStatusToolStripStatusLabel;
+                ToolStripStatusLabel commitAuthorStatus = form.GetTestAccessor().CommitAuthorStatusToolStripStatusLabel;
 
                 await AsyncTestHelper.JoinPendingOperationsAsync(AsyncTestHelper.UnexpectedTimeout);
 
@@ -104,8 +115,8 @@ namespace GitExtensions.UITests.CommandsDialogs
             {
                 await AsyncTestHelper.JoinPendingOperationsAsync(AsyncTestHelper.UnexpectedTimeout);
 
-                var currentBranchNameLabelStatus = form.GetTestAccessor().CurrentBranchNameLabelStatus;
-                var remoteNameLabelStatus = form.GetTestAccessor().RemoteNameLabelStatus;
+                ToolStripStatusLabel currentBranchNameLabelStatus = form.GetTestAccessor().CurrentBranchNameLabelStatus;
+                ToolStripStatusLabel remoteNameLabelStatus = form.GetTestAccessor().RemoteNameLabelStatus;
 
                 Assert.AreEqual("master →", currentBranchNameLabelStatus.Text);
                 Assert.AreEqual("(remote not configured)", remoteNameLabelStatus.Text);
@@ -120,8 +131,8 @@ namespace GitExtensions.UITests.CommandsDialogs
             {
                 await AsyncTestHelper.JoinPendingOperationsAsync(AsyncTestHelper.UnexpectedTimeout);
 
-                var currentBranchNameLabelStatus = form.GetTestAccessor().CurrentBranchNameLabelStatus;
-                var remoteNameLabelStatus = form.GetTestAccessor().RemoteNameLabelStatus;
+                ToolStripStatusLabel currentBranchNameLabelStatus = form.GetTestAccessor().CurrentBranchNameLabelStatus;
+                ToolStripStatusLabel remoteNameLabelStatus = form.GetTestAccessor().RemoteNameLabelStatus;
 
                 // For a yet unknown cause randomly, the wait in UITest.RunForm does not suffice.
                 if (!string.IsNullOrEmpty(remoteNameLabelStatus.Text))
@@ -143,8 +154,8 @@ namespace GitExtensions.UITests.CommandsDialogs
             {
                 await AsyncTestHelper.JoinPendingOperationsAsync(AsyncTestHelper.UnexpectedTimeout);
 
-                var currentBranchNameLabelStatus = form.GetTestAccessor().CurrentBranchNameLabelStatus;
-                var remoteNameLabelStatus = form.GetTestAccessor().RemoteNameLabelStatus;
+                ToolStripStatusLabel currentBranchNameLabelStatus = form.GetTestAccessor().CurrentBranchNameLabelStatus;
+                ToolStripStatusLabel remoteNameLabelStatus = form.GetTestAccessor().RemoteNameLabelStatus;
 
                 Assert.AreEqual("master →", currentBranchNameLabelStatus.Text);
                 Assert.AreEqual("origin/master", remoteNameLabelStatus.Text);
@@ -154,7 +165,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         [Test]
         public void PreserveCommitMessageOnReopen()
         {
-            var generatedCommitMessage = Guid.NewGuid().ToString();
+            string generatedCommitMessage = Guid.NewGuid().ToString();
 
             RunFormTest(form =>
             {
@@ -172,7 +183,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         [TestCase(CommitKind.Squash)]
         public void DoNotPreserveCommitMessageOnReopenFromSpecialCommit(CommitKind commitKind)
         {
-            var generatedCommitMessage = Guid.NewGuid().ToString();
+            string generatedCommitMessage = Guid.NewGuid().ToString();
 
             RunFormTest(
                 form =>
@@ -192,8 +203,8 @@ namespace GitExtensions.UITests.CommandsDialogs
         [Test]
         public void PreserveCommitMessageOnReopenFromAmendCommit()
         {
-            var oldCommitMessage = _referenceRepository.Module.GetRevision().Body;
-            var newCommitMessageWithAmend = $"amend! {oldCommitMessage}\n\nNew commit message";
+            string oldCommitMessage = _referenceRepository.Module.GetRevision().Body;
+            string newCommitMessageWithAmend = $"amend! {oldCommitMessage}\n\nNew commit message";
 
             RunFormTest(
                 form =>
@@ -217,7 +228,7 @@ namespace GitExtensions.UITests.CommandsDialogs
 
             RunFormTest(form =>
             {
-                var commitMessageToolStripMenuItem = form.GetTestAccessor().CommitMessageToolStripMenuItem;
+                ToolStripDropDownButton commitMessageToolStripMenuItem = form.GetTestAccessor().CommitMessageToolStripMenuItem;
 
                 // Verify the message appears correctly
                 commitMessageToolStripMenuItem.ShowDropDown();
@@ -239,7 +250,7 @@ namespace GitExtensions.UITests.CommandsDialogs
             _referenceRepository.CreateCommit("Too long commit message that should be shorten because first line of a commit message is only 50 chars long");
             RunFormTest(form =>
             {
-                var commitMessageToolStripMenuItem = form.GetTestAccessor().CommitMessageToolStripMenuItem;
+                ToolStripDropDownButton commitMessageToolStripMenuItem = form.GetTestAccessor().CommitMessageToolStripMenuItem;
 
                 // Verify the message appears correctly
                 commitMessageToolStripMenuItem.ShowDropDown();
@@ -275,7 +286,7 @@ namespace GitExtensions.UITests.CommandsDialogs
                     await ThreadHelper.JoinPendingOperationsAsync(cts.Token);
                 }
 
-                var testform = form.GetTestAccessor();
+                FormCommit.TestAccessor testform = form.GetTestAccessor();
 
                 testform.UnstagedList.ClearSelected();
                 testform.UnstagedList.SetFilter("file1");
@@ -284,7 +295,7 @@ namespace GitExtensions.UITests.CommandsDialogs
 
                 testform.StageAllToolItem.PerformClick();
 
-                var fileNotMatchedByFilterIsStillUnstaged = testform.UnstagedList.AllItems.Any(i => i.Item.Name == "file2.txt");
+                bool fileNotMatchedByFilterIsStillUnstaged = testform.UnstagedList.AllItems.Any(i => i.Item.Name == "file2.txt");
 
                 Assert.AreEqual(2, testform.StagedList.AllItemsCount);
                 Assert.AreEqual(1, testform.UnstagedList.AllItemsCount);
@@ -318,7 +329,7 @@ namespace GitExtensions.UITests.CommandsDialogs
                     await ThreadHelper.JoinPendingOperationsAsync(cts.Token);
                 }
 
-                var testform = form.GetTestAccessor();
+                FormCommit.TestAccessor testform = form.GetTestAccessor();
 
                 Assert.AreEqual(0, testform.StagedList.AllItemsCount);
                 Assert.AreEqual(3, testform.UnstagedList.AllItemsCount);
@@ -336,7 +347,7 @@ namespace GitExtensions.UITests.CommandsDialogs
 
                 testform.UnstageAllToolItem.PerformClick();
 
-                var fileNotMatchedByFilterIsStillStaged = testform.StagedList.AllItems.Any(i => i.Item.Name == "file2.txt");
+                bool fileNotMatchedByFilterIsStillStaged = testform.StagedList.AllItems.Any(i => i.Item.Name == "file2.txt");
 
                 Assert.AreEqual(2, testform.UnstagedList.AllItemsCount);
                 Assert.AreEqual(1, testform.StagedList.AllItemsCount);
@@ -392,7 +403,7 @@ namespace GitExtensions.UITests.CommandsDialogs
 
                 form.GetTestAccessor().UnstagedList.ClearSelected();
 
-                var editFileToolStripMenuItem = form.GetTestAccessor().EditFileToolStripMenuItem;
+                ToolStripMenuItem editFileToolStripMenuItem = form.GetTestAccessor().EditFileToolStripMenuItem;
 
                 // asserting by the virtue of not crashing
                 editFileToolStripMenuItem.PerformClick();
@@ -404,7 +415,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         {
             RunFormTest(form =>
             {
-                var testForm = form.GetTestAccessor();
+                FormCommit.TestAccessor testForm = form.GetTestAccessor();
 
                 // check initial state
                 Assert.False(testForm.Amend.Checked);
@@ -537,8 +548,8 @@ namespace GitExtensions.UITests.CommandsDialogs
                     // This seems not to affect the user experience, because
                     // - the rounding error is only +- 1 pixel
                     // - if the user does not change the geometry, the height will oscillate to a constant value
-                    var height1 = bounds1.Height;
-                    var height2 = bounds2.Height;
+                    int height1 = bounds1.Height;
+                    int height2 = bounds2.Height;
                     Assert.IsTrue(height1 >= height2 - 1 && height1 <= height2 + 1);
                 });
         }
@@ -563,9 +574,9 @@ namespace GitExtensions.UITests.CommandsDialogs
         {
             RunFormTest(form =>
             {
-                var ta = form.GetTestAccessor();
+                FormCommit.TestAccessor ta = form.GetTestAccessor();
 
-                var selectedDiff = ta.SelectedDiff.GetTestAccessor().FileViewerInternal;
+                FileViewerInternal selectedDiff = ta.SelectedDiff.GetTestAccessor().FileViewerInternal;
                 selectedDiff.SetText(selectedText, openWithDifftool: null);
                 selectedDiff.GetTestAccessor().TextEditor.ActiveTextAreaControl.SelectionManager.SetSelection(
                     new TextLocation(0, 0), new TextLocation(selectedText.Length, 0));
@@ -577,7 +588,7 @@ namespace GitExtensions.UITests.CommandsDialogs
                 ta.Message.Text = message;
                 ta.Message.SelectionStart = selectionStart;
                 ta.Message.SelectionLength = selectionLength;
-                ta.ExecuteCommand(FormCommit.Command.AddSelectionToCommitMessage).Should().Be((GitCommands.CommandStatus)expectedResult);
+                ta.ExecuteCommand(FormCommit.Command.AddSelectionToCommitMessage).Should().Be((CommandStatus)expectedResult);
                 ta.Message.Text.Should().Be(expectedMessage);
                 ta.Message.SelectionStart.Should().Be(expectedSelectionStart);
                 ta.Message.SelectionLength.Should().Be(expectedResult ? 0 : selectionLength);
@@ -641,8 +652,8 @@ namespace GitExtensions.UITests.CommandsDialogs
 
         private void RunGeometryMemoryTest(Func<FormCommit, Rectangle> boundsAccessor, Action<Rectangle, Rectangle> testDriver)
         {
-            var bounds1 = Rectangle.Empty;
-            var bounds2 = Rectangle.Empty;
+            Rectangle bounds1 = Rectangle.Empty;
+            Rectangle bounds2 = Rectangle.Empty;
             RunFormTest(form => bounds1 = boundsAccessor(form));
             RunFormTest(form => bounds2 = boundsAccessor(form));
             testDriver(bounds1, bounds2);

@@ -30,7 +30,7 @@ namespace GitUI.CommitInfo
             _commitDataManager = new CommitDataManager(() => Module);
             _commitDataHeaderRenderer = new CommitDataHeaderRenderer(labelFormatter, _dateFormatter, headerRenderer, _linkFactory);
 
-            using (var g = CreateGraphics())
+            using (Graphics g = CreateGraphics())
             {
                 rtbRevisionHeader.Font = _commitDataHeaderRenderer.GetFont(g);
             }
@@ -53,10 +53,10 @@ namespace GitUI.CommitInfo
 
         public void ShowCommitInfo(GitRevision revision, IReadOnlyList<ObjectId>? children)
         {
-            this.InvokeAsync(() =>
+            this.InvokeAndForget(() =>
             {
-                var data = _commitDataManager.CreateFromRevision(revision, children);
-                var header = _commitDataHeaderRenderer.Render(data, showRevisionsAsLinks: CommandClicked is not null);
+                CommitData data = _commitDataManager.CreateFromRevision(revision, children);
+                string header = _commitDataHeaderRenderer.Render(data, showRevisionsAsLinks: CommandClicked is not null);
 
                 rtbRevisionHeader.SuspendLayout();
 
@@ -69,7 +69,7 @@ namespace GitUI.CommitInfo
                 rtbRevisionHeader.ResumeLayout(true);
 
                 LoadAuthorImage(revision);
-            }).FileAndForget();
+            });
         }
 
         public string GetPlainText()
@@ -79,7 +79,7 @@ namespace GitUI.CommitInfo
 
         private void LoadAuthorImage(GitRevision? revision)
         {
-            var showAvatar = AppSettings.ShowAuthorAvatarInCommitInfo;
+            bool showAvatar = AppSettings.ShowAuthorAvatarInCommitInfo;
             avatarControl.Visible = showAvatar;
 
             if (!showAvatar)

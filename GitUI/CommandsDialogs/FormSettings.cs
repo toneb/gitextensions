@@ -26,14 +26,6 @@ namespace GitUI.CommandsDialogs
         private SettingsPageReference? _initialPage;
         private bool _saved = false;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormSettings()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
         public FormSettings(GitUICommands commands, SettingsPageReference? initialPage = null)
             : base(commands)
         {
@@ -71,7 +63,7 @@ namespace GitUI.CommandsDialogs
         {
             try
             {
-                foreach (var settingsPage in SettingsPages)
+                foreach (ISettingsPage settingsPage in SettingsPages)
                 {
                     settingsPage.LoadSettings();
                 }
@@ -112,74 +104,76 @@ namespace GitUI.CommandsDialogs
 
             settingsTreeView.SuspendLayout();
 
-            ChecklistSettingsPage checklistSettingsPage = SettingsPageBase.Create<ChecklistSettingsPage>(this);
+            IServiceProvider serviceProvider = UICommands;
+
+            ChecklistSettingsPage checklistSettingsPage = SettingsPageBase.Create<ChecklistSettingsPage>(this, serviceProvider);
 
             // Git Extensions settings
             settingsTreeView.AddSettingsPage(new GitExtensionsSettingsGroup(), null, Images.GitExtensionsLogo16);
-            var gitExtPageRef = GitExtensionsSettingsGroup.GetPageReference();
+            SettingsPageReference gitExtPageRef = GitExtensionsSettingsGroup.GetPageReference();
             settingsTreeView.AddSettingsPage(checklistSettingsPage, gitExtPageRef, icon: null, asRoot: true);
 
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GeneralSettingsPage>(this), gitExtPageRef, Images.GeneralSettings);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GeneralSettingsPage>(this, serviceProvider), gitExtPageRef, Images.GeneralSettings);
 
             // >> Appearance
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<AppearanceSettingsPage>(this), gitExtPageRef, Images.Appearance);
-            var appearanceSettingsPage = AppearanceSettingsPage.GetPageReference();
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<SortingSettingsPage>(this), appearanceSettingsPage, Images.SortBy);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ColorsSettingsPage>(this), appearanceSettingsPage, Images.Colors);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<AppearanceFontsSettingsPage>(this), appearanceSettingsPage, Images.Font.AdaptLightness());
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ConsoleStyleSettingsPage>(this), appearanceSettingsPage, Images.Console);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<RevisionLinksSettingsPage>(this), gitExtPageRef, Images.Link.AdaptLightness());
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<AppearanceSettingsPage>(this, serviceProvider), gitExtPageRef, Images.Appearance);
+            SettingsPageReference appearanceSettingsPage = AppearanceSettingsPage.GetPageReference();
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<SortingSettingsPage>(this, serviceProvider), appearanceSettingsPage, Images.SortBy);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ColorsSettingsPage>(this, serviceProvider), appearanceSettingsPage, Images.Colors);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<AppearanceFontsSettingsPage>(this, serviceProvider), appearanceSettingsPage, Images.Font.AdaptLightness());
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ConsoleStyleSettingsPage>(this, serviceProvider), appearanceSettingsPage, Images.Console);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<RevisionLinksSettingsPage>(this, serviceProvider), gitExtPageRef, Images.Link.AdaptLightness());
 
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<BuildServerIntegrationSettingsPage>(this), gitExtPageRef, Images.Integration);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ScriptsSettingsPage>(this), gitExtPageRef, Images.Console);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<HotkeysSettingsPage>(this), gitExtPageRef, Images.Hotkey);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<BuildServerIntegrationSettingsPage>(this, serviceProvider), gitExtPageRef, Images.Integration);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ScriptsSettingsPage>(this, serviceProvider), gitExtPageRef, Images.Console);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<HotkeysSettingsPage>(this, serviceProvider), gitExtPageRef, Images.Hotkey);
 
             if (EnvUtils.RunningOnWindows())
             {
-                settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ShellExtensionSettingsPage>(this), gitExtPageRef, Images.ShellExtensions);
+                settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ShellExtensionSettingsPage>(this, serviceProvider), gitExtPageRef, Images.ShellExtensions);
             }
 
             // >> Advanced
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<AdvancedSettingsPage>(this), gitExtPageRef, Images.AdvancedSettings);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<AdvancedSettingsPage>(this, serviceProvider), gitExtPageRef, Images.AdvancedSettings);
             SettingsPageReference advancedPageRef = AdvancedSettingsPage.GetPageReference();
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ConfirmationsSettingsPage>(this), advancedPageRef, Images.BisectGood);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<ConfirmationsSettingsPage>(this, serviceProvider), advancedPageRef, Images.BisectGood);
 
             // >> Detailed
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<DetailedSettingsPage>(this), gitExtPageRef, Images.Settings);
-            var detailedSettingsPage = DetailedSettingsPage.GetPageReference();
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<FormBrowseRepoSettingsPage>(this), detailedSettingsPage, Images.BranchFolder);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<CommitDialogSettingsPage>(this), detailedSettingsPage, Images.CommitSummary);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<DiffViewerSettingsPage>(this), detailedSettingsPage, Images.Diff);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<BlameViewerSettingsPage>(this), detailedSettingsPage, Images.Blame);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<DetailedSettingsPage>(this, serviceProvider), gitExtPageRef, Images.Settings);
+            SettingsPageReference detailedSettingsPage = DetailedSettingsPage.GetPageReference();
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<FormBrowseRepoSettingsPage>(this, serviceProvider), detailedSettingsPage, Images.BranchFolder);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<CommitDialogSettingsPage>(this, serviceProvider), detailedSettingsPage, Images.CommitSummary);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<DiffViewerSettingsPage>(this, serviceProvider), detailedSettingsPage, Images.Diff);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<BlameViewerSettingsPage>(this, serviceProvider), detailedSettingsPage, Images.Blame);
 
-            var sshSettingsPage = SettingsPageBase.Create<SshSettingsPage>(this);
+            SshSettingsPage sshSettingsPage = SettingsPageBase.Create<SshSettingsPage>(this, serviceProvider);
             settingsTreeView.AddSettingsPage(sshSettingsPage, gitExtPageRef, Images.Key);
             checklistSettingsPage.SshSettingsPage = sshSettingsPage;
 
             // Git settings
             settingsTreeView.AddSettingsPage(new GitSettingsGroup(), null, Images.GitLogo16);
-            var gitPageRef = GitSettingsGroup.GetPageReference();
+            SettingsPageReference gitPageRef = GitSettingsGroup.GetPageReference();
 
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GitSettingsPage>(this), gitPageRef, Images.FolderOpen);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GitConfigSettingsPage>(this), gitPageRef, Images.GeneralSettings);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GitConfigAdvancedSettingsPage>(this), gitPageRef, Images.AdvancedSettings);
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GitRootIntroductionPage>(this), gitPageRef, icon: null, asRoot: true);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GitSettingsPage>(this, serviceProvider), gitPageRef, Images.FolderOpen);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GitConfigSettingsPage>(this, serviceProvider), gitPageRef, Images.GeneralSettings);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GitConfigAdvancedSettingsPage>(this, serviceProvider), gitPageRef, Images.AdvancedSettings);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<GitRootIntroductionPage>(this, serviceProvider), gitPageRef, icon: null, asRoot: true);
 
             // Plugins settings
             settingsTreeView.AddSettingsPage(new PluginsSettingsGroup(), null, Images.Plugin);
             SettingsPageReference pluginsPageRef = PluginsSettingsGroup.GetPageReference();
-            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<PluginRootIntroductionPage>(this), pluginsPageRef, icon: null, asRoot: true);
+            settingsTreeView.AddSettingsPage(SettingsPageBase.Create<PluginRootIntroductionPage>(this, serviceProvider), pluginsPageRef, icon: null, asRoot: true);
 
             lock (PluginRegistry.Plugins)
             {
-                var pluginEntries = PluginRegistry.Plugins
+                IOrderedEnumerable<(GitUIPluginInterfaces.IGitPlugin plugin, PluginSettingsPage page)> pluginEntries = PluginRegistry.Plugins
                     .Where(p => p.HasSettings)
-                    .Select(plugin => (Plugin: plugin, Page: PluginSettingsPage.CreateSettingsPageFromPlugin(this, plugin)))
+                    .Select(plugin => (Plugin: plugin, Page: PluginSettingsPage.CreateSettingsPageFromPlugin(this, plugin, UICommands)))
                     .OrderBy(entry => entry.Page.GetTitle(), StringComparer.CurrentCultureIgnoreCase);
 
-                foreach (var entry in pluginEntries)
+                foreach ((GitUIPluginInterfaces.IGitPlugin plugin, PluginSettingsPage page) entry in pluginEntries)
                 {
-                    settingsTreeView.AddSettingsPage(entry.Page, pluginsPageRef, entry.Plugin.Icon as Bitmap);
+                    settingsTreeView.AddSettingsPage(entry.page, pluginsPageRef, entry.plugin.Icon as Bitmap);
                 }
             }
 
@@ -190,7 +184,7 @@ namespace GitUI.CommandsDialogs
         {
             panelCurrentSettingsPage.Controls.Clear();
 
-            var settingsPage = e.SettingsPage;
+            ISettingsPage settingsPage = e.SettingsPage;
 
             _lastSelectedSettingsPageType = settingsPage.GetType();
 
@@ -233,7 +227,7 @@ namespace GitUI.CommandsDialogs
         {
             try
             {
-                foreach (var settingsPage in SettingsPages)
+                foreach (ISettingsPage settingsPage in SettingsPages)
                 {
                     settingsPage.SaveSettings();
                 }

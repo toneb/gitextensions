@@ -1,5 +1,4 @@
 ﻿using System.IO.Abstractions;
-using GitCommands.Git.Commands;
 using GitCommands.Git.Extensions;
 using GitUIPluginInterfaces;
 
@@ -52,10 +51,9 @@ namespace GitCommands.Git.Tag
                 _fileSystem.File.WriteAllText(tagMessageFileName, args.TagMessage);
             }
 
-            GitCreateTagCmd createTagCmd = new(args, _uiCommands.GitModule.GetGitExecPath(tagMessageFileName));
             try
             {
-                return _uiCommands.StartCommandLineProcessDialog(parentWindow, createTagCmd);
+                return _uiCommands.StartCommandLineProcessDialog(parentWindow, Commands.CreateTag(args, _uiCommands.GitModule.GetGitExecPath(tagMessageFileName)));
             }
             finally
             {

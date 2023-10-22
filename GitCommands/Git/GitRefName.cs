@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Text.RegularExpressions;
+using GitExtUtils;
 using GitUIPluginInterfaces;
 
 namespace GitCommands
@@ -41,7 +42,7 @@ namespace GitCommands
         [Pure]
         public static string GetRemoteName(string refName)
         {
-            var match = _remoteNameRegex.Match(refName);
+            Match match = _remoteNameRegex.Match(refName);
 
             if (match.Success)
             {
@@ -51,7 +52,7 @@ namespace GitCommands
             // This method requires the full form of the ref path, which begins with "refs/".
             // The overload which accepts multiple remote names can be used when the format might
             // be abbreviated to "remote/branch".
-            Debug.Assert(refName.StartsWith("refs/"), "Must begin with \"refs/\".");
+            DebugHelpers.Assert(refName.StartsWith("refs/"), "Must begin with \"refs/\".");
 
             return string.Empty;
         }
@@ -64,7 +65,7 @@ namespace GitCommands
                 return GetRemoteName(refName);
             }
 
-            foreach (var remote in remotes)
+            foreach (string remote in remotes)
             {
                 if (refName.StartsWith(remote) && refName.Length > remote.Length && refName[remote.Length] == '/')
                 {
@@ -83,7 +84,7 @@ namespace GitCommands
                 return string.Empty;
             }
 
-            var startBranch = refName.IndexOf('/', GitRefName.RefsRemotesPrefix.Length);
+            int startBranch = refName.IndexOf('/', GitRefName.RefsRemotesPrefix.Length);
             if (startBranch < 0)
             {
                 return string.Empty;

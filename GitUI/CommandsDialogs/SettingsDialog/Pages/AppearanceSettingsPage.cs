@@ -18,10 +18,10 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
         private readonly TranslationString _noImageServiceTooltip = new($"A default image, if the provider has no image for the email address.\r\n\r\nClick this info icon for more details.");
         private readonly TranslationString _avatarProviderTooltip = new($"The avatar provider defines the source for user-defined avatar images.\r\nThe \"Default\" provider uses GitHub and Gravatar,\r\nthe \"Custom\" provider allows you to set custom provider URLs and\r\n\"None\" disables user-defined avatars.\r\n\r\nClick this info icon for more details.");
 
-        public AppearanceSettingsPage()
+        public AppearanceSettingsPage(IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             InitializeComponent();
-            Text = "Appearance";
             InitializeComplete();
 
             FillComboBoxWithEnumValues<AvatarProvider>(AvatarProvider);
@@ -129,7 +129,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
             AppSettings.EnableAutoScale = chkEnableAutoScale.Checked;
             AppSettings.TruncatePathMethod = GetTruncatePathMethodString(truncatePathMethod.SelectedIndex);
 
-            var shouldClearCache =
+            bool shouldClearCache =
                 AppSettings.AvatarProvider != (AvatarProvider)AvatarProvider.SelectedValue
                 || AppSettings.AvatarFallbackType != (AvatarFallbackType)_NO_TRANSLATE_NoImageService.SelectedValue
                 || AppSettings.CustomAvatarTemplate != txtCustomAvatarTemplate.Text;
@@ -225,7 +225,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
 
         private void ManageAvatarOptionsDisplay()
         {
-            var showCustomTemplate = (AvatarProvider)AvatarProvider.SelectedValue == GitCommands.AvatarProvider.Custom;
+            bool showCustomTemplate = (AvatarProvider)AvatarProvider.SelectedValue == GitCommands.AvatarProvider.Custom;
 
             lblCustomAvatarTemplate.Visible = showCustomTemplate;
             txtCustomAvatarTemplate.Visible = showCustomTemplate;

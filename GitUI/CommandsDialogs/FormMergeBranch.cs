@@ -1,9 +1,10 @@
 ﻿using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitCommands.Settings;
+using GitExtUtils;
 using GitExtUtils.GitUI.Theming;
 using GitUI.HelperDialogs;
-using GitUI.Script;
+using GitUI.ScriptsEngine;
 using GitUIPluginInterfaces;
 using GitUIPluginInterfaces.Settings;
 using ResourceManager;
@@ -16,14 +17,6 @@ namespace GitUI.CommandsDialogs
         private readonly TranslationString _formMergeBranchHoverShowImageLabelText = new("Hover to see scenario when fast forward is possible.");
         private readonly string? _defaultBranch;
         private ICommitMessageManager _commitMessageManager;
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormMergeBranch()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
 
         /// <summary>Initializes <see cref="FormMergeBranch"/>.</summary>
         /// <param name="defaultBranch">Branch to merge into the current branch.</param>
@@ -63,7 +56,7 @@ namespace GitUI.CommandsDialogs
 
         private void FormMergeBranchLoad(object sender, EventArgs e)
         {
-            var selectedHead = Module.GetSelectedBranch();
+            string selectedHead = Module.GetSelectedBranch();
             currentBranchLabel.Text = selectedHead;
 
             // Offer rebase on refs also for tags (but not stash, notes etc)
@@ -92,7 +85,7 @@ namespace GitUI.CommandsDialogs
             detachedSettings.NoFastForwardMerge = noFastForward.Checked;
             AppSettings.DontCommitMerge = noCommit.Checked;
 
-            bool success = ScriptManager.RunEventScripts(this, ScriptEvent.BeforeMerge);
+            bool success = ScriptsRunner.RunEventScripts(ScriptEvent.BeforeMerge, this);
             if (!success)
             {
                 return;
@@ -110,7 +103,7 @@ namespace GitUI.CommandsDialogs
                 mergeMessagePath = _commitMessageManager.MergeMessagePath;
             }
 
-            var command = GitCommandHelpers.MergeBranchCmd(Branches.GetSelectedText(),
+            ArgumentString command = Commands.MergeBranch(Branches.GetSelectedText(),
                                                             fastForward.Checked,
                                                             squash.Checked,
                                                             noCommit.Checked,
@@ -118,13 +111,13 @@ namespace GitUI.CommandsDialogs
                                                             allowUnrelatedHistories.Checked,
                                                             Module.GetGitExecPath(mergeMessagePath),
                                                             addLogMessages.Checked ? (int)nbMessages.Value : (int?)null);
-            success = FormProcess.ShowDialog(this, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
+            success = FormProcess.ShowDialog(this, UICommands, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
 
-            var wasConflict = MergeConflictHandler.HandleMergeConflicts(UICommands, this, !noCommit.Checked);
+            bool wasConflict = MergeConflictHandler.HandleMergeConflicts(UICommands, this, !noCommit.Checked);
 
             if (success || wasConflict)
             {
-                ScriptManager.RunEventScripts(this, ScriptEvent.AfterMerge);
+                ScriptsRunner.RunEventScripts(ScriptEvent.AfterMerge, this);
                 UICommands.RepoChangedNotifier.Notify();
                 Close();
             }

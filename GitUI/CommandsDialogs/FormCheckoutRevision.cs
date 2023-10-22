@@ -1,25 +1,20 @@
 ﻿using System.Diagnostics;
 using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
+using GitExtUtils;
 using GitUI.HelperDialogs;
-using GitUI.Script;
+using GitUI.ScriptsEngine;
 using ResourceManager;
 
 namespace GitUI.CommandsDialogs
 {
-    public partial class FormCheckoutRevision : GitModuleForm
+    public partial class FormCheckoutRevision : GitExtensionsDialog
     {
         private readonly TranslationString _noRevisionSelectedMsgBox = new("Select 1 revision to checkout.");
         private readonly TranslationString _noRevisionSelectedMsgBoxCaption = new("Checkout");
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormCheckoutRevision()
-        {
-            InitializeComponent();
-        }
-
         public FormCheckoutRevision(GitUICommands commands)
-            : base(commands)
+            : base(commands, enablePositionRestore: false)
         {
             InitializeComponent();
             InitializeComplete();
@@ -34,7 +29,7 @@ namespace GitUI.CommandsDialogs
         {
             try
             {
-                var selectedObjectId = commitPickerSmallControl1.SelectedObjectId;
+                GitUIPluginInterfaces.ObjectId selectedObjectId = commitPickerSmallControl1.SelectedObjectId;
 
                 if (selectedObjectId is null)
                 {
@@ -42,18 +37,18 @@ namespace GitUI.CommandsDialogs
                     return;
                 }
 
-                var checkedOutObjectId = Module.GetCurrentCheckout();
+                GitUIPluginInterfaces.ObjectId checkedOutObjectId = Module.GetCurrentCheckout();
 
-                Debug.Assert(checkedOutObjectId is not null, "checkedOutObjectId is not null");
+                DebugHelpers.Assert(checkedOutObjectId is not null, "checkedOutObjectId is not null");
 
-                bool success = ScriptManager.RunEventScripts(this, ScriptEvent.BeforeCheckout);
+                bool success = ScriptsRunner.RunEventScripts(ScriptEvent.BeforeCheckout, this);
                 if (!success)
                 {
                     return;
                 }
 
-                string command = GitCommandHelpers.CheckoutCmd(selectedObjectId.ToString(), Force.Checked ? LocalChangesAction.Reset : 0);
-                success = FormProcess.ShowDialog(this, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
+                string command = Commands.Checkout(selectedObjectId.ToString(), Force.Checked ? LocalChangesAction.Reset : 0);
+                success = FormProcess.ShowDialog(this, UICommands, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
                 if (success)
                 {
                     if (selectedObjectId != checkedOutObjectId)
@@ -62,7 +57,7 @@ namespace GitUI.CommandsDialogs
                     }
                 }
 
-                ScriptManager.RunEventScripts(this, ScriptEvent.AfterCheckout);
+                ScriptsRunner.RunEventScripts(ScriptEvent.AfterCheckout, this);
 
                 DialogResult = DialogResult.OK;
                 Close();

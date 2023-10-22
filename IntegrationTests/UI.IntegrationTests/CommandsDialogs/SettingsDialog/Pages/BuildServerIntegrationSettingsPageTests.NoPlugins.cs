@@ -2,6 +2,7 @@
 using CommonTestUtils.MEF;
 using GitCommands;
 using GitExtensions.UITests;
+using GitUI;
 using GitUI.CommandsDialogs.SettingsDialog;
 using GitUI.CommandsDialogs.SettingsDialog.Pages;
 using GitUIPluginInterfaces;
@@ -61,7 +62,7 @@ namespace UITests.CommandsDialogs.SettingsDialog.Pages
                         Size = new(800, 400)
                     };
 
-                    _settingsPage = SettingsPageBase.Create<BuildServerIntegrationSettingsPage>(_form);
+                    _settingsPage = SettingsPageBase.Create<BuildServerIntegrationSettingsPage>(_form, GitUICommands.EmptyServiceProvider);
                     _settingsPage.Dock = DockStyle.Fill;
 
                     _form.Controls.Add(_settingsPage);
@@ -82,17 +83,17 @@ namespace UITests.CommandsDialogs.SettingsDialog.Pages
 
             public void GotoPage(SettingsPageReference settingsPageReference)
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
 
             public void LoadAll()
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
 
             public void SaveAll()
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
         }
     }

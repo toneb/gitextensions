@@ -1,28 +1,20 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using GitCommands;
+using GitUI.ScriptsEngine;
+using GitUIPluginInterfaces;
 using ResourceManager;
 
 namespace GitUI
 {
-    public sealed class GitUICommandsSourceEventArgs : EventArgs
-    {
-        public GitUICommandsSourceEventArgs(IGitUICommandsSource gitUiCommandsSource)
-        {
-            GitUICommandsSource = gitUiCommandsSource;
-        }
-
-        public IGitUICommandsSource GitUICommandsSource { get; }
-    }
-
     /// <summary>
     /// Base class for a <see cref="UserControl"/> requiring <see cref="GitModule"/> and <see cref="GitUICommands"/>.
     /// </summary>
-    public class GitModuleControl : GitExtensionsControl
+    public class GitModuleControl : GitExtensionsControl, IGitModuleControl
     {
         private readonly object _lock = new();
-
         private int _isDisposed;
+        private IGitUICommandsSource? _uiCommandsSource;
 
         /// <summary>
         /// Occurs after the <see cref="UICommandsSource"/> is set.
@@ -30,8 +22,6 @@ namespace GitUI
         /// </summary>
         [Browsable(false)]
         public event EventHandler<GitUICommandsSourceEventArgs>? UICommandsSourceSet;
-
-        private IGitUICommandsSource? _uiCommandsSource;
 
         /// <summary>
         /// Gets a <see cref="IGitUICommandsSource"/> for this control.
@@ -69,10 +59,12 @@ namespace GitUI
             {
                 if (_uiCommandsSource is not null)
                 {
-                    throw new ArgumentException($"{nameof(UICommandsSource)} is already set.");
+                    throw new InvalidOperationException($"{nameof(UICommandsSource)} is already set.");
                 }
 
-                _uiCommandsSource = value ?? throw new ArgumentException($"Can not assign null value to {nameof(UICommandsSource)}.");
+                ArgumentNullException.ThrowIfNull(value);
+                _uiCommandsSource = value;
+
                 OnUICommandsSourceSet(_uiCommandsSource);
             }
         }
@@ -80,6 +72,8 @@ namespace GitUI
         /// <summary>Gets the <see cref="UICommandsSource"/>'s <see cref="GitUICommands"/> reference.</summary>
         [Browsable(false)]
         public GitUICommands UICommands => UICommandsSource.UICommands;
+
+        IGitUICommands IGitModuleControl.UICommands => UICommandsSource.UICommands;
 
         /// <summary>
         /// Gets the UI commands, if they've initialised.
@@ -90,7 +84,7 @@ namespace GitUI
         /// <para>By contrast, the <see cref="UICommands"/> property attempts to initialise
         /// the value if not previously initialised.</para>
         /// </remarks>
-        public bool TryGetUICommands([NotNullWhen(returnValue: true)] out GitUICommands? commands)
+        internal bool TryGetUICommandsDirect([NotNullWhen(returnValue: true)] out GitUICommands? commands)
         {
             commands = _uiCommandsSource?.UICommands;
             return commands is not null;
@@ -133,7 +127,7 @@ namespace GitUI
 
         protected override CommandStatus ExecuteCommand(int command)
         {
-            var result = ExecuteScriptCommand();
+            CommandStatus result = ExecuteScriptCommand();
             if (!result.Executed)
             {
                 result = base.ExecuteCommand(command);
@@ -143,13 +137,14 @@ namespace GitUI
 
             CommandStatus ExecuteScriptCommand()
             {
-                var revisionGridControl = this as RevisionGridControl;
+                RevisionGridControl revisionGridControl = this as RevisionGridControl;
                 if (revisionGridControl is null)
                 {
                     revisionGridControl = (FindForm() as GitModuleForm)?.RevisionGridControl;
                 }
 
-                return Script.ScriptRunner.ExecuteScriptCommand(this, Module, command, UICommands, revisionGridControl);
+                IScriptsRunner scriptsRunner = UICommands.GetRequiredService<IScriptsRunner>();
+                return scriptsRunner.RunScript(command, FindForm() as GitModuleForm, revisionGridControl);
             }
         }
 

@@ -1,11 +1,12 @@
-﻿using CommonTestUtils;
-using CommonTestUtils.MEF;
+﻿using System.ComponentModel.Design;
+using CommonTestUtils;
 using FluentAssertions;
 using GitCommands;
 using GitUI;
 using GitUI.CommandsDialogs;
 using GitUIPluginInterfaces;
-using Microsoft.VisualStudio.Composition;
+using NSubstitute;
+using ResourceManager;
 
 namespace GitExtensions.UITests.CommandsDialogs
 {
@@ -50,15 +51,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         {
             ReferenceRepository.ResetRepo(ref _referenceRepository);
 
-            _commands = new GitUICommands(_referenceRepository.Module);
-
-            var composition = TestComposition.Empty
-                .AddParts(typeof(MockLinkFactory))
-                .AddParts(typeof(MockWindowsJumpListManager))
-                .AddParts(typeof(MockRepositoryDescriptionProvider))
-                .AddParts(typeof(MockAppTitleGenerator));
-            ExportProvider mefExportProvider = composition.ExportProviderFactory.CreateExportProvider();
-            ManagedExtensibility.SetTestExportProvider(mefExportProvider);
+            _commands = new GitUICommands(GlobalServiceContainer.CreateDefaultMockServiceContainer(), _referenceRepository.Module);
         }
 
 #if !DEBUG
@@ -168,7 +161,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         public void File_history_should_behave_as_expected(string fileRelativePath, string fileName)
         {
             using ReferenceRepository referenceRepository = new();
-            GitUICommands commands = new(referenceRepository.Module);
+            GitUICommands commands = new(GlobalServiceContainer.CreateDefaultMockServiceContainer(), referenceRepository.Module);
 
             string revision1 = referenceRepository.CreateCommitRelative(fileRelativePath, fileName, $"Create '{fileName}' in directory '{fileRelativePath}'");
             string revision2 = referenceRepository.CreateCommitRelative(fileRelativePath, fileName, $"Update '{fileName}' in directory '{fileRelativePath}'");
@@ -203,7 +196,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         public void ShowStashes_starting_disabled_should_filter_as_expected()
         {
             using ReferenceRepository referenceRepository = new();
-            GitUICommands commands = new(referenceRepository.Module);
+            GitUICommands commands = new(GlobalServiceContainer.CreateDefaultMockServiceContainer(), referenceRepository.Module);
 
             referenceRepository.CreateCommit("Commit1");
             referenceRepository.Stash("Stash1");
@@ -252,7 +245,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         public void ShowStashes_starting_enabled_should_filter_as_expected()
         {
             using ReferenceRepository referenceRepository = new();
-            GitUICommands commands = new(referenceRepository.Module);
+            GitUICommands commands = new(GlobalServiceContainer.CreateDefaultMockServiceContainer(), referenceRepository.Module);
 
             referenceRepository.CreateCommit("Commit1");
             referenceRepository.Stash("Stash1");

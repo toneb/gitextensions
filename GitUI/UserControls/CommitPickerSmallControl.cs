@@ -2,7 +2,6 @@
 using GitUI.HelperDialogs;
 using GitUIPluginInterfaces;
 using Microsoft;
-using Microsoft.VisualStudio.Threading;
 
 namespace GitUI.UserControls
 {
@@ -28,7 +27,7 @@ namespace GitUI.UserControls
         /// </summary>
         public void SetSelectedCommitHash(string? commitHash)
         {
-            var oldCommitHash = SelectedObjectId;
+            ObjectId oldCommitHash = SelectedObjectId;
 
             SelectedObjectId = Module.RevParse(commitHash);
 
@@ -42,7 +41,7 @@ namespace GitUI.UserControls
                 SelectedObjectIdChanged?.Invoke(this, EventArgs.Empty);
             }
 
-            var isArtificialCommitForEmptyRepo = commitHash == "HEAD";
+            bool isArtificialCommitForEmptyRepo = commitHash == "HEAD";
 
             if (SelectedObjectId is null || isArtificialCommitForEmptyRepo)
             {
@@ -52,16 +51,13 @@ namespace GitUI.UserControls
             else
             {
                 textBoxCommitHash.Text = SelectedObjectId.ToShortString();
-                ThreadHelper.JoinableTaskFactory.RunAsync(
-                    async () =>
+                ThreadHelper.FileAndForget(async () =>
                     {
-                        await TaskScheduler.Default.SwitchTo(alwaysYield: true);
-
-                        var currentCheckout = Module.GetCurrentCheckout();
+                        ObjectId currentCheckout = Module.GetCurrentCheckout();
 
                         Validates.NotNull(currentCheckout);
 
-                        var text = Module.GetCommitCountString(currentCheckout.ToString(), SelectedObjectId.ToString());
+                        string text = Module.GetCommitCountString(currentCheckout.ToString(), SelectedObjectId.ToString());
 
                         await this.SwitchToMainThreadAsync();
 

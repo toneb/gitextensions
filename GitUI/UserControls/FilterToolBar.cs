@@ -1,8 +1,7 @@
-﻿using System.Diagnostics;
-using GitCommands;
+﻿using GitCommands;
+using GitExtUtils;
 using GitUI.UserControls.RevisionGrid;
 using GitUIPluginInterfaces;
-using Microsoft.VisualStudio.Threading;
 
 namespace GitUI.UserControls
 {
@@ -133,7 +132,7 @@ namespace GitUI.UserControls
         {
             _getModule = getModule ?? throw new ArgumentNullException(nameof(getModule));
 
-            Debug.Assert(_revisionGridFilter is null, $"{nameof(Bind)} must be invoked only once.");
+            DebugHelpers.Assert(_revisionGridFilter is null, $"{nameof(Bind)} must be invoked only once.");
             _revisionGridFilter = revisionGridFilter ?? throw new ArgumentNullException(nameof(revisionGridFilter));
             _revisionGridFilter.FilterChanged += revisionGridFilter_FilterChanged;
         }
@@ -197,7 +196,7 @@ namespace GitUI.UserControls
             tsddbtnRevisionFilter.BackColor = toolBackColor;
             tsddbtnRevisionFilter.ForeColor = toolForeColor;
 
-            var toolTextBoxBackColor = SystemColors.Window;
+            Color toolTextBoxBackColor = SystemColors.Window;
             tscboBranchFilter.BackColor = toolTextBoxBackColor;
             tscboBranchFilter.ForeColor = toolForeColor;
             tstxtRevisionFilter.BackColor = toolTextBoxBackColor;
@@ -211,7 +210,7 @@ namespace GitUI.UserControls
                 selectedIndex = 0;
             }
 
-            var selectedMenuItem = tssbtnShowBranches.DropDownItems[selectedIndex];
+            ToolStripItem selectedMenuItem = tssbtnShowBranches.DropDownItems[selectedIndex];
             tssbtnShowBranches.Image = selectedMenuItem.Image;
             tssbtnShowBranches.Text = selectedMenuItem.Text;
             tssbtnShowBranches.ToolTipText = selectedMenuItem.ToolTipText;
@@ -281,13 +280,11 @@ namespace GitUI.UserControls
             }
 
             Enabled = true;
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            ThreadHelper.FileAndForget(async () =>
             {
-                await TaskScheduler.Default;
-
                 if (_getRefs is null)
                 {
-                    Debug.Fail("getRefs is unexpectedly null");
+                    DebugHelpers.Fail("getRefs is unexpectedly null");
                     return;
                 }
 
@@ -297,7 +294,7 @@ namespace GitUI.UserControls
 
                 await this.SwitchToMainThreadAsync();
                 BindBranches(branches);
-            }).FileAndForget();
+            });
 
             return;
 
@@ -313,7 +310,7 @@ namespace GitUI.UserControls
 
             void BindBranches(string[] branches)
             {
-                var autoCompleteList = tscboBranchFilter.AutoCompleteCustomSource.Cast<string>();
+                IEnumerable<string> autoCompleteList = tscboBranchFilter.AutoCompleteCustomSource.Cast<string>();
                 if (!autoCompleteList.SequenceEqual(branches))
                 {
                     tscboBranchFilter.AutoCompleteCustomSource.Clear();
@@ -400,7 +397,7 @@ namespace GitUI.UserControls
             tsmiResetAllFilters.Enabled = e.HasFilter;
         }
 
-        private void revisionFilterBox_CheckedChanged(object sender, System.EventArgs e)
+        private void revisionFilterBox_CheckedChanged(object sender, EventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(tstxtRevisionFilter.Text))
             {

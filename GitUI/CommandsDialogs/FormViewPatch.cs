@@ -21,12 +21,6 @@ namespace GitUI.CommandsDialogs
         private readonly TranslationString _patchFileFilterString = new("Patch file (*.Patch)");
         private readonly TranslationString _patchFileFilterTitle = new("Select patch file");
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormViewPatch()
-        {
-            InitializeComponent();
-        }
-
         public FormViewPatch(GitUICommands commands)
             : base(commands)
         {
@@ -56,7 +50,7 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var patch = (Patch)GridChangedFiles.SelectedRows[0].DataBoundItem;
+            Patch patch = (Patch)GridChangedFiles.SelectedRows[0].DataBoundItem;
 
             if (patch is null)
             {
@@ -90,9 +84,9 @@ namespace GitUI.CommandsDialogs
         {
             try
             {
-                var text = System.IO.File.ReadAllText(PatchFileNameEdit.Text, GitModule.LosslessEncoding);
-                var patches = PatchProcessor.CreatePatchesFromString(text, new Lazy<Encoding>(() => Module.FilesEncoding)).ToList();
-                var patchesList = new SortablePatchesList();
+                string text = System.IO.File.ReadAllText(PatchFileNameEdit.Text, GitModule.LosslessEncoding);
+                List<Patch> patches = PatchProcessor.CreatePatchesFromString(text, new Lazy<Encoding>(() => Module.FilesEncoding)).ToList();
+                SortablePatchesList patchesList = new();
                 patchesList.AddRange(patches);
                 GridChangedFiles.DataSource = patchesList;
             }

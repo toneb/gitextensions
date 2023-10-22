@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using System.Configuration;
 using System.Diagnostics;
 using Avalonia;
@@ -18,6 +19,8 @@ namespace GitExtensions
 {
     internal static class Program
     {
+        private static readonly ServiceContainer _serviceContainer = new();
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool SetProcessDPIAware();
 
@@ -53,6 +56,8 @@ namespace GitExtensions
             }
 
             Control.CheckForIllegalCrossThreadCalls = checkForIllegalCrossThreadCalls;
+
+            ServiceContainerRegistry.RegisterServices(_serviceContainer);
 
             // If an error happens before we had a chance to init the environment information
             // the call to GetInformation() from BugReporter.ShowNBug() will fail.
@@ -123,13 +128,7 @@ namespace GitExtensions
                 ThreadHelper.JoinableTaskContext = new JoinableTaskContext();
             }
 
-            ManagedExtensibility.Initialise(new[]
-                {
-                    typeof(GitUI.GitExtensionsForm).Assembly,
-                    typeof(GitCommands.GitModule).Assembly,
-                    typeof(ResourceManager.GitPluginBase).Assembly
-                },
-                AppSettings.UserPluginsPath);
+            ManagedExtensibility.Initialise(userPluginsPath: AppSettings.UserPluginsPath);
 
             AppSettings.LoadSettings();
 
@@ -168,13 +167,13 @@ namespace GitExtensions
                         }
                     }
 
-                    GitUICommands uiCommands = new("");
+                    GitUICommands uiCommands = new(_serviceContainer, new GitModule(""));
                     CommonLogic commonLogic = new(uiCommands.Module);
                     if (AppSettings.CheckSettings)
                     {
                         CheckSettingsLogic checkSettingsLogic = new(commonLogic);
                         SettingsPageHostMock fakePageHost = new(checkSettingsLogic);
-                        using var checklistSettingsPage = SettingsPageBase.Create<ChecklistSettingsPage>(fakePageHost);
+                        using ChecklistSettingsPage checklistSettingsPage = SettingsPageBase.Create<ChecklistSettingsPage>(fakePageHost, _serviceContainer);
                         if (!checklistSettingsPage.CheckSettings())
                         {
                             if (!checkSettingsLogic.AutoSolveAllSettings() || !checklistSettingsPage.CheckSettings())
@@ -199,7 +198,7 @@ namespace GitExtensions
                 MouseWheelRedirector.Active = true;
             }
 
-            GitUICommands commands = new(GetWorkingDir(args));
+            GitUICommands commands = new(_serviceContainer, new GitModule(GetWorkingDir(args)));
 
             if (args.Length <= 1)
             {
@@ -280,12 +279,12 @@ namespace GitExtensions
             try
             {
                 // perhaps this should be checked for if it is null
-                var in3 = ce.InnerException.InnerException;
+                Exception in3 = ce.InnerException.InnerException;
 
                 // saves having to have a reference to System.Xml just to check that we have an XmlException
                 if (in3.GetType().Name == "XmlException")
                 {
-                    var localSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GitExtensions");
+                    string localSettingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GitExtensions");
 
                     // assume that if we are having this error and the installation is not a portable one then the folder will exist.
                     if (Directory.Exists(localSettingsPath))
@@ -300,7 +299,7 @@ namespace GitExtensions
                                 // Restart Git Extensions with the same arguments after old config is deleted?
                                 if (DialogResult.OK.Equals(MessageBox.Show(string.Format("Files have been deleted.{0}{0}Would you like to attempt to restart Git Extensions?", Environment.NewLine), "Configuration Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Question)))
                                 {
-                                    var args = Environment.GetCommandLineArgs();
+                                    string[] args = Environment.GetCommandLineArgs();
                                     Process p = new() { StartInfo = { FileName = args[0] } };
                                     if (args.Length > 1)
                                     {

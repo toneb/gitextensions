@@ -1,5 +1,5 @@
 ﻿using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitExtUtils;
 using GitUI.HelperDialogs;
 using GitUIPluginInterfaces;
@@ -13,14 +13,6 @@ namespace GitUI.CommandsDialogs
         private readonly TranslationString _noneParentSelectedText = new("None parent is selected!");
 
         private bool _isMerge;
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormRevertCommit()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
 
         public FormRevertCommit(GitUICommands commands, GitRevision revision)
             : base(commands)
@@ -43,7 +35,7 @@ namespace GitUI.CommandsDialogs
             parentListPanel.Visible = _isMerge;
             if (_isMerge)
             {
-                var parents = Module.GetParentRevisions(Revision.ObjectId);
+                IReadOnlyList<GitRevision> parents = Module.GetParentRevisions(Revision.ObjectId);
 
                 for (int i = 0; i < parents.Count; i++)
                 {
@@ -85,11 +77,11 @@ namespace GitUI.CommandsDialogs
 
             string existingCommitMessage = ThreadHelper.JoinableTaskFactory.Run(() => commitMessageManager.GetMergeOrCommitMessageAsync());
 
-            ArgumentString command = GitCommandHelpers.RevertCmd(Revision.ObjectId, AutoCommit.Checked, parentIndex);
+            ArgumentString command = Commands.Revert(Revision.ObjectId, AutoCommit.Checked, parentIndex);
 
             // Don't verify whether the command is successful.
             // If it fails, likely there is a conflict that needs to be resolved.
-            FormProcess.ShowDialog(this, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
+            FormProcess.ShowDialog(this, UICommands, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
 
             if (!string.IsNullOrWhiteSpace(existingCommitMessage))
             {

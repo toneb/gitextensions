@@ -1,5 +1,4 @@
 using GitCommands.Git;
-using GitCommands.Git.Commands;
 using GitExtUtils.GitUI;
 using GitExtUtils.GitUI.Theming;
 using GitUIPluginInterfaces;
@@ -13,19 +12,11 @@ namespace GitUI.HelperDialogs
         private readonly GitRevision _revision;
         private readonly TranslationString _localRefInvalid = new("The entered value '{0}' is not the name of an existing local branch.");
 
-        public static FormResetAnotherBranch Create(GitUICommands gitUiCommands, GitRevision revision)
-            => new(gitUiCommands, revision ?? throw new NotSupportedException(TranslatedStrings.NoRevision));
+        public static FormResetAnotherBranch Create(GitUICommands commands, GitRevision revision)
+            => new(commands, revision ?? throw new NotSupportedException(TranslatedStrings.NoRevision));
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormResetAnotherBranch()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
-        private FormResetAnotherBranch(GitUICommands gitUiCommands, GitRevision revision)
-            : base(gitUiCommands)
+        private FormResetAnotherBranch(GitUICommands commands, GitRevision revision)
+            : base(commands)
         {
             _revision = revision;
 
@@ -57,10 +48,10 @@ namespace GitUI.HelperDialogs
 
         private IGitRef[] GetLocalBranchesWithoutCurrent()
         {
-            var currentBranch = Module.GetSelectedBranch();
-            var isDetachedHead = currentBranch == DetachedHeadParser.DetachedBranch;
+            string currentBranch = Module.GetSelectedBranch();
+            bool isDetachedHead = currentBranch == DetachedHeadParser.DetachedBranch;
 
-            var selectedRevisionRemotes = _revision.Refs.Where(r => r.IsRemote).ToList();
+            List<IGitRef> selectedRevisionRemotes = _revision.Refs.Where(r => r.IsRemote).ToList();
 
             return Module.GetRefs(RefsFilter.Heads)
                 .Where(r => r.IsHead)
@@ -83,15 +74,15 @@ namespace GitUI.HelperDialogs
 
         private void Ok_Click(object sender, EventArgs e)
         {
-            var gitRefToReset = _localGitRefs.FirstOrDefault(b => b.Name == Branches.Text);
+            IGitRef gitRefToReset = _localGitRefs.FirstOrDefault(b => b.Name == Branches.Text);
             if (gitRefToReset is null)
             {
                 MessageBox.Show(string.Format(_localRefInvalid.Text, Branches.Text), TranslatedStrings.Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            var command = GitCommandHelpers.PushLocalCmd(gitRefToReset.CompleteName, _revision.ObjectId, Module.GetGitExecPath(Module.WorkingDir), ForceReset.Checked);
-            bool success = FormProcess.ShowDialog(this, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
+            GitExtUtils.ArgumentString command = Commands.PushLocal(gitRefToReset.CompleteName, _revision.ObjectId, Module.GetGitExecPath(Module.WorkingDir), ForceReset.Checked);
+            bool success = FormProcess.ShowDialog(this, UICommands, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
             if (success)
             {
                 UICommands.RepoChangedNotifier.Notify();

@@ -3,13 +3,18 @@ using System.Diagnostics.CodeAnalysis;
 using GitCommands;
 using GitCommands.Config;
 using LibGit2Sharp;
-using Remote = LibGit2Sharp.Remote;
 
 namespace CommonTestUtils
 {
     public class ReferenceRepository : IDisposable
     {
+        public const string AuthorName = "GitUITests";
+        public const string AuthorEmail = "unittests@gitextensions.com";
+        public const string AuthorFullIdentity = $"{AuthorName} <{AuthorEmail}>";
         private readonly GitModuleTestHelper _moduleTestHelper = new();
+
+        // We don't expect any failures so that we won't be switching to the main thread or showing messages
+        public static Control DummyOwner { get; } = new();
 
         public ReferenceRepository()
         {
@@ -32,7 +37,7 @@ namespace CommonTestUtils
                 {
                     refRepo.Reset();
                 }
-                catch (LibGit2Sharp.LockedFileException)
+                catch (LockedFileException)
                 {
                     // the index is locked; this might be due to a concurrent or crashed process
                     refRepo.Dispose();
@@ -56,24 +61,23 @@ namespace CommonTestUtils
 
         private static string Commit(Repository repository, string commitMessage)
         {
-            LibGit2Sharp.Signature author = new("GitUITests", "unittests@gitextensions.com", DateTimeOffset.Now);
-            var committer = author;
-            LibGit2Sharp.CommitOptions options = new() { PrettifyMessage = false };
-            var commit = repository.Commit(commitMessage, author, committer, options);
+            Signature author = GetAuthorSignature();
+            CommitOptions options = new() { PrettifyMessage = false };
+            Commit commit = repository.Commit(commitMessage, author, author, options);
             repository.Index.Write();
             return commit.Id.Sha;
         }
 
         public void CreateBranch(string branchName, string commitHash, bool allowOverwrite = false)
         {
-            using LibGit2Sharp.Repository repository = new(_moduleTestHelper.Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             repository.Branches.Add(branchName, commitHash, allowOverwrite);
             Console.WriteLine($"Created branch: {commitHash}, message: {branchName}");
         }
 
         public string CreateCommit(string commitMessage, string content = null)
         {
-            using LibGit2Sharp.Repository repository = new(_moduleTestHelper.Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             _moduleTestHelper.CreateRepoFile(_fileName, content ?? commitMessage);
             IndexAdd(repository, _fileName);
 
@@ -84,7 +88,7 @@ namespace CommonTestUtils
 
         public string CreateCommit(string commitMessage, string content1, string fileName1, string? content2 = null, string? fileName2 = null)
         {
-            using LibGit2Sharp.Repository repository = new(_moduleTestHelper.Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             _moduleTestHelper.CreateRepoFile(fileName1, content1);
             IndexAdd(repository, fileName1);
             if (content2 != null && fileName2 != null)
@@ -102,7 +106,7 @@ namespace CommonTestUtils
 
         public string CreateCommitRelative(string fileRelativePath, string fileName, string commitMessage, string content = null)
         {
-            using Repository repository = new(_moduleTestHelper.Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             _moduleTestHelper.CreateRepoFile(fileRelativePath, fileName, content ?? commitMessage);
             IndexAdd(repository, Path.Combine(fileRelativePath, fileName));
 
@@ -116,37 +120,35 @@ namespace CommonTestUtils
 
         public void CreateAnnotatedTag(string tagName, string commitHash, string message)
         {
-            LibGit2Sharp.Signature author = new("GitUITests", "unittests@gitextensions.com", DateTimeOffset.Now);
-
-            using LibGit2Sharp.Repository repository = new(_moduleTestHelper.Module.WorkingDir);
-            repository.Tags.Add(tagName, commitHash, author, message);
+            using Repository repository = new(Module.WorkingDir);
+            repository.Tags.Add(tagName, commitHash, GetAuthorSignature(), message);
         }
 
         public void CreateTag(string tagName, string commitHash, bool allowOverwrite = false)
         {
-            using LibGit2Sharp.Repository repository = new(_moduleTestHelper.Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             repository.Tags.Add(tagName, commitHash, allowOverwrite);
         }
 
         public void CheckoutRevision()
         {
-            using LibGit2Sharp.Repository repository = new(Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             Commands.Checkout(repository, CommitHash, new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force });
         }
 
         public void CheckoutBranch(string branchName)
         {
-            using LibGit2Sharp.Repository repository = new(Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             Commands.Checkout(repository, branchName, new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force });
         }
 
         public void CreateRemoteForMasterBranch()
         {
-            using LibGit2Sharp.Repository repository = new(Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             repository.Network.Remotes.Add("origin", "http://useless.url");
             Remote remote = repository.Network.Remotes["origin"];
 
-            var masterBranch = repository.Branches["master"];
+            Branch masterBranch = repository.Branches["master"];
 
             repository.Branches.Update(masterBranch,
                 b => b.Remote = remote.Name,
@@ -155,22 +157,21 @@ namespace CommonTestUtils
 
         public void Fetch(string remoteName)
         {
-            using LibGit2Sharp.Repository repository = new(Module.WorkingDir);
-            LibGit2Sharp.FetchOptions options = new();
-            Commands.Fetch(repository, remoteName, Array.Empty<string>(), options, null);
+            using Repository repository = new(Module.WorkingDir);
+            Commands.Fetch(repository, remoteName, Array.Empty<string>(), new FetchOptions(), null);
         }
 
         private void Reset()
         {
             // Undo potential impact from earlier tests
-            using (LibGit2Sharp.Repository repository = new(Module.WorkingDir))
+            using (Repository repository = new(Module.WorkingDir))
             {
-                LibGit2Sharp.CheckoutOptions options = new();
-                repository.Reset(LibGit2Sharp.ResetMode.Hard, (LibGit2Sharp.Commit)repository.Lookup(CommitHash, LibGit2Sharp.ObjectType.Commit), options);
+                CheckoutOptions options = new();
+                repository.Reset(LibGit2Sharp.ResetMode.Hard, (Commit)repository.Lookup(CommitHash, LibGit2Sharp.ObjectType.Commit), options);
                 repository.RemoveUntrackedFiles();
 
-                var remoteNames = repository.Network.Remotes.Select(remote => remote.Name).ToArray();
-                foreach (var remoteName in remoteNames)
+                string[] remoteNames = repository.Network.Remotes.Select(remote => remote.Name).ToArray();
+                foreach (string remoteName in remoteNames)
                 {
                     repository.Network.Remotes.Remove(remoteName);
                 }
@@ -179,8 +180,7 @@ namespace CommonTestUtils
                 repository.Config.Set(SettingKeyString.UserEmail, "author@mail.com");
             }
 
-            // We don't expect any failures so that we won't be switching to the main thread or showing messages
-            CommitMessageManager commitMessageManager = new(owner: null!, Module.WorkingDirGitDir, Module.CommitEncoding);
+            CommitMessageManager commitMessageManager = new(DummyOwner, Module.WorkingDirGitDir, Module.CommitEncoding);
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             commitMessageManager.ResetCommitMessageAsync().GetAwaiter().GetResult();
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
@@ -188,14 +188,15 @@ namespace CommonTestUtils
 
         public void Stash(string stashMessage, string content = null)
         {
-            using LibGit2Sharp.Repository repository = new(_moduleTestHelper.Module.WorkingDir);
+            using Repository repository = new(Module.WorkingDir);
             _moduleTestHelper.CreateRepoFile(_fileName, content ?? stashMessage);
             IndexAdd(repository, _fileName);
 
-            LibGit2Sharp.Signature author = new("GitUITests", "unittests@gitextensions.com", DateTimeOffset.Now);
-            Stash stash = repository.Stashes.Add(author, stashMessage);
+            Stash stash = repository.Stashes.Add(GetAuthorSignature(), stashMessage);
             Console.WriteLine($"Created stash: {stash.Index.Sha}, message: {stashMessage}");
         }
+
+        private static Signature GetAuthorSignature() => new(AuthorName, AuthorEmail, DateTimeOffset.Now);
 
         public void Dispose()
         {

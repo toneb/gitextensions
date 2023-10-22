@@ -24,14 +24,6 @@ namespace GitUI.CommandsDialogs
         public string GitAttributesFile = string.Empty;
         private readonly IFullPathResolver _fullPathResolver;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormGitAttributes()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
         public FormGitAttributes(GitUICommands commands)
             : base(commands)
         {
@@ -51,7 +43,7 @@ namespace GitUI.CommandsDialogs
         {
             try
             {
-                var path = _fullPathResolver.Resolve(".gitattributes");
+                string path = _fullPathResolver.Resolve(".gitattributes");
                 if (File.Exists(path))
                 {
                     _NO_TRANSLATE_GitAttributesText.ViewFileAsync(path!);
@@ -99,7 +91,7 @@ namespace GitUI.CommandsDialogs
 
         private void FormGitAttributesClosing(object sender, FormClosingEventArgs e)
         {
-            var needToClose = false;
+            bool needToClose = false;
 
             if (!IsFileUpToDate())
             {

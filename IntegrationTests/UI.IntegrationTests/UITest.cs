@@ -2,6 +2,7 @@
 using CommonTestUtils;
 using GitUI;
 using GitUIPluginInterfaces;
+using Microsoft.VisualStudio.Threading;
 
 namespace GitExtensions.UITests
 {
@@ -37,13 +38,7 @@ namespace GitExtensions.UITests
             Assert.IsEmpty(Application.OpenForms.OfType<T>(), $"{Application.OpenForms.OfType<T>().Count()} open form(s) before test");
 
             // Needed for FormBrowse, ScriptOptionsParser
-            ManagedExtensibility.Initialise(new[]
-            {
-#if GITUI
-                typeof(GitUI.GitExtensionsForm).Assembly,
-#endif
-                typeof(GitCommands.GitModule).Assembly
-            });
+            ManagedExtensibility.Initialise();
 
             T form = null;
             try
@@ -53,7 +48,7 @@ namespace GitExtensions.UITests
                 // Avoid using ThreadHelper.JoinableTaskFactory for the outermost operation because we don't want the task
                 // tracked by its collection. Otherwise, test code would not be able to wait for pending operations to
                 // complete.
-                var test = ThreadHelper.JoinableTaskContext.Factory.RunAsync(async () =>
+                JoinableTask test = ThreadHelper.JoinableTaskContext.Factory.RunAsync(async () =>
                 {
                     Log("switching to UI thread");
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -98,7 +93,7 @@ namespace GitExtensions.UITests
             {
                 if (debug)
                 {
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} {message}");
+                    Trace.WriteLine($"{DateTime.Now.TimeOfDay} {message}");
                 }
             }
         }

@@ -88,7 +88,7 @@ namespace ResourceManager
                 // TEMP, will be moved in the follow up refactor
                 ICommitDataManager commitDataManager = new CommitDataManager(() => module);
 
-                CommitData? data = commitDataManager.GetCommitData(hash, out _, cache);
+                CommitData? data = commitDataManager.GetCommitData(hash, cache);
                 if (data is null)
                 {
                     sb.AppendLine("Commit hash:\t" + hash);
@@ -110,7 +110,7 @@ namespace ResourceManager
 
         public static string ProcessSubmodulePatch(GitModule module, string fileName, Patch? patch)
         {
-            var status = SubmoduleHelpers.ParseSubmoduleStatus(patch?.Text, module, fileName);
+            GitSubmoduleStatus status = SubmoduleHelpers.ParseSubmoduleStatus(patch?.Text, module, fileName);
             if (status is null)
             {
                 return "";
@@ -149,16 +149,16 @@ namespace ResourceManager
                 {
                     if (status.OldCommit is not null)
                     {
-                        oldCommitData = commitDataManager.GetCommitData(status.OldCommit.ToString(), out _, cache: true);
+                        oldCommitData = commitDataManager.GetCommitData(status.OldCommit.ToString(), cache: true);
                     }
 
                     if (oldCommitData is not null)
                     {
                         sb.AppendLine("\t\t\t\t\t" + GetRelativeDateString(DateTime.UtcNow, oldCommitData.CommitDate.UtcDateTime) + " (" +
                                       GetFullDateString(oldCommitData.CommitDate) + ")");
-                        var delimiter = new[] { '\n', '\r' };
-                        var lines = oldCommitData.Body.Trim(delimiter).Split(new[] { "\r\n" }, StringSplitOptions.None);
-                        foreach (var line in lines)
+                        char[] delimiter = new[] { '\n', '\r' };
+                        string[] lines = oldCommitData.Body.Trim(delimiter).Split(new[] { "\r\n" }, StringSplitOptions.None);
+                        foreach (string line in lines)
                         {
                             sb.AppendLine("\t\t" + line);
                         }
@@ -181,16 +181,16 @@ namespace ResourceManager
             {
                 if (status.Commit is not null)
                 {
-                    commitData = commitDataManager.GetCommitData(status.Commit.ToString(), out _, cache: true);
+                    commitData = commitDataManager.GetCommitData(status.Commit.ToString(), cache: true);
                 }
 
                 if (commitData is not null)
                 {
                     sb.AppendLine("\t\t\t\t\t" + GetRelativeDateString(DateTime.UtcNow, commitData.CommitDate.UtcDateTime) + " (" +
                                   GetFullDateString(commitData.CommitDate) + ")");
-                    var delimiter = new[] { '\n', '\r' };
-                    var lines = commitData.Body.Trim(delimiter).Split(new[] { "\r\n" }, StringSplitOptions.None);
-                    foreach (var line in lines)
+                    char[] delimiter = new[] { '\n', '\r' };
+                    string[] lines = commitData.Body.Trim(delimiter).Split(new[] { "\r\n" }, StringSplitOptions.None);
+                    foreach (string line in lines)
                     {
                         sb.AppendLine("\t\t" + line);
                     }
@@ -207,7 +207,7 @@ namespace ResourceManager
             }
 
             sb.AppendLine();
-            var submoduleStatus = gitModule.CheckSubmoduleStatus(status.Commit, status.OldCommit, commitData, oldCommitData);
+            SubmoduleStatus submoduleStatus = gitModule.CheckSubmoduleStatus(status.Commit, status.OldCommit, commitData, oldCommitData);
             sb.Append("Type: ");
             switch (submoduleStatus)
             {
@@ -269,7 +269,7 @@ namespace ResourceManager
                         sb.AppendLine("\nStatus:");
                         if (limitOutput)
                         {
-                            var txt = statusText.Split(Delimiters.LineFeed, StringSplitOptions.RemoveEmptyEntries);
+                            string[] txt = statusText.Split(Delimiters.LineFeed, StringSplitOptions.RemoveEmptyEntries);
                             if (txt.Length > maxLimitedLines)
                             {
                                 statusText = new List<string>(txt).Take(maxLimitedLines).Join(Environment.NewLine) +
@@ -292,7 +292,7 @@ namespace ResourceManager
                             sb.AppendLine("\nDifferences:");
                             if (limitOutput)
                             {
-                                var txt = diffs.Split(Delimiters.LineFeed, StringSplitOptions.RemoveEmptyEntries);
+                                string[] txt = diffs.Split(Delimiters.LineFeed, StringSplitOptions.RemoveEmptyEntries);
                                 if (txt.Length > maxLimitedLines)
                                 {
                                     diffs = new List<string>(txt).Take(maxLimitedLines).Join(Environment.NewLine) +

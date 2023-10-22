@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Timers;
+using GitExtUtils;
 using Timer = System.Timers.Timer;
 
 namespace GitCommands.Utils
@@ -25,7 +26,7 @@ namespace GitCommands.Utils
 
             lock (_weakMap)
             {
-                if (_weakMap.TryGetValue(objectUniqueKey, out var weakReference))
+                if (_weakMap.TryGetValue(objectUniqueKey, out WeakReference weakReference))
                 {
                     cached = weakReference.Target;
                 }
@@ -44,7 +45,7 @@ namespace GitCommands.Utils
                 }
             }
 
-            Debug.Assert(cached is not null, "cached is not null -- if this is violated, the annotations on SettingsContainer<,>.ctor cache are wrong");
+            DebugHelpers.Assert(cached is not null, "cached is not null -- if this is violated, the annotations on SettingsContainer<,>.ctor cache are wrong");
 
             return (T)cached!;
         }
@@ -53,8 +54,8 @@ namespace GitCommands.Utils
         {
             lock (_weakMap)
             {
-                var toRemove = _weakMap.Where(p => !p.Value.IsAlive).Select(p => p.Key).ToArray();
-                foreach (var key in toRemove)
+                string[] toRemove = _weakMap.Where(p => !p.Value.IsAlive).Select(p => p.Key).ToArray();
+                foreach (string key in toRemove)
                 {
                     _weakMap.Remove(key);
                 }

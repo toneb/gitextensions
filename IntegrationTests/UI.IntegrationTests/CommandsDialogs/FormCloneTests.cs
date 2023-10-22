@@ -18,7 +18,7 @@ namespace GitExtensions.UITests.CommandsDialogs
         public void SetUp()
         {
             ReferenceRepository.ResetRepo(ref _referenceRepository);
-            _commands = new GitUICommands(_referenceRepository.Module);
+            _commands = new GitUICommands(GlobalServiceContainer.CreateDefaultMockServiceContainer(), _referenceRepository.Module);
         }
 
         [OneTimeTearDown]
@@ -40,9 +40,9 @@ namespace GitExtensions.UITests.CommandsDialogs
             RunFormTest(
                 form =>
                 {
-                    var accessor = form.GetTestAccessor();
+                    FormClone.TestAccessor accessor = form.GetTestAccessor();
 
-                    accessor.TryExtractUrl(text, out var url).Should().Equals(expected);
+                    accessor.TryExtractUrl(text, out string url).Should().Equals(expected);
 
                     // No need to compare URL if the result was expected to be false
                     if (expected)

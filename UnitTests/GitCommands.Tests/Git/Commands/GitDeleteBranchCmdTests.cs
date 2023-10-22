@@ -1,9 +1,9 @@
 using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitUIPluginInterfaces;
 using NSubstitute;
 
-namespace GitCommandsTests.Git.Commands
+namespace GitCommandsTests.Git_Commands
 {
     [TestFixture]
     public sealed class GitDeleteBranchCmdTests
@@ -11,13 +11,13 @@ namespace GitCommandsTests.Git.Commands
         [Test]
         public void ctor_should_throw_if_branches_is_null()
         {
-            Assert.Throws<ArgumentNullException>(() => new GitDeleteBranchCmd(branches: null, force: false));
+            Assert.Throws<ArgumentNullException>(() => Commands.DeleteBranch(branches: null, force: false));
         }
 
         [Test]
         public void ctor_should_throw_if_branches_is_empty()
         {
-            Assert.Throws<ArgumentException>(() => new GitDeleteBranchCmd(Array.Empty<IGitRef>(), force: false));
+            Assert.Throws<ArgumentException>(() => Commands.DeleteBranch(Array.Empty<IGitRef>(), force: false));
         }
 
         [Test]
@@ -27,7 +27,7 @@ namespace GitCommandsTests.Git.Commands
             string completeName = $"refs/remotes/{remoteName}/branch_name";
             GitRef remoteBranchRef = SetupRawRemoteRef(remoteName, completeName);
 
-            GitDeleteBranchCmd cmd = new(new IGitRef[] { remoteBranchRef }, force: false);
+            IGitCommand cmd = Commands.DeleteBranch(new IGitRef[] { remoteBranchRef }, force: false);
 
             Assert.IsFalse(cmd.AccessesRemote);
             Assert.IsTrue(cmd.ChangesRepoState);
@@ -41,8 +41,8 @@ namespace GitCommandsTests.Git.Commands
 
                 // Test local branches only
                 List<IGitRef> localRefs = new();
-                var localGitModule = Substitute.For<IGitModule>();
-                var localConfigFileSettings = Substitute.For<IConfigFileSettings>();
+                IGitModule localGitModule = Substitute.For<IGitModule>();
+                IConfigFileSettings localConfigFileSettings = Substitute.For<IConfigFileSettings>();
                 localConfigFileSettings.GetValue($"branch.local_branch.merge").Returns(string.Empty);
                 localConfigFileSettings.GetValue($"branch.local_branch.remote").Returns(string.Empty);
                 localGitModule.LocalConfigFile.Returns(localConfigFileSettings);
@@ -77,14 +77,14 @@ namespace GitCommandsTests.Git.Commands
         [TestCaseSource(nameof(GetRefsCommandTestData))]
         public void Arguments_are_Expected(IReadOnlyCollection<IGitRef> branches, bool force, string expected)
         {
-            GitDeleteBranchCmd cmd = new(branches, force);
+            IGitCommand cmd = Commands.DeleteBranch(branches, force);
             Assert.AreEqual(expected, cmd.Arguments);
         }
 
         private static GitRef SetupRawRemoteRef(string remoteName, string completeName)
         {
-            var localGitModule = Substitute.For<IGitModule>();
-            var localConfigFileSettings = Substitute.For<IConfigFileSettings>();
+            IGitModule localGitModule = Substitute.For<IGitModule>();
+            IConfigFileSettings localConfigFileSettings = Substitute.For<IConfigFileSettings>();
             localConfigFileSettings.GetValue($"branch.local_branch.merge").Returns(completeName);
             localConfigFileSettings.GetValue($"branch.local_branch.remote").Returns(remoteName);
             localGitModule.LocalConfigFile.Returns(localConfigFileSettings);

@@ -1,10 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- To be removed when NRT annotations are complete -->
     <Nullable>annotations</Nullable>
+
+    <!--
+    For debug purposes uncomment these lines:
+    
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+    -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,6 +45,10 @@
     <ProjectReference Include="..\ResourceManager\ResourceManager.csproj" />
     <ProjectReference Include="..\Plugins\GitUIPluginInterfaces\GitUIPluginInterfaces.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\GitExtensions.Analyzers.CSharp\GitExtensions.Analyzers.CSharp.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Resources -->
@@ -61,7 +72,9 @@
 
     <!-- Settings -->
     <None Update="Properties\Settings.settings" Generator="SettingsSingleFileGenerator" LastGenOutput="Settings.Designer.cs" />
-    <Compile Update="Properties\Settings.Designer.cs" AutoGen="True" DependentUpon="Settings.settings" />
+    <Compile Update="Properties\Settings.Designer.cs" AutoGen="True" DependentUpon="Settings.settings">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
 
     <None Include="Properties\DataSources\*.datasource" />
   </ItemGroup>

@@ -3,6 +3,7 @@ using System.Text;
 using GitCommands;
 using GitCommands.Git.Extensions;
 using GitCommands.Logging;
+using GitExtUtils;
 using Timer = System.Windows.Forms.Timer;
 
 namespace GitUI.UserControls
@@ -35,13 +36,13 @@ namespace GitUI.UserControls
 
             void AppendMessage(string text)
             {
-                Debug.Assert(text is not null, "text is not null");
+                DebugHelpers.Assert(text is not null, "text is not null");
                 if (IsDisposed)
                 {
                     return;
                 }
 
-                Debug.Assert(!InvokeRequired, "!InvokeRequired");
+                DebugHelpers.Assert(!InvokeRequired, "!InvokeRequired");
 
                 _editbox.Visible = true;
                 _editbox.Text += text;
@@ -104,7 +105,7 @@ namespace GitUI.UserControls
                 KillProcess();
 
                 // process used to execute external commands
-                var outputEncoding = GitModule.SystemEncoding;
+                Encoding outputEncoding = GitModule.SystemEncoding;
                 ProcessStartInfo startInfo = new()
                 {
                     UseShellExecute = false,
@@ -120,7 +121,7 @@ namespace GitUI.UserControls
                     WorkingDirectory = workDir
                 };
 
-                foreach (var (name, value) in envVariables)
+                foreach ((string name, string value) in envVariables)
                 {
                     startInfo.EnvironmentVariables.Add(name, value);
                 }
@@ -131,7 +132,7 @@ namespace GitUI.UserControls
                 process.ErrorDataReceived += (sender, args) => FireDataReceived(new TextEventArgs((args.Data ?? "") + '\n'));
                 process.Exited += delegate
                 {
-                    this.InvokeAsync(
+                    this.InvokeAndForget(
                         () =>
                         {
                             if (_process is null)
@@ -159,7 +160,7 @@ namespace GitUI.UserControls
                             _outputThrottle?.FlushOutput();
                             FireProcessExited();
                             _outputThrottle?.Stop(flush: true);
-                        }).FileAndForget();
+                        });
                 };
 
                 process.Start();

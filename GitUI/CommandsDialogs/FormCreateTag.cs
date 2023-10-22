@@ -1,8 +1,9 @@
-﻿using GitCommands.Git.Commands;
+﻿using GitCommands.Git;
 using GitCommands.Git.Extensions;
 using GitCommands.Git.Tag;
+using GitExtUtils;
 using GitUI.HelperDialogs;
-using GitUI.Script;
+using GitUI.ScriptsEngine;
 using GitUIPluginInterfaces;
 using ResourceManager;
 
@@ -20,14 +21,6 @@ namespace GitUI.CommandsDialogs
 
         private readonly IGitTagController _gitTagController;
         private string _currentRemote = "";
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormCreateTag()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
 
         public FormCreateTag(GitUICommands commands, ObjectId? objectId)
             : base(commands)
@@ -70,7 +63,7 @@ namespace GitUI.CommandsDialogs
         {
             try
             {
-                var tagName = CreateTag();
+                string tagName = CreateTag();
 
                 if (pushTag.Checked && !string.IsNullOrEmpty(tagName))
                 {
@@ -85,7 +78,7 @@ namespace GitUI.CommandsDialogs
 
         private string CreateTag()
         {
-            var objectId = commitPickerSmallControl1.SelectedObjectId;
+            ObjectId objectId = commitPickerSmallControl1.SelectedObjectId;
 
             if (objectId is null)
             {
@@ -99,7 +92,7 @@ namespace GitUI.CommandsDialogs
                                                      tagMessage.Text,
                                                      textBoxGpgKey.Text,
                                                      ForceTag.Checked);
-            var success = _gitTagController.CreateTag(createTagArgs, this);
+            bool success = _gitTagController.CreateTag(createTagArgs, this);
             if (!success)
             {
                 return "";
@@ -111,9 +104,9 @@ namespace GitUI.CommandsDialogs
 
         private void PushTag(string tagName)
         {
-            var pushCmd = GitCommandHelpers.PushTagCmd(_currentRemote, tagName, false);
+            ArgumentString pushCmd = Commands.PushTag(_currentRemote, tagName, false);
 
-            bool success = ScriptManager.RunEventScripts(this, ScriptEvent.BeforePush);
+            bool success = ScriptsRunner.RunEventScripts(ScriptEvent.BeforePush, this);
             if (!success)
             {
                 return;
@@ -128,7 +121,7 @@ namespace GitUI.CommandsDialogs
 
             if (!Module.InTheMiddleOfAction() && !form.ErrorOccurred())
             {
-                ScriptManager.RunEventScripts(this, ScriptEvent.AfterPush);
+                ScriptsRunner.RunEventScripts(ScriptEvent.AfterPush, this);
             }
         }
 

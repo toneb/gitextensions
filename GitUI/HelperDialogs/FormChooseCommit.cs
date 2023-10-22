@@ -5,12 +5,6 @@ namespace GitUI.HelperDialogs
 {
     public partial class FormChooseCommit : GitModuleForm
     {
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormChooseCommit()
-        {
-            InitializeComponent();
-        }
-
         private FormChooseCommit(GitUICommands commands)
             : base(commands)
         {
@@ -30,7 +24,7 @@ namespace GitUI.HelperDialogs
 
             if (!string.IsNullOrEmpty(preselectCommit))
             {
-                var objectId = Module.RevParse(preselectCommit);
+                ObjectId objectId = Module.RevParse(preselectCommit);
                 if (objectId is not null)
                 {
                     revisionGrid.SelectedId = objectId;
@@ -48,7 +42,7 @@ namespace GitUI.HelperDialogs
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            var revisions = revisionGrid.GetSelectedRevisions();
+            IReadOnlyList<GitRevision> revisions = revisionGrid.GetSelectedRevisions();
 
             if (revisions.Count == 1)
             {
@@ -76,7 +70,7 @@ namespace GitUI.HelperDialogs
 
         private void linkLabelParent_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var linkLabel = (LinkLabel)sender;
+            LinkLabel linkLabel = (LinkLabel)sender;
             ObjectId parentId = (ObjectId)linkLabel.Tag;
 
             if (!revisionGrid.SetSelectedRevision(parentId))
@@ -87,7 +81,7 @@ namespace GitUI.HelperDialogs
 
         private void revisionGrid_SelectionChanged(object sender, EventArgs e)
         {
-            var revisions = revisionGrid.GetSelectedRevisions();
+            IReadOnlyList<GitRevision> revisions = revisionGrid.GetSelectedRevisions();
 
             if (revisions.Count != 1)
             {
@@ -103,7 +97,7 @@ namespace GitUI.HelperDialogs
                 return;
             }
 
-            var parents = SelectedRevision.ParentIds;
+            IReadOnlyList<ObjectId> parents = SelectedRevision.ParentIds;
 
             if (parents?.Count is not > 0)
             {

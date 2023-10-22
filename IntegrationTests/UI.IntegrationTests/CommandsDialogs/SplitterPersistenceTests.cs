@@ -1,14 +1,13 @@
-﻿using CommonTestUtils;
-using CommonTestUtils.MEF;
+﻿using System.ComponentModel.Design;
+using CommonTestUtils;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using GitCommands;
 using GitUI;
 using GitUI.CommandsDialogs;
-using GitUIPluginInterfaces;
 using GitUITests;
-using Microsoft.VisualStudio.Composition;
 using NSubstitute;
+using ResourceManager;
 using static GitUI.CommandsDialogs.FormBrowse;
 
 namespace GitExtensions.UITests.CommandsDialogs
@@ -20,23 +19,10 @@ namespace GitExtensions.UITests.CommandsDialogs
         private MemorySettings _settings;
 
         // Created once for the fixture
-        private TestComposition _composition;
         private ReferenceRepository _referenceRepository;
 
         // Created once for each test
         private GitUICommands _commands;
-
-        [OneTimeSetUp]
-        public void SetUpFixture()
-        {
-            _composition = TestComposition.Empty
-                .AddParts(typeof(MockLinkFactory))
-                .AddParts(typeof(MockWindowsJumpListManager))
-                .AddParts(typeof(MockRepositoryDescriptionProvider))
-                .AddParts(typeof(MockAppTitleGenerator));
-            ExportProvider mefExportProvider = _composition.ExportProviderFactory.CreateExportProvider();
-            ManagedExtensibility.SetTestExportProvider(mefExportProvider);
-        }
 
         [OneTimeTearDown]
         public void OneTimeTearDown()
@@ -58,7 +44,8 @@ namespace GitExtensions.UITests.CommandsDialogs
             _windowPositionManager = Substitute.For<IWindowPositionManager>();
 
             ReferenceRepository.ResetRepo(ref _referenceRepository);
-            _commands = new GitUICommands(_referenceRepository.Module);
+
+            _commands = new GitUICommands(GlobalServiceContainer.CreateDefaultMockServiceContainer(), _referenceRepository.Module);
         }
 
         [TearDown]
@@ -77,7 +64,7 @@ namespace GitExtensions.UITests.CommandsDialogs
             await RunFormTestAsync(
                 async form =>
                 {
-                    FormBrowse.TestAccessor ta = form.GetTestAccessor();
+                    TestAccessor ta = form.GetTestAccessor();
 
                     await WaitForRevisionsToBeLoadedAsync(ta.RevisionGrid);
                 });
@@ -156,7 +143,7 @@ namespace GitExtensions.UITests.CommandsDialogs
             await RunFormTestAsync(
                 async form =>
                 {
-                    FormBrowse.TestAccessor ta = form.GetTestAccessor();
+                    TestAccessor ta = form.GetTestAccessor();
 
                     await WaitForRevisionsToBeLoadedAsync(ta.RevisionGrid);
                 });
@@ -197,7 +184,7 @@ namespace GitExtensions.UITests.CommandsDialogs
                         }
                     };
 
-                    var test = form.GetGitExtensionsFormTestAccessor();
+                    GitExtensionsForm.GitExtensionsFormTestAccessor test = form.GetGitExtensionsFormTestAccessor();
                     test.WindowPositionManager = _windowPositionManager;
 
                     if (Application.MessageLoop)

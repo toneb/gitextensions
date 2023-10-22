@@ -17,12 +17,6 @@ namespace GitUI.CommandsDialogs.BrowseDialog
         private readonly AsyncLoader _tagsLoader = new();
         private readonly AsyncLoader _branchesLoader = new();
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormGoToCommit()
-        {
-            InitializeComponent();
-        }
-
         public FormGoToCommit(GitUICommands commands)
             : base(commands)
         {
@@ -201,7 +195,7 @@ namespace GitUI.CommandsDialogs.BrowseDialog
                 return;
             }
 
-            var guid = Module.RevParse(text);
+            ObjectId guid = Module.RevParse(text);
             if (guid is not null)
             {
                 textboxCommitExpression.Text = text;

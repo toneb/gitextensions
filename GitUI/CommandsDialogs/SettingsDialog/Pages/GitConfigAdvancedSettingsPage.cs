@@ -8,10 +8,10 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
         private record GitSettingUiMapping(string GitSettingKey, CheckBox MappedCheckbox);
         private readonly List<GitSettingUiMapping> _gitSettings;
 
-        public GitConfigAdvancedSettingsPage()
+        public GitConfigAdvancedSettingsPage(IServiceProvider serviceProvider)
+           : base(serviceProvider)
         {
             InitializeComponent();
-            Text = "Advanced";
             InitializeComplete();
 
             _gitSettings = new List<GitSettingUiMapping>
@@ -28,7 +28,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
             Load += GitConfigAdvancedSettingsPage_Load;
         }
 
-        private void GitConfigAdvancedSettingsPage_Load(object? sender, System.EventArgs e)
+        private void GitConfigAdvancedSettingsPage_Load(object? sender, EventArgs e)
         {
             foreach (GitSettingUiMapping gitSetting in _gitSettings)
             {

@@ -4,10 +4,10 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
 {
     public partial class AdvancedSettingsPage : SettingsPageWithHeader
     {
-        public AdvancedSettingsPage()
+        public AdvancedSettingsPage(IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             InitializeComponent();
-            Text = "Advanced";
             InitializeComplete();
 
             var autoNormaliseSymbols = new[]
@@ -60,7 +60,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
             return new SettingsPageReferenceByType(typeof(AdvancedSettingsPage));
         }
 
-        private void chkAutoNormaliseBranchName_CheckedChanged(object sender, System.EventArgs e)
+        private void chkAutoNormaliseBranchName_CheckedChanged(object sender, EventArgs e)
         {
             cboAutoNormaliseSymbol.Enabled = chkAutoNormaliseBranchName.Checked;
         }

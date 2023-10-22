@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using GitExtUtils;
 using ICSharpCode.TextEditor;
 using ICSharpCode.TextEditor.Document;
 using Microsoft;
@@ -119,18 +119,14 @@ namespace GitUI
 
         private void btnFindPrevious_Click(object sender, EventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await FindNextAsync(false, true, _textNotFoundString.Text);
-            }).FileAndForget();
+            Validates.NotNull(_editor);
+            _editor.InvokeAndForget(() => FindNextAsync(viaF3: false, searchBackward: true, _textNotFoundString.Text));
         }
 
         private void btnFindNext_Click(object sender, EventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await FindNextAsync(false, false, _textNotFoundString.Text);
-            }).FileAndForget();
+            Validates.NotNull(_editor);
+            _editor.InvokeAndForget(() => FindNextAsync(viaF3: false, searchBackward: false, _textNotFoundString.Text));
         }
 
         public async Task<TextRange?> FindNextAsync(bool viaF3, bool searchBackward, string? messageIfNotFound)
@@ -168,7 +164,7 @@ namespace GitUI
                     startFrom = _search.EndOffset;
                 }
 
-                var isMultiFileSearch = _fileLoader is not null && !_search.HasScanRegion;
+                bool isMultiFileSearch = _fileLoader is not null && !_search.HasScanRegion;
 
                 range = _search.FindNext(startFrom, searchBackward, out _lastSearchLoopedAround);
                 if (range is not null && (!_lastSearchLoopedAround || !isMultiFileSearch))
@@ -184,7 +180,7 @@ namespace GitUI
                     }
 
                     Validates.NotNull(_fileLoader);
-                    if (_fileLoader(searchBackward, true, out var fileIndex, out var loadFileContent))
+                    if (_fileLoader(searchBackward, true, out int fileIndex, out Task loadFileContent))
                     {
                         currentIdx = fileIndex;
                         try
@@ -256,7 +252,7 @@ namespace GitUI
                 int offset = 0, count = 0;
                 for (; ;)
                 {
-                    TextRange? range = _search.FindNext(offset, false, out var looped);
+                    TextRange? range = _search.FindNext(offset, false, out bool looped);
                     if (range is null || looped)
                     {
                         break;
@@ -307,7 +303,7 @@ namespace GitUI
         {
             Validates.NotNull(_editor);
 
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            _editor.InvokeAndForget(async () =>
             {
                 SelectionManager sm = _editor.ActiveTextAreaControl.SelectionManager;
                 if (string.Equals(sm.SelectedText, txtLookFor.Text, StringComparison.OrdinalIgnoreCase))
@@ -316,7 +312,7 @@ namespace GitUI
                 }
 
                 await FindNextAsync(false, _lastSearchWasBackward, _textNotFoundString.Text);
-            }).FileAndForget();
+            });
         }
 
         private void btnReplaceAll_Click(object sender, EventArgs e)
@@ -613,7 +609,7 @@ namespace GitUI
 
         private TextRange? FindNextIn(int offset1, int offset2, bool searchBackward)
         {
-            Debug.Assert(offset2 >= offset1, "offset2 >= offset1");
+            DebugHelpers.Assert(offset2 >= offset1, "offset2 >= offset1");
             Validates.NotNull(LookFor);
             Validates.NotNull(_lookFor2);
             Validates.NotNull(_document);
@@ -749,7 +745,7 @@ namespace GitUI
     {
         public static int InRange(int x, int lo, int hi)
         {
-            Debug.Assert(lo <= hi, "lo <= hi");
+            DebugHelpers.Assert(lo <= hi, "lo <= hi");
             return x < lo ? lo : (x > hi ? hi : x);
         }
 

@@ -13,12 +13,6 @@ namespace GitUI.HelperDialogs
         private protected Action<FormStatus>? ProcessCallback;
         private protected Action<FormStatus>? AbortCallback;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private protected FormStatus()
-            : this(commands: null, consoleOutput: null, useDialogSettings: true)
-        {
-        }
-
         public FormStatus(GitUICommands? commands, ConsoleOutputControl? consoleOutput, bool useDialogSettings)
             : base(commands, enablePositionRestore: true)
         {
@@ -105,9 +99,9 @@ namespace GitUI.HelperDialogs
             ProcessCallback?.Invoke(this);
         }
 
-        public static void ShowErrorDialog(IWin32Window owner, string text, params string[] output)
+        public static void ShowErrorDialog(IWin32Window owner, GitUICommands commands, string text, params string[] output)
         {
-            using FormStatus form = new(commands: null, new EditboxBasedConsoleOutputControl(), useDialogSettings: true);
+            using FormStatus form = new(commands, consoleOutput: new EditboxBasedConsoleOutputControl(), useDialogSettings: true);
             form.Text = text;
             if (output?.Length > 0)
             {
@@ -206,7 +200,7 @@ namespace GitUI.HelperDialogs
             await this.SwitchToMainThreadAsync();
 
             int index = text.LastIndexOf('%');
-            if (index > 4 && int.TryParse(text.Substring(index - 3, 3), out var progressValue) && progressValue >= 0)
+            if (index > 4 && int.TryParse(text.Substring(index - 3, 3), out int progressValue) && progressValue >= 0)
             {
                 ProgressBar.Style = ProgressBarStyle.Blocks;
                 ProgressBar.Value = Math.Min(100, progressValue);

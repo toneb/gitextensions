@@ -1,5 +1,5 @@
 ﻿using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitExtUtils.GitUI.Theming;
 using GitUIPluginInterfaces;
 using ResourceManager;
@@ -23,14 +23,6 @@ namespace GitUI.HelperDialogs
 
         public static FormResetCurrentBranch Create(GitUICommands commands, GitRevision revision, ResetType resetType = ResetType.Soft)
             => new(commands, revision ?? throw new NotSupportedException(TranslatedStrings.NoRevision), resetType);
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormResetCurrentBranch()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
 
         private FormResetCurrentBranch(GitUICommands commands, GitRevision revision, ResetType resetType)
             : base(commands)
@@ -77,18 +69,18 @@ namespace GitUI.HelperDialogs
         {
             if (Soft.Checked)
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.ResetCmd(ResetMode.Soft, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.Reset(ResetMode.Soft, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
             }
             else if (Mixed.Checked)
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.ResetCmd(ResetMode.Mixed, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.Reset(ResetMode.Mixed, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
             }
             else if (Hard.Checked)
             {
                 if (MessageBox.Show(this, _resetHardWarning.Text, _resetCaption.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
                 {
-                    var currentCheckout = Module.GetCurrentCheckout();
-                    bool success = FormProcess.ShowDialog(this, arguments: GitCommandHelpers.ResetCmd(ResetMode.Hard, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
+                    ObjectId currentCheckout = Module.GetCurrentCheckout();
+                    bool success = FormProcess.ShowDialog(this, UICommands, arguments: Commands.Reset(ResetMode.Hard, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
                     if (success)
                     {
                         if (currentCheckout != Revision.ObjectId)
@@ -104,11 +96,11 @@ namespace GitUI.HelperDialogs
             }
             else if (Merge.Checked)
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.ResetCmd(ResetMode.Merge, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.Reset(ResetMode.Merge, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
             }
             else if (Keep.Checked)
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.ResetCmd(ResetMode.Keep, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.Reset(ResetMode.Keep, Revision.Guid), Module.WorkingDir, input: null, useDialogSettings: true);
             }
 
             UICommands.RepoChangedNotifier.Notify();

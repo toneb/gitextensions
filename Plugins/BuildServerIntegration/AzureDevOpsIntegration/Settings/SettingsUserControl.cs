@@ -96,7 +96,7 @@ namespace AzureDevOpsIntegration.Settings
             {
                 Validates.NotNull(_remotes);
 
-                var (vstsOrTfsProjectFound, autoDetectedProjectUrl) = ProjectUrlHelper.TryDetectProjectFromRemoteUrls(_remotes);
+                (bool vstsOrTfsProjectFound, string autoDetectedProjectUrl) = ProjectUrlHelper.TryDetectProjectFromRemoteUrls(_remotes);
                 if (vstsOrTfsProjectFound)
                 {
                     settings.ProjectUrl = autoDetectedProjectUrl!;
@@ -128,10 +128,10 @@ namespace AzureDevOpsIntegration.Settings
 
         private void ExtractLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            this.InvokeAndForget(async () =>
             {
-                var buildUrl = Clipboard.ContainsText() ? Clipboard.GetText() : "";
-                var (success, projectUrl, buildId) = ProjectUrlHelper.TryParseBuildUrl(buildUrl);
+                string buildUrl = Clipboard.ContainsText() ? Clipboard.GetText() : "";
+                (bool success, string projectUrl, int buildId) = ProjectUrlHelper.TryParseBuildUrl(buildUrl);
                 if (success)
                 {
                     Validates.NotNull(projectUrl);
@@ -164,7 +164,7 @@ namespace AzureDevOpsIntegration.Settings
                 {
                     MessageBox.Show(_failToExtractDataFromClipboardMessage.Text, _failToExtractDataFromClipboardCaption.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }).FileAndForget();
+            });
         }
     }
 }

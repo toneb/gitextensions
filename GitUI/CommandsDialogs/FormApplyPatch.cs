@@ -1,6 +1,6 @@
 ﻿using GitCommands;
-using GitCommands.Git.Commands;
-using GitCommands.Patches;
+using GitCommands.Git;
+using GitExtUtils;
 using GitExtUtils.GitUI.Theming;
 using GitUI.HelperDialogs;
 using ResourceManager;
@@ -44,12 +44,6 @@ namespace GitUI.CommandsDialogs
         #endregion
 
         private static readonly List<PatchFile> Skipped = new();
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormApplyPatch()
-        {
-            InitializeComponent();
-        }
 
         public FormApplyPatch(GitUICommands commands)
             : base(commands)
@@ -173,10 +167,10 @@ namespace GitUI.CommandsDialogs
 
         private void Apply_Click(object sender, EventArgs e)
         {
-            var patchFile = PatchFile.Text;
-            var dirText = PatchDir.Text;
-            var ignoreWhiteSpace = IgnoreWhitespace.Checked;
-            var signOff = SignOff.Checked;
+            string patchFile = PatchFile.Text;
+            string dirText = PatchDir.Text;
+            bool ignoreWhiteSpace = IgnoreWhitespace.Checked;
+            bool signOff = SignOff.Checked;
 
             if (string.IsNullOrEmpty(patchFile) && string.IsNullOrEmpty(dirText))
             {
@@ -191,16 +185,16 @@ namespace GitUI.CommandsDialogs
                 if (PatchFileMode.Checked)
                 {
                     string gitPatch = Module.GetGitExecPath(patchFile);
-                    var arguments = IsDiffFile(patchFile)
-                        ? GitCommandHelpers.ApplyDiffPatchCmd(ignoreWhiteSpace, gitPatch)
-                        : GitCommandHelpers.ApplyMailboxPatchCmd(signOff, ignoreWhiteSpace, gitPatch);
+                    ArgumentString arguments = IsDiffFile(patchFile)
+                        ? Commands.ApplyDiffPatch(ignoreWhiteSpace, gitPatch)
+                        : Commands.ApplyMailboxPatch(signOff, ignoreWhiteSpace, gitPatch);
 
-                    FormProcess.ShowDialog(this, arguments, Module.WorkingDir, input: null, useDialogSettings: true);
+                    FormProcess.ShowDialog(this, UICommands, arguments, Module.WorkingDir, input: null, useDialogSettings: true);
                 }
                 else
                 {
                     // No need for PathUtil.GetRepoPath(), file streamed
-                    var arguments = GitCommandHelpers.ApplyMailboxPatchCmd(signOff, ignoreWhiteSpace);
+                    ArgumentString arguments = Commands.ApplyMailboxPatch(signOff, ignoreWhiteSpace);
 
                     Module.ApplyPatch(dirText, arguments);
                 }
@@ -244,14 +238,14 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                var applyingPatch = PatchGrid.PatchFiles.FirstOrDefault(p => p.IsNext);
+                PatchFile applyingPatch = PatchGrid.PatchFiles.FirstOrDefault(p => p.IsNext);
                 if (applyingPatch is not null)
                 {
                     applyingPatch.IsSkipped = true;
                     Skipped.Add(applyingPatch);
                 }
 
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.SkipCmd(), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.Skip(), Module.WorkingDir, input: null, useDialogSettings: true);
                 EnableButtons();
             }
         }
@@ -260,7 +254,7 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.ResolvedCmd(), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.Resolved(), Module.WorkingDir, input: null, useDialogSettings: true);
                 EnableButtons();
             }
         }
@@ -269,7 +263,7 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.AbortCmd(), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.Abort(), Module.WorkingDir, input: null, useDialogSettings: true);
                 Skipped.Clear();
                 EnableButtons();
             }
@@ -291,7 +285,7 @@ namespace GitUI.CommandsDialogs
 
         private void BrowseDir_Click(object sender, EventArgs e)
         {
-            var userSelectedPath = OsShellUtil.PickFolder(this);
+            string userSelectedPath = OsShellUtil.PickFolder(this);
 
             if (userSelectedPath is not null)
             {

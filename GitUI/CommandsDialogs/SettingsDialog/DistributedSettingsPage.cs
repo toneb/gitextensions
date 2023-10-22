@@ -4,8 +4,13 @@ using Microsoft;
 
 namespace GitUI.CommandsDialogs.SettingsDialog
 {
-    public class DistributedSettingsPage : SettingsPageWithHeader, IDistributedSettingsPage
+    public partial class DistributedSettingsPage : SettingsPageWithHeader, IDistributedSettingsPage
     {
+        public DistributedSettingsPage(IServiceProvider serviceProvider)
+           : base(serviceProvider)
+        {
+        }
+
         protected DistributedSettingsSet DistributedSettingsSet => CommonLogic.DistributedSettingsSet;
         protected DistributedSettings? CurrentSettings { get; private set; }
 

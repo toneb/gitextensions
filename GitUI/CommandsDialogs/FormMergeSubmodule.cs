@@ -13,14 +13,6 @@ namespace GitUI.CommandsDialogs
 
         private readonly string _filename;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private FormMergeSubmodule()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-            InitializeComponent();
-        }
-
         public FormMergeSubmodule(GitUICommands commands, string filename)
             : base(commands)
         {
@@ -32,7 +24,7 @@ namespace GitUI.CommandsDialogs
 
         private void FormMergeSubmodule_Load(object sender, EventArgs e)
         {
-            var item = ThreadHelper.JoinableTaskFactory.Run(() => Module.GetConflictAsync(_filename));
+            GitCommands.Git.ConflictData item = ThreadHelper.JoinableTaskFactory.Run(() => Module.GetConflictAsync(_filename));
 
             tbBase.Text = item.Base.ObjectId?.ToString() ?? _deleted.Text;
             tbLocal.Text = item.Local.ObjectId?.ToString() ?? _deleted.Text;
@@ -61,7 +53,7 @@ namespace GitUI.CommandsDialogs
             }
 
             string text = string.Format(_stageFilename.Text, _filename);
-            FormStatus.ShowErrorDialog(this, text, text, output);
+            FormStatus.ShowErrorDialog(this, UICommands, text, text, output);
         }
 
         private void btStageCurrent_Click(object sender, EventArgs e)
@@ -78,9 +70,9 @@ namespace GitUI.CommandsDialogs
 
         private void btCheckoutBranch_Click(object sender, EventArgs e)
         {
-            var revisions = new[] { ObjectId.Parse(tbLocal.Text), ObjectId.Parse(tbRemote.Text) };
-            GitUICommands submoduleCommands = new(Module.GetSubmoduleFullPath(_filename));
-            if (!submoduleCommands.StartCheckoutBranch(this, revisions))
+            ObjectId[] ids = new[] { ObjectId.Parse(tbLocal.Text), ObjectId.Parse(tbRemote.Text) };
+            GitUICommands submoduleCommands = UICommands.WithWorkingDirectory(Module.GetSubmoduleFullPath(_filename));
+            if (!submoduleCommands.StartCheckoutBranch(this, ids))
             {
                 return;
             }

@@ -1,5 +1,5 @@
 ﻿using System.IO.Abstractions;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitCommands.Git.Tag;
 using GitUIPluginInterfaces;
 using NSubstitute;
@@ -25,6 +25,7 @@ namespace GitCommandsTests.Git.Tag
 
             _uiCommands = Substitute.For<IGitUICommands>();
             _uiCommands.GitModule.WorkingDir.Returns(_workingDir);
+            _uiCommands.GitModule.GetGitExecPath(_tagMessageFile).Returns(_tagMessageFile);
 
             _controller = new GitTagController(_uiCommands, _fileSystem);
         }
@@ -32,14 +33,14 @@ namespace GitCommandsTests.Git.Tag
         [Test]
         public void CreateTagWithMessageThrowsIfTheWindowIsNull()
         {
-            var args = CreateAnnotatedTagArgs();
-            Assert.Throws<ArgumentNullException>(() => _controller.CreateTag(args, null));
+            GitCreateTagArgs args = CreateAnnotatedTagArgs();
+            Assert.Throws<ArgumentNullException>(() => _controller.CreateTag(args, parentWindow: null));
         }
 
         [Test]
         public void CreateTagWithMessageWritesTagMessageFile()
         {
-            var args = CreateAnnotatedTagArgs();
+            GitCreateTagArgs args = CreateAnnotatedTagArgs();
 
             _controller.CreateTag(args, CreateTestingWindow());
 
@@ -51,11 +52,11 @@ namespace GitCommandsTests.Git.Tag
         [TestCase(false)]
         public void CreateTagWithMessageDeletesTheTemporaryFileForUiResult(bool uiResult)
         {
-            var args = CreateAnnotatedTagArgs();
+            GitCreateTagArgs args = CreateAnnotatedTagArgs();
 
             _fileSystem.File.Exists(Arg.Is<string>(s => s != null)).Returns(true);
 
-            _uiCommands.StartCommandLineProcessDialog(Arg.Any<IWin32Window>(), Arg.Any<GitCreateTagCmd>())
+            _uiCommands.StartCommandLineProcessDialog(Arg.Any<IWin32Window>(), Arg.Is<IGitCommand>(cmd => cmd.Arguments.StartsWith("tag")))
                 .Returns(uiResult);
 
             Assert.AreEqual(uiResult, _controller.CreateTag(args, CreateTestingWindow()));
@@ -66,13 +67,12 @@ namespace GitCommandsTests.Git.Tag
         [Test]
         public void PassesCreatedArgsAndWindowToCommands()
         {
-            var args = CreateAnnotatedTagArgs();
-            var window = CreateTestingWindow();
+            GitCreateTagArgs args = CreateAnnotatedTagArgs();
+            IWin32Window window = CreateTestingWindow();
 
             _controller.CreateTag(args, window);
 
-            _uiCommands.Received(1).StartCommandLineProcessDialog(
-                window, Arg.Is<GitCreateTagCmd>(c => c.CreateTagArguments == args));
+            _uiCommands.Received(1).StartCommandLineProcessDialog(window, Arg.Is<IGitCommand>(cmd => cmd.Arguments.StartsWith("tag")));
         }
 
         private static IWin32Window CreateTestingWindow()

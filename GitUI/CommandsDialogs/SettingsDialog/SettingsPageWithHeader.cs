@@ -3,9 +3,14 @@ using GitUIPluginInterfaces;
 
 namespace GitUI.CommandsDialogs.SettingsDialog
 {
-    public class SettingsPageWithHeader : SettingsPageBase, IGlobalSettingsPage
+    public partial class SettingsPageWithHeader : SettingsPageBase, IGlobalSettingsPage
     {
         private SettingsPageHeader? _header;
+
+        public SettingsPageWithHeader(IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        {
+        }
 
         public override Control GuiControl => _header ??= new SettingsPageHeader(this);
 

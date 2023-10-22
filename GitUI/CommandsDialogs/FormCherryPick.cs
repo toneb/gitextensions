@@ -1,5 +1,5 @@
 ﻿using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitExtUtils;
 using GitUI.HelperDialogs;
 using GitUIPluginInterfaces;
@@ -17,12 +17,6 @@ namespace GitUI.CommandsDialogs
         private bool _isMerge;
 
         public GitRevision? Revision { get; set; }
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormCherryPick()
-        {
-            InitializeComponent();
-        }
 
         public FormCherryPick(GitUICommands commands, GitRevision? revision)
             : base(commands, enablePositionRestore: false)
@@ -79,7 +73,7 @@ namespace GitUI.CommandsDialogs
 
                 if (_isMerge && Revision is not null)
                 {
-                    var parents = Module.GetParentRevisions(Revision.ObjectId);
+                    IReadOnlyList<GitRevision> parents = Module.GetParentRevisions(Revision.ObjectId);
 
                     for (int i = 0; i < parents.Count; i++)
                     {
@@ -114,7 +108,7 @@ namespace GitUI.CommandsDialogs
         private void btnPick_Click(object sender, EventArgs e)
         {
             ArgumentBuilder args = new();
-            var canExecute = true;
+            bool canExecute = true;
 
             if (_isMerge)
             {
@@ -136,11 +130,11 @@ namespace GitUI.CommandsDialogs
 
             if (canExecute && Revision is not null)
             {
-                var command = GitCommandHelpers.CherryPickCmd(Revision.ObjectId, cbxAutoCommit.Checked, args.ToString());
+                ArgumentString command = Commands.CherryPick(Revision.ObjectId, cbxAutoCommit.Checked, args.ToString());
 
                 // Don't verify whether the command is successful.
                 // If it fails, likely there is a conflict that needs to be resolved.
-                FormProcess.ShowDialog(this, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
 
                 MergeConflictHandler.HandleMergeConflicts(UICommands, this, cbxAutoCommit.Checked);
                 DialogResult = DialogResult.OK;

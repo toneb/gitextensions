@@ -1,5 +1,5 @@
 ﻿using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitCommands.Patches;
 using GitExtUtils.GitUI.Theming;
 using GitUI.HelperDialogs;
@@ -52,12 +52,6 @@ namespace GitUI.CommandsDialogs
         private readonly string? _defaultToBranch;
         private readonly bool _startRebaseImmediately;
 
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormRebase()
-        {
-            InitializeComponent();
-        }
-
         public FormRebase(GitUICommands commands, string? defaultBranch)
             : base(commands, enablePositionRestore: false)
         {
@@ -102,7 +96,7 @@ namespace GitUI.CommandsDialogs
 
             PatchGrid.SelectCurrentlyApplyingPatch();
 
-            var selectedHead = Module.GetSelectedBranch();
+            string selectedHead = Module.GetSelectedBranch();
             Currentbranch.Text = selectedHead;
 
             // Offer rebase on refs also for tags (but not stash, notes etc)
@@ -129,7 +123,7 @@ namespace GitUI.CommandsDialogs
             EnableButtons();
 
             // Honor the rebase.autosquash configuration.
-            var autosquashSetting = Module.GetEffectiveSetting("rebase.autosquash");
+            string autosquashSetting = Module.GetEffectiveSetting("rebase.autosquash");
             chkAutosquash.Checked = autosquashSetting.Trim().ToLower() == "true";
 
             chkStash.Checked = AppSettings.RebaseAutoStash;
@@ -187,7 +181,7 @@ namespace GitUI.CommandsDialogs
             btnSolveConflicts.ForeColor = SystemColors.ControlText;
             MergeToolPanel.BackColor = Color.Transparent;
 
-            var highlightColor = Color.Yellow.AdaptBackColor();
+            Color highlightColor = Color.Yellow.AdaptBackColor();
 
             if (conflictedMerge)
             {
@@ -243,7 +237,7 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.ContinueRebaseCmd(), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.ContinueRebase(), Module.WorkingDir, input: null, useDialogSettings: true);
 
                 if (!Module.InTheMiddleOfRebase())
                 {
@@ -259,14 +253,14 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                var applyingPatch = PatchGrid.PatchFiles.FirstOrDefault(p => p.IsNext);
+                PatchFile applyingPatch = PatchGrid.PatchFiles.FirstOrDefault(p => p.IsNext);
                 if (applyingPatch is not null)
                 {
                     applyingPatch.IsSkipped = true;
                     Skipped.Add(applyingPatch);
                 }
 
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.SkipRebaseCmd(), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.SkipRebase(), Module.WorkingDir, input: null, useDialogSettings: true);
 
                 if (!Module.InTheMiddleOfRebase())
                 {
@@ -283,7 +277,7 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.AbortRebaseCmd(), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.AbortRebase(), Module.WorkingDir, input: null, useDialogSettings: true);
 
                 if (!Module.InTheMiddleOfRebase())
                 {
@@ -300,7 +294,7 @@ namespace GitUI.CommandsDialogs
         {
             using (WaitCursorScope.Enter())
             {
-                FormProcess.ShowDialog(this, arguments: GitCommandHelpers.EditTodoRebaseCmd(), Module.WorkingDir, input: null, useDialogSettings: true);
+                FormProcess.ShowDialog(this, UICommands, arguments: Commands.EditTodoRebase(), Module.WorkingDir, input: null, useDialogSettings: true);
 
                 if (!Module.InTheMiddleOfRebase())
                 {
@@ -330,18 +324,18 @@ namespace GitUI.CommandsDialogs
                 string rebaseCmd;
                 if (chkSpecificRange.Checked && !string.IsNullOrWhiteSpace(txtFrom.Text) && !string.IsNullOrWhiteSpace(cboTo.Text))
                 {
-                    rebaseCmd = GitCommandHelpers.RebaseCmd(
+                    rebaseCmd = Commands.Rebase(
                         cboTo.Text, chkInteractive.Checked, chkPreserveMerges.Checked,
                         chkAutosquash.Checked, chkStash.Checked, chkIgnoreDate.Checked, chkCommitterDateIsAuthorDate.Checked, txtFrom.Text, cboBranches.Text);
                 }
                 else
                 {
-                    rebaseCmd = GitCommandHelpers.RebaseCmd(
+                    rebaseCmd = Commands.Rebase(
                         cboBranches.Text, chkInteractive.Checked,
                         chkPreserveMerges.Checked, chkAutosquash.Checked, chkStash.Checked, chkIgnoreDate.Checked, chkCommitterDateIsAuthorDate.Checked);
                 }
 
-                string cmdOutput = FormProcess.ReadDialog(this, arguments: rebaseCmd, Module.WorkingDir, input: null, useDialogSettings: true);
+                string cmdOutput = FormProcess.ReadDialog(this, UICommands, arguments: rebaseCmd, Module.WorkingDir, input: null, useDialogSettings: true);
                 if (cmdOutput.Trim() == "Current branch a is up to date.")
                 {
                     MessageBox.Show(this, _branchUpToDateText.Text, _branchUpToDateCaption.Text, MessageBoxButtons.OK, MessageBoxIcon.Information);

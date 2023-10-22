@@ -7,10 +7,10 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
 {
     public partial class SshSettingsPage : SettingsPageWithHeader
     {
-        public SshSettingsPage()
+        public SshSettingsPage(IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             InitializeComponent();
-            Text = "SSH";
             InitializeComplete();
 
             label18.SetForeColorForBackColor();
@@ -28,7 +28,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
             PageantPath.Text = AppSettings.Pageant;
             AutostartPageant.Checked = AppSettings.AutoStartPageant;
 
-            var sshPath = AppSettings.SshPath;
+            string sshPath = AppSettings.SshPath;
             if (string.IsNullOrEmpty(sshPath))
             {
                 OpenSSH.Checked = true;

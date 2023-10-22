@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using GitCommands;
 using GitCommands.Git;
-using GitCommands.Git.Commands;
 using GitUI.HelperDialogs;
 using GitUIPluginInterfaces;
 using ResourceManager;
@@ -19,12 +18,6 @@ namespace GitUI.CommandsDialogs
         public bool CheckoutAfterCreation { get; set; } = true;
         public bool UserAbleToChangeRevision { get; set; } = true;
         public bool CouldBeOrphan { get; set; } = true;
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormCreateBranch()
-        {
-            InitializeComponent();
-        }
 
         public FormCreateBranch(GitUICommands commands, ObjectId? objectId, string? newBranchNamePrefix = null)
             : base(commands, enablePositionRestore: false)
@@ -72,8 +65,8 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var caretPosition = BranchNameTextBox.SelectionStart;
-            var branchName = _branchNameNormaliser.Normalise(BranchNameTextBox.Text, _gitBranchNameOptions);
+            int caretPosition = BranchNameTextBox.SelectionStart;
+            string branchName = _branchNameNormaliser.Normalise(BranchNameTextBox.Text, _gitBranchNameOptions);
             BranchNameTextBox.Text = branchName;
             BranchNameTextBox.SelectionStart = caretPosition;
         }
@@ -84,7 +77,7 @@ namespace GitUI.CommandsDialogs
 
             // ensure all labels are wrapped if required
             // this must happen only after the label texts have been set
-            foreach (var label in this.FindDescendantsOfType<Label>())
+            foreach (Label label in this.FindDescendantsOfType<Label>())
             {
                 label.AutoSize = true;
             }
@@ -102,7 +95,7 @@ namespace GitUI.CommandsDialogs
             // if the user hits [Enter] at any point, we need to trigger BranchNameTextBox Leave event
             Ok.Focus();
 
-            var objectId = commitPickerSmallControl1.SelectedObjectId;
+            ObjectId objectId = commitPickerSmallControl1.SelectedObjectId;
             if (objectId is null)
             {
                 MessageBox.Show(this, _noRevisionSelected.Text, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -110,7 +103,7 @@ namespace GitUI.CommandsDialogs
                 return;
             }
 
-            var branchName = BranchNameTextBox.Text.Trim();
+            string branchName = BranchNameTextBox.Text.Trim();
             if (string.IsNullOrWhiteSpace(branchName))
             {
                 MessageBox.Show(_branchNameIsEmpty.Text, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -127,17 +120,17 @@ namespace GitUI.CommandsDialogs
 
             try
             {
-                var originalHash = Module.GetCurrentCheckout();
+                ObjectId originalHash = Module.GetCurrentCheckout();
 
-                var command = Orphan.Checked
-                    ? GitCommandHelpers.CreateOrphanCmd(branchName, objectId)
-                    : GitCommandHelpers.BranchCmd(branchName, objectId.ToString(), chkbxCheckoutAfterCreate.Checked);
+                GitExtUtils.ArgumentString command = Orphan.Checked
+                    ? Commands.CreateOrphan(branchName, objectId)
+                    : Commands.Branch(branchName, objectId.ToString(), chkbxCheckoutAfterCreate.Checked);
 
-                bool success = FormProcess.ShowDialog(this, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
+                bool success = FormProcess.ShowDialog(this, UICommands, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
                 if (Orphan.Checked && success && ClearOrphan.Checked)
                 {
                     // orphan AND orphan creation success AND clear
-                    FormProcess.ShowDialog(this, arguments: GitCommandHelpers.RemoveCmd(), Module.WorkingDir, input: null, useDialogSettings: true);
+                    FormProcess.ShowDialog(this, UICommands, arguments: Commands.Remove(), Module.WorkingDir, input: null, useDialogSettings: true);
                 }
 
                 if (success && chkbxCheckoutAfterCreate.Checked && objectId != originalHash)

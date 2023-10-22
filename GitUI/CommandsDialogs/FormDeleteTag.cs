@@ -1,19 +1,13 @@
 ﻿using System.Diagnostics;
 using GitExtUtils.GitUI;
 using GitUI.HelperDialogs;
-using GitUI.Script;
+using GitUI.ScriptsEngine;
 using GitUIPluginInterfaces;
 
 namespace GitUI.CommandsDialogs
 {
     public partial class FormDeleteTag : GitModuleForm
     {
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormDeleteTag()
-        {
-            InitializeComponent();
-        }
-
         public FormDeleteTag(GitUICommands commands, string? tag)
             : base(commands)
         {
@@ -58,9 +52,9 @@ namespace GitUI.CommandsDialogs
 
         private void RemoveRemoteTag(string tagName)
         {
-            var pushCmd = string.Format("push \"{0}\" :refs/tags/{1}", remotesComboboxControl1.SelectedRemote, tagName);
+            string pushCmd = string.Format("push \"{0}\" :refs/tags/{1}", remotesComboboxControl1.SelectedRemote, tagName);
 
-            bool success = ScriptManager.RunEventScripts(this, ScriptEvent.BeforePush);
+            bool success = ScriptsRunner.RunEventScripts(ScriptEvent.BeforePush, this);
             if (!success)
             {
                 return;
@@ -73,7 +67,7 @@ namespace GitUI.CommandsDialogs
 
             if (!Module.InTheMiddleOfAction() && !form.ErrorOccurred())
             {
-                ScriptManager.RunEventScripts(this, ScriptEvent.AfterPush);
+                ScriptsRunner.RunEventScripts(ScriptEvent.AfterPush, this);
             }
         }
 

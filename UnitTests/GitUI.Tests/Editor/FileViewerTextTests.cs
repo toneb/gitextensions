@@ -1,10 +1,14 @@
-﻿using CommonTestUtils;
+﻿using System.ComponentModel;
+using System.ComponentModel.Design;
+using CommonTestUtils;
 using FluentAssertions;
 using GitUI;
 using GitUI.Editor;
+using GitUI.ScriptsEngine;
 using ICSharpCode.TextEditor;
 using ICSharpCode.TextEditor.Document;
 using NSubstitute;
+using ResourceManager;
 
 namespace GitUITests.Editor
 {
@@ -12,12 +16,20 @@ namespace GitUITests.Editor
     [TestFixture]
     public class FileViewerTextTests
     {
+        private IServiceProvider _serviceProvider;
         private IGitUICommandsSource _uiCommandsSource;
         private FileViewer _fileViewer;
 
         [SetUp]
         public void SetUp()
         {
+            ServiceContainer serviceContainer = new();
+            IScriptsManager scriptsManager = Substitute.For<IScriptsManager>();
+            scriptsManager.GetScripts().Returns(new BindingList<ScriptInfo>());
+            serviceContainer.AddService(scriptsManager);
+            serviceContainer.AddService(Substitute.For<IHotkeySettingsLoader>());
+            _serviceProvider = serviceContainer;
+
             _uiCommandsSource = Substitute.For<IGitUICommandsSource>();
             _fileViewer = new FileViewer();
         }
@@ -44,7 +56,8 @@ namespace GitUITests.Editor
                         "3:Selected\n" +
                         "4:";
             using GitModuleTestHelper testHelper = new();
-            GitUICommands uiCommands = new(testHelper.Module);
+
+            GitUICommands uiCommands = new(_serviceProvider, testHelper.Module);
             _uiCommandsSource.UICommands.Returns(x => uiCommands);
             _fileViewer.UICommandsSource = _uiCommandsSource;
             _fileViewer.GetTestAccessor().FileViewerInternal.SetText(sampleText, null);
@@ -86,7 +99,7 @@ index 62a5c2f08..2bc482714 100644
 +            int scrollPos = VScrollPosition;";
 
             using GitModuleTestHelper testHelper = new();
-            GitUICommands uiCommands = new(testHelper.Module);
+            GitUICommands uiCommands = new(_serviceProvider, testHelper.Module);
             _uiCommandsSource.UICommands.Returns(x => uiCommands);
             _fileViewer.UICommandsSource = _uiCommandsSource;
 
@@ -119,7 +132,7 @@ index 62a5c2f08..2bc482714 100644
 +            int scrollPos = VScrollPosition;";
 
             using GitModuleTestHelper testHelper = new();
-            GitUICommands uiCommands = new(testHelper.Module);
+            GitUICommands uiCommands = new(_serviceProvider, testHelper.Module);
             _uiCommandsSource.UICommands.Returns(x => uiCommands);
             _fileViewer.UICommandsSource = _uiCommandsSource;
 
@@ -143,7 +156,7 @@ index b25b745..5194740 100644
 Binary files a/binaryfile.bin and b/binaryfile.bin differ";
 
             using GitModuleTestHelper testHelper = new();
-            GitUICommands uiCommands = new(testHelper.Module);
+            GitUICommands uiCommands = new(_serviceProvider, testHelper.Module);
             _uiCommandsSource.UICommands.Returns(x => uiCommands);
             _fileViewer.UICommandsSource = _uiCommandsSource;
 
@@ -155,8 +168,7 @@ Binary files a/binaryfile.bin and b/binaryfile.bin differ";
             // assert
             testAccessor.FileViewerInternal.GetTestAccessor().TextEditor.Document.HighlightingStrategy.Should().Be(HighlightingManager.Manager.DefaultHighlighting);
 
-            const string sampleRandomText =
-            @"fldaksjflkdsjlfj";
+            const string sampleRandomText = @"fldaksjflkdsjlfj";
 
             // act
             testAccessor.ViewPatch(null, sampleRandomText, null);

@@ -106,7 +106,7 @@ namespace GitUI.UserControls.RevisionGrid
             {
                 if (Columns[e.ColumnIndex].Tag is ColumnProvider provider)
                 {
-                    var revision = GetRevision(e.RowIndex);
+                    GitRevision? revision = GetRevision(e.RowIndex);
                     if (revision is not null)
                     {
                         provider.OnCellFormatting(e, revision);
@@ -118,19 +118,18 @@ namespace GitUI.UserControls.RevisionGrid
             {
                 // We have to post this since the thread owns a lock on GraphData that we'll
                 // need in order to re-draw the graph.
-                this.InvokeAsync(() =>
+                this.InvokeAndForget(() =>
                     {
-                        Debug.Assert(_rowHeight != 0, "_rowHeight != 0");
+                        DebugHelpers.Assert(_rowHeight != 0, "_rowHeight != 0");
 
                         // Refresh column providers
-                        foreach (var columnProvider in _columnProviders)
+                        foreach (ColumnProvider columnProvider in _columnProviders)
                         {
                             columnProvider.Refresh(_rowHeight, _visibleRowRange);
                         }
 
                         Invalidate();
-                    })
-                    .FileAndForget();
+                    });
             };
 
             VirtualMode = true;
@@ -196,11 +195,11 @@ namespace GitUI.UserControls.RevisionGrid
                     return null;
                 }
 
-                var data = new ObjectId[SelectedRows.Count];
+                ObjectId[] data = new ObjectId[SelectedRows.Count];
 
-                for (var i = 0; i < SelectedRows.Count; i++)
+                for (int i = 0; i < SelectedRows.Count; i++)
                 {
-                    var row = _revisionGraph.GetNodeForRow(SelectedRows[i].Index);
+                    RevisionGraphRevision? row = _revisionGraph.GetNodeForRow(SelectedRows[i].Index);
 
                     if (row?.GitRevision is not null)
                     {
@@ -278,9 +277,9 @@ namespace GitUI.UserControls.RevisionGrid
         {
             _lastRepaint.Restart();
 
-            Debug.Assert(_rowHeight != 0, "_rowHeight != 0");
+            DebugHelpers.Assert(_rowHeight != 0, "_rowHeight != 0");
 
-            var revision = GetRevision(e.RowIndex);
+            GitRevision? revision = GetRevision(e.RowIndex);
 
             if (e.RowIndex < 0 ||
                 e.RowIndex >= RowCount ||
@@ -313,7 +312,7 @@ namespace GitUI.UserControls.RevisionGrid
         /// <param name="insertWithMatch">Insert the (artificial) revision with the first match in headParents or first if no match found (or headParents is null).</param>
         /// <param name="insertRange">Number of scores "reserved" in the list when inserting.</param>
         /// <param name="parents">Parent ids for the revision to find (and insert before).</param>
-        public void Add(GitRevision revision, bool insertWithMatch = false, int insertRange = 0, IEnumerable<ObjectId>? parents = null)
+        public void Add(GitRevision revision, bool insertWithMatch = false, int insertRange = 0, IReadOnlyList<ObjectId>? parents = null)
         {
             // Where to insert the revision, null is last
             int? insertScore = null;
@@ -335,7 +334,7 @@ namespace GitUI.UserControls.RevisionGrid
                 insertScore = -1;
                 if (insertRange > 0 && parents is not null)
                 {
-                    foreach (var parentId in parents)
+                    foreach (ObjectId parentId in parents)
                     {
                         if (_revisionGraph.TryGetNode(parentId, out RevisionGraphRevision? parentRev))
                         {
@@ -365,7 +364,7 @@ namespace GitUI.UserControls.RevisionGrid
             ClearToBeSelected();
 
             // The graphdata is stored in one of the columnproviders, clear this last
-            foreach (var columnProvider in _columnProviders)
+            foreach (ColumnProvider columnProvider in _columnProviders)
             {
                 columnProvider.Clear();
             }
@@ -435,10 +434,8 @@ namespace GitUI.UserControls.RevisionGrid
             else
             {
                 // Rows have not been selected yet
-                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                this.InvokeAndForget(async () =>
                 {
-                    await this.SwitchToMainThreadAsync();
-
                     SetRowCountAndSelectRowsIfReady();
 
                     if (_toBeSelectedGraphIndexesCache.Value.Count == 0)
@@ -477,8 +474,7 @@ namespace GitUI.UserControls.RevisionGrid
                     }
 
                     MarkAsDataLoadingComplete();
-                })
-                .FileAndForget();
+                });
             }
 
             foreach (ColumnProvider columnProvider in _columnProviders)
@@ -491,13 +487,13 @@ namespace GitUI.UserControls.RevisionGrid
 
         public void MarkAsDataLoadingComplete()
         {
-            Debug.Assert(!IsDataLoadComplete, "The grid is already marked as 'data load complete'.");
+            DebugHelpers.Assert(!IsDataLoadComplete, "The grid is already marked as 'data load complete'.");
             IsDataLoadComplete = true;
         }
 
         public void MarkAsDataLoading()
         {
-            Debug.Assert(IsDataLoadComplete, "The grid is already marked as 'data load in process'.");
+            DebugHelpers.Assert(IsDataLoadComplete, "The grid is already marked as 'data load in process'.");
             IsDataLoadComplete = false;
         }
 
@@ -569,7 +565,7 @@ namespace GitUI.UserControls.RevisionGrid
         /// </summary>
         private IList<int> CalculateGraphIndices()
         {
-            Debug.Assert(_loadedToBeSelectedRevisionsCount == ToBeSelectedObjectIds.Count,
+            DebugHelpers.Assert(_loadedToBeSelectedRevisionsCount == ToBeSelectedObjectIds.Count,
                 $"{nameof(CalculateGraphIndices)}() was called before all expected revisions were loaded.");
 
             List<int> toBeSelectedGraphIndexes = new();
@@ -707,7 +703,8 @@ namespace GitUI.UserControls.RevisionGrid
                         }
                     }
 
-                    await this.InvokeAsync(NotifyProvidersVisibleRowRangeChanged);
+                    await this.SwitchToMainThreadAsync();
+                    NotifyProvidersVisibleRowRangeChanged();
                 }
             }
 
@@ -726,7 +723,7 @@ namespace GitUI.UserControls.RevisionGrid
 
         private void NotifyProvidersVisibleRowRangeChanged()
         {
-            foreach (var provider in _columnProviders)
+            foreach (ColumnProvider provider in _columnProviders)
             {
                 provider.OnVisibleRowsChanged(_visibleRowRange);
             }
@@ -740,7 +737,7 @@ namespace GitUI.UserControls.RevisionGrid
             UpdateVisibleRowRange();
 
             // Refresh column providers
-            foreach (var columnProvider in _columnProviders)
+            foreach (ColumnProvider columnProvider in _columnProviders)
             {
                 columnProvider.Refresh(_rowHeight, _visibleRowRange);
             }
@@ -751,7 +748,7 @@ namespace GitUI.UserControls.RevisionGrid
         private void UpdateRowHeight()
         {
             // TODO allow custom grid row spacing
-            using var g = Graphics.FromHwnd(Handle);
+            using Graphics g = Graphics.FromHwnd(Handle);
             _rowHeight = (int)g.MeasureString("By", _normalFont).Height + DpiUtil.Scale(9);
             //// + AppSettings.GridRowSpacing
             RowTemplate.Height = _rowHeight;
@@ -764,12 +761,12 @@ namespace GitUI.UserControls.RevisionGrid
 
         public GitRevision? GetRevision(ObjectId objectId)
         {
-            return _revisionGraph.TryGetNode(objectId, out var node) ? node.GitRevision : null;
+            return _revisionGraph.TryGetNode(objectId, out RevisionGraphRevision? node) ? node.GitRevision : null;
         }
 
         public int? TryGetRevisionIndex(ObjectId? objectId)
         {
-            return objectId is not null && _revisionGraph.TryGetRowIndex(objectId, out var index) ? index : null;
+            return objectId is not null && _revisionGraph.TryGetRowIndex(objectId, out int index) ? index : null;
         }
 
         public IReadOnlyList<ObjectId> GetRevisionChildren(ObjectId objectId)
@@ -777,9 +774,9 @@ namespace GitUI.UserControls.RevisionGrid
             // We do not need a lock here since we load the data from the first commit and walk through all
             // parents. Children are always loaded, since we start at the newest commit.
             // With lock, loading the commit info slows down terribly.
-            if (_revisionGraph.TryGetNode(objectId, out var node))
+            if (_revisionGraph.TryGetNode(objectId, out RevisionGraphRevision? node))
             {
-                var children = node.Children.Select(d => d.GitRevision!.ObjectId).ToList();
+                List<ObjectId> children = node.Children.Select(d => d.GitRevision!.ObjectId).ToList();
                 children.Reverse();
                 return children;
             }
@@ -810,7 +807,7 @@ namespace GitUI.UserControls.RevisionGrid
 
                     break;
                 case Keys.Control | Keys.C:
-                    var selectedRevisions = SelectedObjectIds;
+                    IReadOnlyList<ObjectId>? selectedRevisions = SelectedObjectIds;
                     if (selectedRevisions?.Count is > 0)
                     {
                         ClipboardUtil.TrySetText(string.Join(Environment.NewLine, selectedRevisions));
@@ -825,7 +822,7 @@ namespace GitUI.UserControls.RevisionGrid
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            var hit = HitTest(e.X, e.Y);
+            HitTestInfo hit = HitTest(e.X, e.Y);
 
             if (hit.Type == DataGridViewHitTestType.None)
             {

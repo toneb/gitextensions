@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 using GitCommands;
-using GitCommands.Git.Commands;
+using GitCommands.Git;
 using GitCommands.UserRepositoryHistory;
 using GitExtUtils;
 using GitUI.HelperDialogs;
@@ -13,12 +13,6 @@ namespace GitUI.CommandsDialogs.SubmodulesDialog
     {
         private readonly TranslationString _remoteAndLocalPathRequired
             = new("A remote path and local path are required");
-
-        [Obsolete("For VS designer and translation test only. Do not remove.")]
-        private FormAddSubmodule()
-        {
-            InitializeComponent();
-        }
 
         public FormAddSubmodule(GitUICommands commands)
             : base(commands)
@@ -37,7 +31,7 @@ namespace GitUI.CommandsDialogs.SubmodulesDialog
 
         private void BrowseClick(object sender, EventArgs e)
         {
-            var userSelectedPath = OsShellUtil.PickFolder(this, Directory.Text);
+            string userSelectedPath = OsShellUtil.PickFolder(this, Directory.Text);
 
             if (userSelectedPath is not null)
             {
@@ -55,8 +49,8 @@ namespace GitUI.CommandsDialogs.SubmodulesDialog
 
             using (WaitCursorScope.Enter())
             {
-                var command = GitCommandHelpers.AddSubmoduleCmd(Directory.Text, LocalPath.Text, Branch.Text, chkForce.Checked);
-                FormProcess.ShowDialog(this, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
+                ArgumentString command = Commands.AddSubmodule(Directory.Text, LocalPath.Text, Branch.Text, chkForce.Checked);
+                FormProcess.ShowDialog(this, UICommands, arguments: command, Module.WorkingDir, input: null, useDialogSettings: true);
                 Close();
             }
         }
@@ -96,7 +90,7 @@ namespace GitUI.CommandsDialogs.SubmodulesDialog
             }
 
             GitArgumentBuilder gitArguments = new("ls-remote") { "--heads", url.ToPosixPath().Quote() };
-            var heads = gitExecutable.GetOutput(gitArguments);
+            string heads = gitExecutable.GetOutput(gitArguments);
             return heads.LazySplit('\n', StringSplitOptions.RemoveEmptyEntries)
                         .Select(head =>
                         {

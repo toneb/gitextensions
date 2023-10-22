@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using GitExtUtils;
 using Microsoft.VisualStudio.Threading;
 
 namespace GitUI
@@ -20,6 +21,9 @@ namespace GitUI
         }
 
         public static JoinableTaskFactory JoinableTaskFactory => _taskManager.JoinableTaskFactory;
+
+        public static ExclusiveTaskRunner CreateExclusiveTaskRunner()
+            => new(_taskManager);
 
         public static TaskManager CreateTaskManager()
             => new(_taskManager.JoinableTaskContext);
@@ -47,7 +51,7 @@ namespace GitUI
                 return;
             }
 
-            Debug.Assert(JoinableTaskContext.IsOnMainThread, "Must be on the UI thread.");
+            DebugHelpers.Assert(JoinableTaskContext.IsOnMainThread, "Must be on the UI thread.");
         }
 
         public static void ThrowIfOnUIThread([CallerMemberName] string callerMemberName = "")
@@ -82,6 +86,18 @@ namespace GitUI
         /// </summary>
         public static void FileAndForget(this Task task)
             => _taskManager.FileAndForget(task);
+
+        /// <summary>
+        /// Asynchronously run <paramref name="asyncAction"/> on the UI thread and forward all exceptions to <see cref="Application.OnThreadException"/> except for <see cref="OperationCanceledException"/>, which is ignored.
+        /// </summary>
+        public static void InvokeAndForget(this Control control, Func<Task> asyncAction, TaskManager? taskManager = null, CancellationToken cancellationToken = default)
+            => (taskManager ?? _taskManager).InvokeAndForget(control, asyncAction, cancellationToken);
+
+        /// <summary>
+        /// Asynchronously run <paramref name="action"/> on the UI thread and forward all exceptions to <see cref="Application.OnThreadException"/> except for <see cref="OperationCanceledException"/>, which is ignored.
+        /// </summary>
+        public static void InvokeAndForget(this Control control, Action action, TaskManager? taskManager = null, CancellationToken cancellationToken = default)
+            => InvokeAndForget(control, TaskManager.AsyncAction(action), taskManager, cancellationToken);
 
         public static async Task JoinPendingOperationsAsync(CancellationToken cancellationToken)
             => await _taskManager.JoinPendingOperationsAsync(cancellationToken);

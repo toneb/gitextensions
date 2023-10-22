@@ -27,7 +27,7 @@ namespace GitUI
         /// will be restored upon being re-opened.</param>
         protected GitExtensionsForm(bool enablePositionRestore)
         {
-            var needsPositionSave = enablePositionRestore;
+            bool needsPositionSave = enablePositionRestore;
             _needsPositionRestore = enablePositionRestore;
 
             FormClosing += GitExtensionsForm_FormClosing;
@@ -97,7 +97,7 @@ namespace GitUI
                 return;
             }
 
-            var position = _windowPositionManager.LoadPosition(this);
+            WindowPosition position = _windowPositionManager.LoadPosition(this);
             if (position is null)
             {
                 return;
@@ -118,7 +118,7 @@ namespace GitUI
 
             SuspendLayout();
 
-            var windowCentred = StartPosition == FormStartPosition.CenterParent;
+            bool windowCentred = StartPosition == FormStartPosition.CenterParent;
             StartPosition = FormStartPosition.Manual;
 
             if (FormBorderStyle == FormBorderStyle.Sizable ||

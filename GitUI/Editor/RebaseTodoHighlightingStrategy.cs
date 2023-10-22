@@ -35,13 +35,13 @@ namespace GitUI.Editor
 
         protected override void MarkTokens(IDocument document, IList<LineSegment> lines)
         {
-            foreach (var line in lines)
+            foreach (LineSegment line in lines)
             {
                 if (!TryHighlightComment(document, line) &&
                     !TryHighlightInteractiveRebaseCommand(document, line))
                 {
                     line.Words = new List<TextWord>(capacity: 1)
-                        { new TextWord(document, line, 0, line.Length, ColorNormal, hasDefaultColor: true) };
+                        { new(document, line, 0, line.Length, ColorNormal, hasDefaultColor: true) };
                 }
 
                 document.RequestUpdate(
@@ -63,16 +63,16 @@ namespace GitUI.Editor
                 return false;
             }
 
-            var c = document.GetCharAt(line.Offset);
+            char c = document.GetCharAt(line.Offset);
 
-            if (!_commandByFirstChar.TryGetValue(c, out var cmd))
+            if (!_commandByFirstChar.TryGetValue(c, out (string longForm, HighlightColor color, string[] options) cmd))
             {
                 return false;
             }
 
-            var state = State.Command;
-            var index = 1;
-            var idStartIndex = -1;
+            State state = State.Command;
+            int index = 1;
+            int idStartIndex = -1;
 
             while (index < line.Length)
             {
@@ -133,7 +133,7 @@ namespace GitUI.Editor
                     {
                         if (char.IsWhiteSpace(c))
                         {
-                            var idLength = index - idStartIndex;
+                            int idLength = index - idStartIndex;
 
                             if (idLength < 4)
                             {
@@ -142,9 +142,9 @@ namespace GitUI.Editor
 
                             line.Words = new List<TextWord>(capacity: 3)
                             {
-                                new TextWord(document, line, 0, idStartIndex, cmd.color, hasDefaultColor: false),
-                                new TextWord(document, line, idStartIndex, idLength, cmd.color, hasDefaultColor: false),
-                                new TextWord(document, line, index, line.Length - index, ColorNormal, hasDefaultColor: true)
+                                new(document, line, 0, idStartIndex, cmd.color, hasDefaultColor: false),
+                                new(document, line, idStartIndex, idLength, cmd.color, hasDefaultColor: false),
+                                new(document, line, index, line.Length - index, ColorNormal, hasDefaultColor: true)
                             };
 
                             return true;

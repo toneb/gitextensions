@@ -14,12 +14,12 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
         private readonly TranslationString _fetchAll = new("Fetch all");
         private readonly TranslationString _fetchAndPruneAll = new("Fetch and prune all");
 
-        public GeneralSettingsPage()
+        public GeneralSettingsPage(IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             InitializeComponent();
-            Text = "General";
             InitializeComplete();
 
             if (LicenseManager.UsageMode == LicenseUsageMode.Designtime || GitModuleForm.IsUnitTestActive)
@@ -168,7 +168,7 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
 
         private void DefaultCloneDestinationBrowseClick(object sender, EventArgs e)
         {
-            var userSelectedPath = OsShellUtil.PickFolder(this, cbDefaultCloneDestination.Text);
+            string userSelectedPath = OsShellUtil.PickFolder(this, cbDefaultCloneDestination.Text);
 
             if (userSelectedPath is not null)
             {
@@ -176,12 +176,12 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
             }
         }
 
-        private void ShowGitStatus_CheckedChanged(object sender, System.EventArgs e)
+        private void ShowGitStatus_CheckedChanged(object sender, EventArgs e)
         {
             SetSubmoduleStatus();
         }
 
-        private void LlblTelemetryPrivacyLink_LinkClicked(object sender, System.Windows.Forms.LinkLabelLinkClickedEventArgs e)
+        private void LlblTelemetryPrivacyLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             OsShellUtil.OpenUrlInDefaultBrowser(@"https://github.com/gitextensions/gitextensions/blob/master/PrivacyPolicy.md");
         }
