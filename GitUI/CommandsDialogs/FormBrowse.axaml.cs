@@ -281,7 +281,9 @@ namespace GitUI.CommandsDialogs
         private readonly IWindowsJumpListManager _windowsJumpListManager;
         private readonly ISubmoduleStatusProvider _submoduleStatusProvider;
         private readonly IScriptsManager _scriptsManager;
+#if false
         private List<ToolStripItem>? _currentSubmoduleMenuItems;
+#endif
         private readonly FormBrowseDiagnosticsReporter _formBrowseDiagnosticsReporter;
 #if false
         private BuildReportTabPageExtension? _buildReportTabPageExtension;
@@ -346,7 +348,6 @@ namespace GitUI.CommandsDialogs
 #if false // TODO - avalonia
             MainSplitContainer.Visible = false;
             MainSplitContainer.SplitterDistance = DpiUtil.Scale(260);
-#endif
 
             ThreadHelper.FileAndForget(async () =>
             {
@@ -354,6 +355,7 @@ namespace GitUI.CommandsDialogs
                 await this.SwitchToMainThreadAsync();
                 RegisterPlugins();
             });
+#endif
 
             InitCountArtificial(out _gitStatusMonitor);
 
@@ -2719,6 +2721,7 @@ namespace GitUI.CommandsDialogs
 
         private void SubmoduleStatusProvider_StatusUpdated(object sender, SubmoduleStatusEventArgs e)
         {
+#if false
             this.InvokeAndForget(() =>
             {
                 if (e.StructureUpdated || _currentSubmoduleMenuItems is null)
@@ -2729,6 +2732,8 @@ namespace GitUI.CommandsDialogs
                 UpdateSubmoduleMenuStatus(e.Info);
             },
             cancellationToken: e.Token);
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
 
         private List<ToolStripItem> PopulateToolbar(SubmoduleInfoResult result)
@@ -2793,6 +2798,7 @@ namespace GitUI.CommandsDialogs
 
         private void UpdateSubmoduleMenuStatus(SubmoduleInfoResult result)
         {
+#if false
             if (_currentSubmoduleMenuItems is null)
             {
                 return;
@@ -2819,6 +2825,8 @@ namespace GitUI.CommandsDialogs
                     DebugHelpers.Fail($"Status info for {path} ({1 + result.AllSubmodules.Count} records) has no match in current nodes ({_currentSubmoduleMenuItems.Count})");
                 }
             }
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
 
         private void RemoveSubmoduleButtons()

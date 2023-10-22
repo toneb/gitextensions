@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Avalonia.Input;
 using System.Diagnostics.CodeAnalysis;
+using Avalonia.Input;
 using GitCommands;
 using GitExtUtils;
 using GitExtUtils.GitUI.Theming;
@@ -232,6 +232,7 @@ namespace ResourceManager
     public class GitExtensionsFormBaseAvalonia : Avalonia.Controls.UserControl, ITranslate
     {
         private readonly GitExtensionsControlInitialiser _initialiser;
+        private IReadOnlyList<HotkeyCommand>? _hotkeys;
 
         /// <summary>Creates a new <see cref="GitExtensionsFormBase"/> indicating position restore.</summary>
         public GitExtensionsFormBaseAvalonia()
@@ -264,7 +265,7 @@ namespace ResourceManager
                 return false;
             }
 
-            HotkeyCommand? hotkey = Hotkeys?.FirstOrDefault(hotkey => hotkey?.KeyData == keyData);
+            HotkeyCommand? hotkey = _hotkeys?.FirstOrDefault(hotkey => hotkey?.KeyData == keyData);
             return hotkey is not null && ExecuteCommand(hotkey.CommandCode).Executed;
         }
 
@@ -272,11 +273,37 @@ namespace ResourceManager
 
         #region Hotkeys
 
-        /// <summary>Gets or sets a value that specifies if the hotkeys are used</summary>
+        /// <summary>
+        ///  Gets or sets a value that specifies if the hotkeys are used.
+        /// </summary>
         protected bool HotkeysEnabled { get; set; }
 
-        /// <summary>Gets or sets the hotkeys</summary>
-        protected IEnumerable<HotkeyCommand>? Hotkeys { get; set; }
+        /// <summary>
+        ///  Gets the currently loaded hotkeys.
+        /// </summary>
+        protected IReadOnlyList<HotkeyCommand>? Hotkeys => _hotkeys;
+
+        /// <summary>
+        ///  Loads hotkeys for the specified configuration setting.
+        /// </summary>
+        /// <param name="hotkeySettingsName">The setting name.</param>
+        protected void LoadHotkeys(string hotkeySettingsName)
+        {
+            _hotkeys = null;
+
+            if (!HotkeysEnabled)
+            {
+                return;
+            }
+
+            if (!TryGetUICommands(out IGitUICommands commands))
+            {
+                DebugHelpers.Fail($"{GetType().FullName}: service provider is unavailable.");
+                return;
+            }
+
+            _hotkeys = commands.GetRequiredService<IHotkeySettingsLoader>().LoadHotkeys(hotkeySettingsName);
+        }
 
 #if false // TODO - avalonia - might not be needed in avalonia?
         /// <summary>Overridden: Checks if a hotkey wants to handle the key before letting the message propagate</summary>
@@ -303,6 +330,28 @@ namespace ResourceManager
         }
 
         #endregion
+
+        /// <summary>
+        ///  Attempts to find an instance of <see cref="IGitUICommands"/>.
+        /// </summary>
+        /// <param name="commands">
+        ///  The instance of <see cref="IGitUICommands"/> directly assigned form
+        ///  (if the form implements <see cref="IGitModuleForm"/>); <see langword="null"/>, otherwise.
+        /// </param>
+        /// <returns>
+        ///  <see langword="true"/>, if an instance of <see cref="IGitUICommands"/> is found; <see langword="false"/>, otherwise.
+        /// </returns>
+        public bool TryGetUICommands([NotNullWhen(returnValue: true)] out IGitUICommands? commands)
+        {
+            if (this is IGitModuleForm control)
+            {
+                commands = control.UICommands;
+                return commands is not null;
+            }
+
+            commands = null;
+            return false;
+        }
 
 #if false // TODO - avalonia
         protected override void WndProc(ref Message m)
@@ -370,16 +419,16 @@ namespace ResourceManager
 
         protected void TranslateItem(string itemName, object item)
         {
-            var translation = Translator.GetTranslation(AppSettings.CurrentTranslation);
+            IDictionary<string, Xliff.TranslationFile> translation = Translator.GetTranslation(AppSettings.CurrentTranslation);
 
             if (translation.Count == 0)
             {
                 return;
             }
 
-            var itemsToTranslate = new[] { (itemName, item) };
+            (string itemName, object item)[] itemsToTranslate = new[] { (itemName, item) };
 
-            foreach (var pair in translation)
+            foreach (KeyValuePair<string, Xliff.TranslationFile> pair in translation)
             {
                 TranslationUtils.TranslateItemsFromList(Name, pair.Value, itemsToTranslate);
             }
