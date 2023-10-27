@@ -1,13 +1,14 @@
-﻿using GitCommands;
+﻿using Avalonia.Platform;
+using GitCommands;
 using GitCommands.Git;
-using GitExtUtils.GitUI.Theming;
-using GitUI.Properties;
 using ResourceManager;
 
 namespace GitUI.CommandsDialogs
 {
-    public class ToolStripPushButton : ToolStripButton
+    public partial class ToolStripPushButton : Avalonia.Controls.Button
     {
+        protected override Type StyleKeyOverride => typeof(Avalonia.Controls.Button);
+
         private readonly TranslationString _push = new("Push");
 
         private readonly TranslationString _aheadCommitsToPush =
@@ -17,6 +18,11 @@ namespace GitUI.CommandsDialogs
             new("{0} commit(s) should be integrated (or will be lost if force pushed)");
 
         private IAheadBehindDataProvider? _aheadBehindDataProvider;
+
+        public ToolStripPushButton()
+        {
+            InitializeComponent();
+        }
 
         public void Initialize(IAheadBehindDataProvider? aheadBehindDataProvider)
         {
@@ -39,21 +45,21 @@ namespace GitUI.CommandsDialogs
             }
 
             AheadBehindData data = aheadBehindData[branchName];
-            Text = data.ToDisplay();
-            DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
-            ToolTipText = GetToolTipText(data);
+            Text.Text = data.ToDisplay();
+            Text.IsVisible = true;
+            Avalonia.Controls.ToolTip.SetTip(this, GetToolTipText(data));
 
             if (!string.IsNullOrEmpty(data.BehindCount))
             {
-                Image = Images.Unstage.AdaptLightness();
+                Image.Source = new Avalonia.Media.Imaging.Bitmap(AssetLoader.Open(new Uri("..\\Resources\\Icons\\Unstage.png")));
             }
         }
 
         private void ResetToDefaultState()
         {
-            DisplayStyle = ToolStripItemDisplayStyle.Image;
-            Image = Images.Push.AdaptLightness();
-            ToolTipText = _push.Text;
+            Text.IsVisible = false;
+            Image.Source = new Avalonia.Media.Imaging.Bitmap(AssetLoader.Open(new Uri("..\\Resources\\Icons\\Push.png")));
+            Avalonia.Controls.ToolTip.SetTip(this, _push.Text);
         }
 
         private string? GetToolTipText(AheadBehindData data)

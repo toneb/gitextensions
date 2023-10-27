@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="GitUI.CommandsDialogs.FormBrowse"
+             xmlns:cdc="using:GitUI.CommandsDialogs"
              xmlns:mc="using:GitUI.CommandsDialogs.Menus"
              xmlns:lp="using:GitUI.LeftPanel">
     <UserControl.Styles>
@@ -353,12 +354,7 @@
                     </MenuFlyout>
                 </SplitButton.Flyout>
             </SplitButton>
-            <Button Name="toolStripButtonPush" Click="ToolStripButtonPushClick">
-                <DockPanel>
-                    <Image Source="../Resources/Icons/Push.png" />
-                    <TextBlock Name="toolStripButtonPushText">Push</TextBlock>
-                </DockPanel>
-            </Button>
+            <cdc:ToolStripPushButton Name="toolStripButtonPush" Click="ToolStripButtonPushClick" />
             <Button Name="toolStripButtonCommit" Click="CommitToolStripMenuItemClick">
                 <DockPanel>
                     <Image Source="../Resources/Icons/RepoStateClean.png" />
