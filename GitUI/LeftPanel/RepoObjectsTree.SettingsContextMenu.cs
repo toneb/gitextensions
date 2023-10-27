@@ -87,6 +87,7 @@ namespace GitUI.LeftPanel
 
         private void ShowEnabledTrees()
         {
+#if false // TODO - avalonia
             if (tsbShowBranches.Checked)
             {
                 AddTree(_branchesTree);
@@ -111,10 +112,12 @@ namespace GitUI.LeftPanel
             {
                 AddTree(_stashTree);
             }
+#endif
         }
 
         private void tsbShowBranches_Click(object sender, EventArgs e)
         {
+#if false // TODO - avalonia
             AppSettings.RepoObjectsTreeShowBranches = tsbShowBranches.Checked;
             _searchResult = null;
             if (tsbShowBranches.Checked)
@@ -126,10 +129,12 @@ namespace GitUI.LeftPanel
             {
                 RemoveTree(_branchesTree);
             }
+#endif
         }
 
         private void tsbShowRemotes_Click(object sender, EventArgs e)
         {
+#if false // TODO - avalonia
             AppSettings.RepoObjectsTreeShowRemotes = tsbShowRemotes.Checked;
             _searchResult = null;
             if (tsbShowRemotes.Checked)
@@ -141,10 +146,12 @@ namespace GitUI.LeftPanel
             {
                 RemoveTree(_remotesTree);
             }
+#endif
         }
 
         private void tsbShowTags_Click(object sender, EventArgs e)
         {
+#if false // TODO - avalonia
             AppSettings.RepoObjectsTreeShowTags = tsbShowTags.Checked;
             _searchResult = null;
             if (tsbShowTags.Checked)
@@ -156,10 +163,12 @@ namespace GitUI.LeftPanel
             {
                 RemoveTree(_tagTree);
             }
+#endif
         }
 
         private void tsbShowSubmodules_Click(object sender, EventArgs e)
         {
+#if false // TODO - avalonia
             AppSettings.RepoObjectsTreeShowSubmodules = tsbShowSubmodules.Checked;
             _searchResult = null;
             if (tsbShowSubmodules.Checked)
@@ -171,10 +180,12 @@ namespace GitUI.LeftPanel
             {
                 RemoveTree(_submoduleTree);
             }
+#endif
         }
 
         private void tsbShowStashes_Click(object sender, EventArgs e)
         {
+#if false // TODO - avalonia
             AppSettings.RepoObjectsTreeShowStashes = tsbShowStashes.Checked;
             _searchResult = null;
             if (tsbShowStashes.Checked)
@@ -186,6 +197,7 @@ namespace GitUI.LeftPanel
             {
                 RemoveTree(_stashTree);
             }
+#endif
         }
     }
 }

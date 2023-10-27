@@ -50,6 +50,18 @@ namespace ResourceManager
             _translate = control;
         }
 
+        public GitExtensionsControlInitialiser(GitExtensionsControlAvalonia control)
+        {
+            if (IsDesignMode)
+            {
+                return;
+            }
+
+            ThreadHelper.ThrowIfNotOnUIThread();
+            control.Loaded += LoadHandler;
+            _translate = control;
+        }
+
         /// <summary>
         /// Indicates whether code is running as part of an IDE designer, such as the WinForms designer.
         /// </summary>

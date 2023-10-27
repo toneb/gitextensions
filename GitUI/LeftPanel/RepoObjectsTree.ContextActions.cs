@@ -10,6 +10,7 @@ namespace GitUI.LeftPanel
 {
     partial class RepoObjectsTree : IMenuItemFactory
     {
+#if false // TODO - avalonia
         private GitRefsSortOrderContextMenuItem _sortOrderContextMenuItem;
         private GitRefsSortByContextMenuItem _sortByContextMenuItem;
 
@@ -27,6 +28,7 @@ namespace GitUI.LeftPanel
         /// Tags context menu [git ref] actions.
         /// </summary>
         private MenuItemsGenerator<TagNode> _tagNodeMenuItems;
+#endif
 
         private static void EnableMenuItems(bool enabled, params ToolStripItem[] items)
         {
@@ -48,59 +50,72 @@ namespace GitUI.LeftPanel
          * depending on whether node is expanded or collapsed and has child nodes at all */
         private void EnableExpandCollapseContextMenu(NodeBase[] selectedNodes)
         {
+#if false // TODO - avalonia
             NodeBase[] multiSelectedParents = selectedNodes.HavingChildren().ToArray();
             mnubtnExpand.Visible = mnubtnCollapse.Visible = multiSelectedParents.Length > 0;
             mnubtnExpand.Enabled = multiSelectedParents.Expandable().Any();
             mnubtnCollapse.Enabled = multiSelectedParents.Collapsible().Any();
+#endif
         }
 
         private void EnableMoveTreeUpDownContexMenu(bool hasSingleSelection, NodeBase? selectedNode)
         {
+#if false // TODO - avalonia
             bool isSingleTreeSelected = hasSingleSelection && selectedNode is Tree;
             TreeNode? treeNode = (selectedNode as Tree)?.TreeViewNode;
             mnubtnMoveUp.Visible = mnubtnMoveDown.Visible = isSingleTreeSelected;
             mnubtnMoveUp.Enabled = isSingleTreeSelected && treeNode?.PrevNode is not null;
             mnubtnMoveDown.Enabled = isSingleTreeSelected && treeNode?.NextNode is not null;
+#endif
         }
 
         private void EnableRemoteBranchContextMenu(bool hasSingleSelection, NodeBase? selectedNode)
         {
+#if false // TODO - avalonia
             bool isSingleRemoteBranchSelected = hasSingleSelection && selectedNode is RemoteBranchNode;
             EnableMenuItems(_remoteBranchMenuItems, _ => isSingleRemoteBranchSelected);
 
             EnableMenuItems(isSingleRemoteBranchSelected, mnubtnFetchOneBranch, mnubtnPullFromRemoteBranch,
                 mnubtnRemoteBranchFetchAndCheckout, mnubtnFetchCreateBranch, mnubtnFetchRebase);
+#endif
         }
 
         private void EnableRemoteRepoContextMenu(bool hasSingleSelection, NodeBase? selectedNode)
         {
+#if false // TODO - avalonia
             bool isSingleRemoteRepoSelected = hasSingleSelection && selectedNode is RemoteRepoNode;
             RemoteRepoNode? remoteRepo = selectedNode as RemoteRepoNode;
             mnubtnManageRemotes.Enable(isSingleRemoteRepoSelected);
             EnableMenuItems(isSingleRemoteRepoSelected && remoteRepo?.Enabled is true, mnubtnFetchAllBranchesFromARemote, mnubtnDisableRemote, mnuBtnPruneAllBranchesFromARemote);
             mnuBtnOpenRemoteUrlInBrowser.Enable(isSingleRemoteRepoSelected && remoteRepo?.IsRemoteUrlUsingHttp is true);
             EnableMenuItems(isSingleRemoteRepoSelected && remoteRepo?.Enabled is false, mnubtnEnableRemote, mnubtnEnableRemoteAndFetch);
+#endif
         }
 
         private void EnableSortContextMenu(bool hasSingleSelection, NodeBase? selectedNode)
         {
+#if false // TODO - avalonia
             bool isSingleRefSelected = hasSingleSelection && selectedNode is IGitRefActions;
             _sortByContextMenuItem.Enable(isSingleRefSelected);
 
             // If refs are sorted by git (GitRefsSortBy = Default) don't show sort order options
             bool showSortOrder = AppSettings.RefsSortBy != GitRefsSortBy.Default;
             _sortOrderContextMenuItem.Enable(isSingleRefSelected && showSortOrder);
+#endif
         }
 
         private void EnableStashContextMenu(bool hasSingleSelection, NodeBase? selectedNode)
         {
+#if false // TODO - avalonia
             bool isSingleStashSelected = hasSingleSelection && selectedNode is StashNode;
             bool isBareRepository = Module.IsBareRepository();
             EnableMenuItems(isSingleStashSelected && !isBareRepository, mnubtnOpenStash, mnubtnApplyStash, mnubtnPopStash, mnubtnDropStash);
+#endif
         }
 
         private void EnableSubmoduleContextMenu(bool hasSingleSelection, NodeBase? selectedNode)
         {
+#if false // TODO - avalonia
             bool isSingleSubmoduleSelected = hasSingleSelection && selectedNode is SubmoduleNode;
             SubmoduleNode? submoduleNode = selectedNode as SubmoduleNode;
             bool isBareRepository = Module.IsBareRepository();
@@ -108,6 +123,7 @@ namespace GitUI.LeftPanel
             EnableMenuItems(isSingleSubmoduleSelected, mnubtnOpenGESubmodule, mnubtnUpdateSubmodule);
             EnableMenuItems(isSingleSubmoduleSelected && !isBareRepository && submoduleNode?.IsCurrent is true, mnubtnManageSubmodules, mnubtnSynchronizeSubmodules);
             EnableMenuItems(isSingleSubmoduleSelected && !isBareRepository, mnubtnResetSubmodule, mnubtnStashSubmodule, mnubtnCommitSubmodule);
+#endif
         }
 
         private static void RegisterClick(ToolStripItem item, Action onClick)
@@ -117,11 +133,14 @@ namespace GitUI.LeftPanel
 
         private void RegisterClick<T>(ToolStripItem item, Action<T> onClick) where T : class, INode
         {
+#if false // TODO - avalonia
             item.Click += (o, e) => Node.OnNode(treeMain.SelectedNode, onClick);
+#endif
         }
 
         private void RegisterContextActions()
         {
+#if false // TODO - avalonia
             copyContextMenuItem.SetRevisionFunc(() => _revisionGridInfo.GetSelectedRevisions());
 
             // Filter for selected
@@ -199,10 +218,12 @@ namespace GitUI.LeftPanel
             _sortByContextMenuItem = new GitRefsSortByContextMenuItem(() => ResortRefs(new FilteredGitRefsProvider(UICommands.GitModule).GetRefs));
             _sortOrderContextMenuItem = new GitRefsSortOrderContextMenuItem(() => ResortRefs(new FilteredGitRefsProvider(UICommands.GitModule).GetRefs));
             menuMain.InsertItems(new ToolStripItem[] { new ToolStripSeparator(), _sortByContextMenuItem, _sortOrderContextMenuItem }, after: mnubtnMoveDown);
+#endif
         }
 
         private void contextMenu_Opening(object sender, CancelEventArgs e)
         {
+#if false // TODO - avalonia
             if (sender is not ContextMenuStrip contextMenu)
             {
                 return;
@@ -255,10 +276,12 @@ namespace GitUI.LeftPanel
             /* Cancel context menu opening if no items are Enabled.
              * This relies on that flag being set correctly on all menu items above. */
             e.Cancel = !contextMenu.Items.OfType<ToolStripMenuItem>().Any(i => i.Enabled);
+#endif
         }
 
         private void contextMenu_Opened(object sender, EventArgs e)
         {
+#if false // TODO - avalonia
             if (sender is not ContextMenuStrip contextMenu)
             {
                 return;
@@ -274,6 +297,7 @@ namespace GitUI.LeftPanel
             {
                 contextMenu.Top = Cursor.Position.Y;
             }
+#endif
         }
 
         /// <inheritdoc />

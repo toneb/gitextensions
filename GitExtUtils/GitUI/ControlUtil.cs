@@ -80,6 +80,23 @@ namespace GitUI
         }
 
         /// <summary>
+        /// Enumerates all ancestor controls.
+        /// </summary>
+        /// <remarks>
+        /// The returned sequence does not include <paramref name="control"/>.
+        /// </remarks>
+        public static IEnumerable<Avalonia.Controls.Control> FindAncestors(this Avalonia.Controls.Control control)
+        {
+            Avalonia.Controls.Control parent = (Avalonia.Controls.Control)control.Parent;
+
+            while (parent is not null)
+            {
+                yield return parent;
+                parent = (Avalonia.Controls.Control)parent.Parent;
+            }
+        }
+
+        /// <summary>
         /// Calls protected method <see cref="Control.SetStyle"/>.
         /// </summary>
         public static void SetStyle(this Control control, ControlStyles styles, bool value) =>

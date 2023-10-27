@@ -16,35 +16,46 @@ using ResourceManager;
 
 namespace GitUI.LeftPanel
 {
-    public sealed partial class RepoObjectsTree : GitModuleControl
+    public sealed partial class RepoObjectsTree : GitModuleControlAvalonia
     {
         public const string HotkeySettingsName = "LeftPanel";
 
         private readonly CancellationTokenSequence _selectionCancellationTokenSequence = new();
         private readonly TranslationString _searchTooltip = new("Search");
 
+#if false // TODO - avalonia
         private NativeTreeViewDoubleClickDecorator _doubleClickDecorator;
         private NativeTreeViewExplorerNavigationDecorator _explorerNavigationDecorator;
+#endif
         private readonly List<Tree> _rootNodes = new();
+#if false // TODO - avalonia
         private readonly SearchControl<string> _txtBranchCriterion;
+#endif
         private LocalBranchTree _branchesTree;
         private RemoteBranchTree _remotesTree;
         private TagTree _tagTree;
         private StashTree _stashTree;
         private SubmoduleTree _submoduleTree;
+#if false // TODO - avalonia
         private List<TreeNode>? _searchResult;
+#endif
         private Action<string?> _filterRevisionGridBySpaceSeparatedRefs;
         private IAheadBehindDataProvider? _aheadBehindDataProvider;
+#if false // TODO - avalonia
         private bool _searchCriteriaChanged;
+#endif
         private ICheckRefs _refsSource;
         private IRevisionGridInfo _revisionGridInfo;
         private IRunScript _scriptRunner;
 
         public RepoObjectsTree()
         {
+#if false // TODO: Avalonia
             Disposed += (s, e) => _selectionCancellationTokenSequence.Dispose();
+#endif
 
             InitializeComponent();
+#if false // TODO - avaloania
             InitImageList();
             _txtBranchCriterion = CreateSearchBox();
             branchSearchPanel.Controls.Add(_txtBranchCriterion, 1, 0);
@@ -58,8 +69,10 @@ namespace GitUI.LeftPanel
             mnuBtnPruneAllRemotes.AdaptImageLightness();
             mnubtnFetchCreateBranch.AdaptImageLightness();
             mnubtnPullFromRemoteBranch.AdaptImageLightness();
+#endif
             InitializeComplete();
 
+#if false // TODO - Avalonia
             HotkeysEnabled = true;
 
             RegisterContextActions();
@@ -201,10 +214,12 @@ namespace GitUI.LeftPanel
                     }
                 }
             }
+#endif
         }
 
         private void BeforeDoubleClickExpandCollapse(object sender, CancelEventArgs e)
         {
+#if false // TODO: Avalonia
             // If node is an inner node, and overrides OnDoubleClick, then disable expand/collapse
             if (treeMain.SelectedNode?.Tag is Node { HasChildren: true } node
                 && IsOverride(node.GetType().GetMethod(nameof(OnDoubleClick), BindingFlags.Instance | BindingFlags.NonPublic)))
@@ -218,6 +233,8 @@ namespace GitUI.LeftPanel
             {
                 return m is not null && m.GetBaseDefinition().DeclaringType != m.DeclaringType;
             }
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
 
         public void Initialize(IAheadBehindDataProvider? aheadBehindDataProvider, Action<string?> filterRevisionGridBySpaceSeparatedRefs,
@@ -284,6 +301,7 @@ namespace GitUI.LeftPanel
 
         public void SelectionChanged(IReadOnlyList<GitRevision> selectedRevisions)
         {
+#if false // TODO - avalonia
             // If we arrived here through the chain of events after selecting a node in the tree,
             // and the selected revision is the one we have selected - do nothing.
             if ((selectedRevisions.Count == 0 && treeMain.SelectedNode is null)
@@ -338,6 +356,7 @@ namespace GitUI.LeftPanel
                 return Node.GetNodeSafe<BaseBranchLeafNode>(treeNode)?.ObjectId ??
                     Node.GetNodeSafe<TagNode>(treeNode)?.ObjectId;
             }
+#endif
         }
 
         protected override void OnUICommandsSourceSet(IGitUICommandsSource source)
@@ -427,6 +446,7 @@ namespace GitUI.LeftPanel
 
         private void AddTree(Tree tree)
         {
+#if false // TODO - avalonia
             tree.TreeViewNode.SelectedImageKey = tree.TreeViewNode.ImageKey;
             tree.TreeViewNode.Tag = tree;
 
@@ -444,17 +464,21 @@ namespace GitUI.LeftPanel
             _rootNodes.Add(tree);
 
             tree.Attached();
+#endif
         }
 
         private void RemoveTree(Tree tree)
         {
+#if false // TODO - avalonia
             tree.Detached();
             _rootNodes.Remove(tree);
             treeMain.Nodes.Remove(tree.TreeViewNode);
+#endif
         }
 
         private void DoSearch()
         {
+#if false // TODO - avalonia
             _txtBranchCriterion.CloseDropdown();
 
             if (_searchCriteriaChanged && _searchResult?.Any() is true)
@@ -537,6 +561,7 @@ namespace GitUI.LeftPanel
 
                 return ret;
             }
+#endif
         }
 
         private void OnBtnSearchClicked(object sender, EventArgs e)
@@ -546,12 +571,16 @@ namespace GitUI.LeftPanel
 
         private void btnCollapseAll_Click(object sender, EventArgs e)
         {
+#if false // TODO - avalonia
             treeMain.CollapseAll();
+#endif
         }
 
         private void OnBranchCriterionChanged(object sender, EventArgs e)
         {
+#if false // TODO - avalonia
             _searchCriteriaChanged = true;
+#endif
         }
 
         private void TxtBranchCriterion_KeyDown(object sender, KeyEventArgs e)
@@ -567,6 +596,7 @@ namespace GitUI.LeftPanel
 
         protected override CommandStatus ExecuteCommand(int cmd)
         {
+#if false // TODO - avalonia
             switch ((Command)cmd)
             {
                 case Command.Delete: Node.OnNode<Node>(treeMain.SelectedNode, node => node.OnDelete()); return true;
@@ -578,6 +608,8 @@ namespace GitUI.LeftPanel
                     return true;
                 default: return base.ExecuteCommand(cmd);
             }
+#endif
+            throw new NotImplementedException("TODO - avalonia");
         }
 
         private void OnNodeSelected(object sender, TreeViewEventArgs e)
@@ -597,6 +629,7 @@ namespace GitUI.LeftPanel
 
         private void OnNodeClick(object sender, TreeNodeMouseClickEventArgs e)
         {
+#if false // TODO - avalonia
             NodeBase node = e.Node.Tag as NodeBase;
 
             if (e.Button == MouseButtons.Right && node.IsSelected)
@@ -610,6 +643,7 @@ namespace GitUI.LeftPanel
             {
                 clickable.OnClick();
             }
+#endif
         }
 
         private void SelectNode(NodeBase node, bool multiple, bool includingDescendants)
@@ -632,6 +666,7 @@ namespace GitUI.LeftPanel
 
         private void OnNodeDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
+#if false // TODO - avalonia
             // Don't consider-double clicking on the PlusMinus as a double-click event
             // for nodes in tree. This prevents opening inner submodules, for example,
             // when quickly collapsing/expanding them.
@@ -644,8 +679,10 @@ namespace GitUI.LeftPanel
             // Don't use e.Node, when folding/unfolding a node,
             // e.Node won't be the one you double clicked, but a child node instead
             Node.OnNode<Node>(treeMain.SelectedNode, node => node.OnDoubleClick());
+#endif
         }
 
+#if false // TODO - avaloania
         internal TestAccessor GetTestAccessor()
             => new(this);
 
@@ -728,5 +765,6 @@ namespace GitUI.LeftPanel
                 }
             }
         }
+#endif
     }
 }

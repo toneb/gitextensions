@@ -1,7 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="GitUI.CommandsDialogs.FormBrowse"
-             xmlns:mc="using:GitUI.CommandsDialogs.Menus">
+             xmlns:mc="using:GitUI.CommandsDialogs.Menus"
+             xmlns:lp="using:GitUI.LeftPanel">
     <UserControl.Styles>
         <Style Selector=".Toolbar > Button:not(:pointerover), .Toolbar > SplitButton:not(:pointerover)">
             <Setter Property="Background" Value="Transparent" />
@@ -377,10 +378,34 @@
                     </MenuFlyout>
                 </SplitButton.Flyout>
             </SplitButton>
+            <Separator />
+            <Button ToolTip.Tip="File Explorer" Name="toolStripFileExplorer" Click="FileExplorerToolStripMenuItemClick">
+                <Image Source="../Resources/Icons/BrowseFileExplorer.png" />
+            </Button>
+            <SplitButton ToolTip.Tip="Git bash" Name="userShell" Click="userShell_Click">
+                <Image Source="../Resources/Icons/GitForWindows.png" />
+            </SplitButton>
+            <Button ToolTip.Tip="Settings" Name="EditSettings" Click="OnShowSettingsClick">
+                <Image Source="../Resources/Icons/Settings.png" />
+            </Button>
         </WrapPanel>
 
-        <TextBlock>
-            Welcome to avalonia
-        </TextBlock>
+        <Grid ColumnDefinitions="*, 4, *">
+            <lp:RepoObjectsTree Grid.Column="0" Name="repoObjectsTree" />
+            <GridSplitter Grid.Column="1" ResizeDirection="Columns"></GridSplitter>
+            <TextBlock Grid.Column="2">Right</TextBlock>
+        </Grid>
+
+        <!-- <SplitView Name="MainSplitContainer" IsPaneOpen="True" DisplayMode="Inline"> -->
+        <!--     <SplitView.Pane > -->
+        <!--         Left -->
+        <!--     </SplitView.Pane> -->
+        <!-- -->
+        <!--     <TextBlock> -->
+        <!--         Right -->
+        <!--     </TextBlock> -->
+        <!-- </SplitView> -->
+
+
     </DockPanel>
 </UserControl>
