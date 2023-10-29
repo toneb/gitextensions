@@ -11,6 +11,9 @@ Have a question? Come and talk to us: [![Gitter](https://badges.gitter.im/Join%2
 
 <a href="#backers" alt="sponsors on Open Collective"><img src="https://opencollective.com/gitextensions/backers/badge.svg" /></a> <a href="#sponsors" alt="Sponsors on Open Collective"><img src="https://opencollective.com/gitextensions/sponsors/badge.svg" /></a>
 
+### Avalonia notes
+1. Avalonia doesn't have [(editable) combobox](https://github.com/AvaloniaUI/Avalonia/issues/205), thus filter fields are not yet working (```tscboBranchFilter``` and ```tstxtRevisionFilter``` in ```FilterToolBar```).
+
 ### v4 // Next Version ([build instructions](https://github.com/gitextensions/gitextensions/wiki/How-To%3A-build-instructions))
 
 <table>

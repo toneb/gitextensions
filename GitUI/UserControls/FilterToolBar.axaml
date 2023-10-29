@@ -1,0 +1,109 @@
+﻿<WrapPanel xmlns="https://github.com/avaloniaui"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+           mc:Ignorable="d"
+           x:Class="GitUI.UserControls.FilterToolBar"
+           Orientation="Horizontal">
+    <SplitButton ToolTip.Tip="Advanced filter" Name="tsbtnAdvancedFilter" Click="tsbtnAdvancedFilter_ButtonClick">
+        <SplitButton.Content>
+            <Image Source="../Resources/Icons/FunnelPencil.png" Name="tsbtnAdvancedFilterImage" />
+        </SplitButton.Content>
+        <SplitButton.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                <MenuItem Header="Reset _path filter" Name="tsmiResetPathFilters" Click="tsmiDisablePathFilters_Click" />
+                <MenuItem Header="_Reset revision filters" Name="tsmiResetAllFilters" Click="tsmiDisableAllFilters_Click" />
+                <Separator Name="toolStripSeparatorAdvancedFilter" />
+                <MenuItem Header="_Advanced filter" Name="tsmiAdvancedFilter" Click="tsmiAdvancedFilter_Click" />
+            </MenuFlyout>
+        </SplitButton.Flyout>
+    </SplitButton>
+    <ToggleButton Name="tsbShowReflog" Click="tsmiShowReflog_Click">
+        <Image Source="../Resources/Icons/Book.png" />
+    </ToggleButton>
+    <SplitButton Name="tssbtnShowBranches" Click="tssbtnShowBranches_Click">
+        <DockPanel>
+            <Image Name="tssbtnShowBranchesImage" Source="../Resources/Icons/BranchLocal.png" />
+            <TextBlock Name="tssbtnShowBranchesText" />
+        </DockPanel>
+        <SplitButton.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                <MenuItem Header="_All branches" ToolTip.Tip="Show all branches" Name="tsmiShowBranchesAll" Click="tsmiShowBranchesAll_Click">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/BranchLocal.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Current branch only" ToolTip.Tip="Show current branch only" Name="tsmiShowBranchesCurrent" Click="tsmiShowBranchesCurrent_Click">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/BranchFilter.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Filtered branches" ToolTip.Tip="Show filtered branches" Name="tsmiShowBranchesFiltered" Click="tsmiShowBranchesFiltered_Click">
+                    <MenuItem.Icon>
+                        <Image Source="../Resources/Icons/BranchFilter.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuFlyout>
+        </SplitButton.Flyout>
+    </SplitButton>
+    <Label Name="toolStripLabel1" ToolTip.Tip="Branch filter" Target="tscboBranchFilter" Tag="ToolBar_group:Branch filter">Branches:</Label>
+    <!-- TODO: ComboBox does not support search ... -->
+    <ComboBox Name="tscboBranchFilter" DropDownOpened="tscboBranchFilter_DropDown" KeyUp="tscboBranchFilter_KeyUp"
+              TextInput="tscboBranchFilter_TextUpdate" Width="100" Tag="ToolBar_group:Branch filter" />
+    <Button Name="tsddbtnBranchFilter" ToolTip.Tip="Branch type" Tag="ToolBar_group:Branch filter">
+        <Image Source="../Resources/Icons/EditFilter.png" />
+        <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                <MenuItem Header="_Local" Click="tsmiBranchLocal_OnClick">
+                    <MenuItem.Icon>
+                        <CheckBox IsChecked="True" BorderThickness="0" IsHitTestVisible="False" Name="tsmiBranchLocal" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Remote" Click="tsmiBranchRemote_OnClick">
+                    <MenuItem.Icon>
+                        <CheckBox BorderThickness="0" IsHitTestVisible="False" Name="tsmiBranchRemote" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Tag" Click="tsmiBranchTag_OnClick">
+                    <MenuItem.Icon>
+                        <CheckBox BorderThickness="0" IsHitTestVisible="False" Name="tsmiBranchTag" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuFlyout>
+        </Button.Flyout>
+    </Button>
+    <Separator Name="toolStripSeparator19" />
+    <Label Name="tslblRevisionFilter" ToolTip.Tip="Text filter" Target="tstxtRevisionFilter" Tag="ToolBar_group:Text filter">_Filter:</Label>
+    <!-- TODO: ComboBox does not support search ... -->
+    <ComboBox Name="tstxtRevisionFilter" KeyUp="tstxtRevisionFilter_KeyUp" Width="100" Tag="ToolBar_group:Text filter" />
+    <Button Name="tsddbtnRevisionFilter" ToolTip.Tip="Filter type" Tag="ToolBar_group:Text filter">
+        <Image Source="../Resources/Icons/EditFilter.png" />
+        <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                <MenuItem Header="Commit _message" Click="tsmiCommitFilter_OnClick">
+                    <MenuItem.Icon>
+                        <CheckBox IsChecked="True" BorderThickness="0" IsHitTestVisible="False" Name="tsmiCommitFilter" IsCheckedChanged="revisionFilterBox_CheckedChanged" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Committer" Click="tsmiCommitterFilter_OnClick">
+                    <MenuItem.Icon>
+                        <CheckBox BorderThickness="0" IsHitTestVisible="False" Name="tsmiCommitterFilter" IsCheckedChanged="revisionFilterBox_CheckedChanged" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Author" Click="tsmiAuthorFilter_OnClick">
+                    <MenuItem.Icon>
+                        <CheckBox BorderThickness="0" IsHitTestVisible="False" Name="tsmiAuthorFilter" IsCheckedChanged="revisionFilterBox_CheckedChanged" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Diff contains (SLOW)" Click="tsmiDiffContainsFilter_OnClick">
+                    <MenuItem.Icon>
+                        <CheckBox BorderThickness="0" IsHitTestVisible="False" Name="tsmiDiffContainsFilter" IsCheckedChanged="revisionFilterBox_CheckedChanged" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuFlyout>
+        </Button.Flyout>
+    </Button>
+    <ToggleButton Name="tsmiShowOnlyFirstParent" Click="tsmiShowOnlyFirstParent_Click">
+        <Image Source="../Resources/Icons/ShowOnlyFirstParent.png" />
+    </ToggleButton>
+</WrapPanel>

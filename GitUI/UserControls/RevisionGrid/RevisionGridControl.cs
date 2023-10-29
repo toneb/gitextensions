@@ -2772,7 +2772,9 @@ namespace GitUI
 
         internal void SetFilterShortcutKeys(FilterToolBar filterBar)
         {
+#if false // TODO - Avalonia
             filterBar.SetShortcutKeys(SetShortcutString);
+#endif
         }
 
         internal void SetShortcutKeys()

@@ -1760,10 +1760,12 @@ namespace GitUI
             }
             else
             {
+#if false // Avalonia
                 // NOTE: fileHistoryFileName must be quoted.
 
                 ShowModelessForm(owner: null, requiresValidWorkingDir: true, preEvent: null, postEvent: null,
                                  () => new FormFileHistory(this, fileHistoryFileName.QuoteNE(), revision, filterByRevision, showBlame));
+#endif
             }
 
             return true;

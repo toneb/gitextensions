@@ -1,11 +1,13 @@
-﻿using GitCommands;
+﻿using Avalonia.Interactivity;
+using Avalonia.Platform;
+using GitCommands;
 using GitExtUtils;
 using GitUI.UserControls.RevisionGrid;
 using GitUIPluginInterfaces;
 
 namespace GitUI.UserControls
 {
-    internal partial class FilterToolBar : ToolStripEx
+    internal partial class FilterToolBar : Avalonia.Controls.WrapPanel
     {
         internal const string ReflogButtonName = nameof(tsbShowReflog);
         private static readonly string[] _noResultsFound = { TranslatedStrings.NoResultsFound };
@@ -18,16 +20,25 @@ namespace GitUI.UserControls
         public FilterToolBar()
         {
             InitializeComponent();
-            tsbShowReflog.ToolTipText = TranslatedStrings.ShowReflogTooltip;
-            tsmiShowOnlyFirstParent.ToolTipText = TranslatedStrings.ShowOnlyFirstParent;
+            Avalonia.Controls.ToolTip.SetTip(tsbShowReflog, TranslatedStrings.ShowReflogTooltip);
+            Avalonia.Controls.ToolTip.SetTip(tsmiShowOnlyFirstParent, TranslatedStrings.ShowOnlyFirstParent);
 
             // Select an option until we get a filter bound.
             SelectShowBranchesFilterOption(selectedIndex: 0);
 
+#if false // TODO - Avalonia - not sure if this can be set this way, maybe through style?
             tscboBranchFilter.ComboBox.ResizeDropDownWidth(AppSettings.BranchDropDownMinWidth, AppSettings.BranchDropDownMaxWidth);
             tstxtRevisionFilter.ComboBox.ResizeDropDownWidth(AppSettings.BranchDropDownMinWidth, AppSettings.BranchDropDownMaxWidth);
-            tstxtRevisionFilter.Items.AddRange(AppSettings.RevisionFilterDropdowns);
+#endif
+
+            foreach (string revisionFilter in AppSettings.RevisionFilterDropdowns)
+            {
+                tstxtRevisionFilter.Items.Add(revisionFilter);
+            }
         }
+
+        /// <inheritdoc />
+        protected override Type StyleKeyOverride => typeof(Avalonia.Controls.WrapPanel);
 
         private IRevisionGridFilter RevisionGridFilter
         {
@@ -59,6 +70,7 @@ namespace GitUI.UserControls
 
             _isApplyingFilter = true;
 
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
             // The user has accepted the filter
             _filterBeingChanged = false;
 
@@ -109,11 +121,13 @@ namespace GitUI.UserControls
 
             RevisionGridFilter.SetAndApplyBranchFilter(filter);
 
+#endif
             _isApplyingFilter = false;
         }
 
         private void ApplyRevisionFilter()
         {
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
             if (_isApplyingFilter)
             {
                 return;
@@ -126,6 +140,7 @@ namespace GitUI.UserControls
                                                                             tsmiAuthorFilter.Checked,
                                                                             tsmiDiffContainsFilter.Checked));
             _isApplyingFilter = false;
+#endif
         }
 
         public void Bind(Func<IGitModule> getModule, IRevisionGridFilter revisionGridFilter)
@@ -139,8 +154,10 @@ namespace GitUI.UserControls
 
         public void ClearQuickFilters()
         {
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
             tscboBranchFilter.Text =
                 tstxtRevisionFilter.Text = string.Empty;
+#endif
         }
 
         private IGitModule GetModule()
@@ -164,7 +181,7 @@ namespace GitUI.UserControls
             // Note: it is a weird combination, and it is mimicking the implementations in RevisionGridControl.
             // Refer to it for more details.
 
-            ToolStripItem selectedItem = tsmiShowBranchesAll;
+            Avalonia.Controls.MenuItem selectedItem = tsmiShowBranchesAll;
 
             if (e.ShowAllBranches)
             {
@@ -177,8 +194,10 @@ namespace GitUI.UserControls
                 // Show filtered branches
                 selectedItem = tsmiShowBranchesFiltered;
 
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
                 // Keep value if other filter
                 tscboBranchFilter.Text = e.BranchFilter;
+#endif
             }
 
             if (e.ShowCurrentBranchOnly)
@@ -187,12 +206,13 @@ namespace GitUI.UserControls
                 selectedItem = tsmiShowBranchesCurrent;
             }
 
-            int selectedIndex = tssbtnShowBranches.DropDownItems.IndexOf(selectedItem);
+            int selectedIndex = ((Avalonia.Controls.MenuFlyout)tssbtnShowBranches.Flyout!).Items.IndexOf(selectedItem);
             SelectShowBranchesFilterOption(selectedIndex);
         }
 
         public void InitToolStripStyles(Color toolForeColor, Color toolBackColor)
         {
+#if false // TODO - Avalonia
             tsddbtnRevisionFilter.BackColor = toolBackColor;
             tsddbtnRevisionFilter.ForeColor = toolForeColor;
 
@@ -201,19 +221,20 @@ namespace GitUI.UserControls
             tscboBranchFilter.ForeColor = toolForeColor;
             tstxtRevisionFilter.BackColor = toolTextBoxBackColor;
             tstxtRevisionFilter.ForeColor = toolForeColor;
+#endif
         }
 
         private void SelectShowBranchesFilterOption(int selectedIndex)
         {
-            if (selectedIndex >= tssbtnShowBranches.DropDownItems.Count)
+            if (selectedIndex >= ((Avalonia.Controls.MenuFlyout)tssbtnShowBranches.Flyout!).Items.Count)
             {
                 selectedIndex = 0;
             }
 
-            ToolStripItem selectedMenuItem = tssbtnShowBranches.DropDownItems[selectedIndex];
-            tssbtnShowBranches.Image = selectedMenuItem.Image;
-            tssbtnShowBranches.Text = selectedMenuItem.Text;
-            tssbtnShowBranches.ToolTipText = selectedMenuItem.ToolTipText;
+            Avalonia.Controls.MenuItem selectedMenuItem = (Avalonia.Controls.MenuItem)((Avalonia.Controls.MenuFlyout)tssbtnShowBranches.Flyout!).Items[selectedIndex]!;
+            tssbtnShowBranchesImage.Source = ((Avalonia.Controls.Image)selectedMenuItem.Icon).Source;
+            tssbtnShowBranchesText.Text = ((string)selectedMenuItem.Header!).Replace("_", string.Empty);
+            Avalonia.Controls.ToolTip.SetTip(tssbtnShowBranches, Avalonia.Controls.ToolTip.GetTip(selectedMenuItem));
         }
 
         /// <summary>
@@ -223,7 +244,9 @@ namespace GitUI.UserControls
         /// <param name="filter">The branches to filter separated by whitespace.</param>
         public void SetBranchFilter(string? filter)
         {
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
             tscboBranchFilter.Text = filter;
+#endif
             ApplyCustomBranchFilter(checkBranch: false);
         }
 
@@ -232,7 +255,7 @@ namespace GitUI.UserControls
         /// </summary>
         public void SetFocus()
         {
-            ToolStripControlHost filterToFocus = tstxtRevisionFilter.Focused
+            Avalonia.Controls.ComboBox filterToFocus = tstxtRevisionFilter.IsFocused
                 ? tscboBranchFilter
                 : tstxtRevisionFilter;
             filterToFocus.Focus();
@@ -244,6 +267,7 @@ namespace GitUI.UserControls
         /// <param name="filter">The filter to apply.</param>
         public void SetRevisionFilter(string? filter)
         {
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
             if (string.IsNullOrEmpty(tstxtRevisionFilter.Text) && string.IsNullOrEmpty(filter))
             {
                 // The current filter is empty and the new filter is empty. No-op
@@ -252,6 +276,7 @@ namespace GitUI.UserControls
 
             tstxtRevisionFilter.Text = filter;
             ApplyRevisionFilter();
+#endif
         }
 
         /// <summary>
@@ -275,11 +300,11 @@ namespace GitUI.UserControls
             IGitModule module = GetModule();
             if (!module.IsValidGitWorkingDir())
             {
-                Enabled = false;
+                IsEnabled = false;
                 return;
             }
 
-            Enabled = true;
+            IsEnabled = true;
             ThreadHelper.FileAndForget(async () =>
             {
                 if (_getRefs is null)
@@ -302,21 +327,26 @@ namespace GitUI.UserControls
             {
                 // Options are interpreted as the refs the search should be limited too
                 // If neither option is selected all refs will be queried also including stash and notes
-                RefsFilter refs = (tsmiBranchLocal.Checked ? RefsFilter.Heads : RefsFilter.NoFilter)
-                    | (tsmiBranchTag.Checked ? RefsFilter.Tags : RefsFilter.NoFilter)
-                    | (tsmiBranchRemote.Checked ? RefsFilter.Remotes : RefsFilter.NoFilter);
+                RefsFilter refs = (tsmiBranchLocal.IsChecked == true ? RefsFilter.Heads : RefsFilter.NoFilter)
+                    | (tsmiBranchTag.IsChecked == true ? RefsFilter.Tags : RefsFilter.NoFilter)
+                    | (tsmiBranchRemote.IsChecked == true ? RefsFilter.Remotes : RefsFilter.NoFilter);
                 return refs;
             }
 
             void BindBranches(string[] branches)
             {
-                IEnumerable<string> autoCompleteList = tscboBranchFilter.AutoCompleteCustomSource.Cast<string>();
+                IEnumerable<string> autoCompleteList = tscboBranchFilter.Items.Cast<string>();
                 if (!autoCompleteList.SequenceEqual(branches))
                 {
-                    tscboBranchFilter.AutoCompleteCustomSource.Clear();
-                    tscboBranchFilter.AutoCompleteCustomSource.AddRange(branches);
+                    tscboBranchFilter.Items.Clear();
+
+                    foreach (string branch in branches)
+                    {
+                        tscboBranchFilter.Items.Add(branch);
+                    }
                 }
 
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
                 string filter = tscboBranchFilter.Items.Count > 0 ? tscboBranchFilter.Text : string.Empty;
                 string[] matches = branches.Where(branch => branch.IndexOf(filter, StringComparison.InvariantCultureIgnoreCase) >= 0).ToArray();
 
@@ -329,10 +359,11 @@ namespace GitUI.UserControls
                 tscboBranchFilter.Items.Clear();
                 tscboBranchFilter.Items.AddRange(matches);
                 tscboBranchFilter.SelectionStart = index;
+#endif
             }
         }
 
-        public void SetShortcutKeys(Action<ToolStripMenuItem, RevisionGridControl.Command> setShortcutString)
+        public void SetShortcutKeys(Action<Avalonia.Controls.MenuItem, RevisionGridControl.Command> setShortcutString)
         {
             setShortcutString(tsmiResetPathFilters, RevisionGridControl.Command.ResetRevisionPathFilter);
             setShortcutString(tsmiResetAllFilters, RevisionGridControl.Command.ResetRevisionFilter);
@@ -341,11 +372,11 @@ namespace GitUI.UserControls
 
         private void revisionGridFilter_FilterChanged(object? sender, FilterChangedEventArgs e)
         {
-            tsmiShowOnlyFirstParent.Checked = e.ShowOnlyFirstParent;
-            tsbShowReflog.Checked = e.ShowReflogReferences;
+            tsmiShowOnlyFirstParent.IsChecked = e.ShowOnlyFirstParent;
+            tsbShowReflog.IsChecked = e.ShowReflogReferences;
             InitBranchSelectionFilter(e);
 
-            List<(string filter, ToolStripMenuItem menuItem)> revFilters = new()
+            List<(string filter, Avalonia.Controls.CheckBox menuItem)> revFilters = new()
             {
                 (e.MessageFilter, tsmiCommitFilter),
                 (e.CommitterFilter, tsmiCommitterFilter),
@@ -353,11 +384,12 @@ namespace GitUI.UserControls
                 (e.DiffContentFilter, tsmiDiffContainsFilter),
             };
 
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
             // If there is no filter in filterInfo, clear text but retain checks
             tstxtRevisionFilter.Text = "";
             if (revFilters.Any(item => !string.IsNullOrWhiteSpace(item.filter)))
             {
-                foreach ((string filter, ToolStripMenuItem menuItem) item in revFilters)
+                foreach ((string filter, Avalonia.Controls.CheckBox menuItem) item in revFilters)
                 {
                     // Check the first menuitem that matches and following identical filters
                     if (!string.IsNullOrWhiteSpace(item.filter)
@@ -365,11 +397,11 @@ namespace GitUI.UserControls
                             || item.filter == tstxtRevisionFilter.Text))
                     {
                         tstxtRevisionFilter.Text = item.filter;
-                        item.menuItem.Checked = true;
+                        item.menuItem.IsChecked = true;
                     }
                     else
                     {
-                        item.menuItem.Checked = false;
+                        item.menuItem.IsChecked = false;
                     }
                 }
             }
@@ -389,47 +421,49 @@ namespace GitUI.UserControls
                 AppSettings.RevisionFilterDropdowns = tstxtRevisionFilter.Items.Cast<object>()
                     .Select(item => item.ToString()).Take(maxFilterItems).ToArray();
             }
+#endif
 
-            tsbtnAdvancedFilter.ToolTipText = e.FilterSummary;
-            tsbtnAdvancedFilter.AutoToolTip = !string.IsNullOrEmpty(tsbtnAdvancedFilter.ToolTipText);
-            tsbtnAdvancedFilter.Image = e.HasFilter ? Properties.Images.FunnelExclamation : Properties.Images.FunnelPencil;
-            tsmiResetPathFilters.Enabled = !string.IsNullOrEmpty(e.PathFilter);
-            tsmiResetAllFilters.Enabled = e.HasFilter;
+            Avalonia.Controls.ToolTip.SetTip(tsbtnAdvancedFilter, e.FilterSummary);
+            tsbtnAdvancedFilterImage.Source = new Avalonia.Media.Imaging.Bitmap(AssetLoader.Open(new Uri(e.HasFilter ? "..\\Resources\\Icons\\FunnelExclamation.png" : "..\\Resources\\Icons\\FunnelPencil.png")));
+            tsmiResetPathFilters.IsEnabled = !string.IsNullOrEmpty(e.PathFilter);
+            tsmiResetAllFilters.IsEnabled = e.HasFilter;
         }
 
-        private void revisionFilterBox_CheckedChanged(object sender, EventArgs e)
+        private void revisionFilterBox_CheckedChanged(object sender, RoutedEventArgs e)
         {
+#if false // TODO - avalonia - IsEditable not supported by ComboBox - https://github.com/AvaloniaUI/Avalonia/issues/205
             if (!string.IsNullOrWhiteSpace(tstxtRevisionFilter.Text))
+#endif
             {
                 ApplyRevisionFilter();
             }
         }
 
-        private void tsbtnAdvancedFilter_ButtonClick(object sender, EventArgs e)
+        private void tsbtnAdvancedFilter_ButtonClick(object sender, RoutedEventArgs e)
         {
-            if (!tsmiResetAllFilters.Enabled)
+            if (!tsmiResetAllFilters.IsEnabled)
             {
                 RevisionGridFilter.ShowRevisionFilterDialog();
             }
             else
             {
-                tsbtnAdvancedFilter.ShowDropDown();
+                tsbtnAdvancedFilter.Flyout!.ShowAt(tsbtnAdvancedFilter);
             }
         }
 
-        private void tstxtRevisionFilter_KeyUp(object sender, KeyEventArgs e)
+        private void tstxtRevisionFilter_KeyUp(object sender, Avalonia.Input.KeyEventArgs e)
         {
-            if (e.KeyValue == (char)Keys.Enter)
+            if (e.Key == Avalonia.Input.Key.Enter)
             {
                 ApplyRevisionFilter();
             }
         }
 
-        private void tscboBranchFilter_Click(object sender, EventArgs e)
+        private void tscboBranchFilter_Click(object sender, RoutedEventArgs e)
         {
-            if (!tscboBranchFilter.DroppedDown)
+            if (!tscboBranchFilter.IsDropDownOpen)
             {
-                tscboBranchFilter.DroppedDown = true;
+                tscboBranchFilter.IsDropDownOpen = true;
             }
         }
 
@@ -438,9 +472,9 @@ namespace GitUI.UserControls
             UpdateBranchFilterItems();
         }
 
-        private void tscboBranchFilter_KeyUp(object sender, KeyEventArgs e)
+        private void tscboBranchFilter_KeyUp(object sender, Avalonia.Input.KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
+            if (e.Key == Avalonia.Input.Key.Enter)
             {
                 ApplyCustomBranchFilter(checkBranch: true);
             }
@@ -451,31 +485,53 @@ namespace GitUI.UserControls
             _filterBeingChanged = true;
         }
 
-        private void tscboBranchFilter_TextUpdate(object sender, EventArgs e)
+        private void tscboBranchFilter_TextUpdate(object sender, Avalonia.Input.TextInputEventArgs e)
         {
             _filterBeingChanged = true;
             UpdateBranchFilterItems();
         }
 
-        private void tsmiDisablePathFilters_Click(object sender, EventArgs e) => RevisionGridFilter.SetAndApplyPathFilter("");
+        private void tsmiDisablePathFilters_Click(object sender, RoutedEventArgs e) => RevisionGridFilter.SetAndApplyPathFilter("");
 
-        private void tsmiDisableAllFilters_Click(object sender, EventArgs e) => RevisionGridFilter.ResetAllFiltersAndRefresh();
+        private void tsmiDisableAllFilters_Click(object sender, RoutedEventArgs e) => RevisionGridFilter.ResetAllFiltersAndRefresh();
 
-        private void tsmiAdvancedFilter_Click(object sender, EventArgs e) => RevisionGridFilter.ShowRevisionFilterDialog();
+        private void tsmiAdvancedFilter_Click(object sender, RoutedEventArgs e) => RevisionGridFilter.ShowRevisionFilterDialog();
 
-        private void tsmiShowReflogBranches_Click(object sender, EventArgs e) => ApplyPresetBranchesFilter(RevisionGridFilter.ShowReflog);
+        private void tsmiShowReflogBranches_Click(object sender, RoutedEventArgs e) => ApplyPresetBranchesFilter(RevisionGridFilter.ShowReflog);
 
-        private void tsmiShowBranchesAll_Click(object sender, EventArgs e) => ApplyPresetBranchesFilter(RevisionGridFilter.ShowAllBranches);
+        private void tsmiShowBranchesAll_Click(object sender, RoutedEventArgs e) => ApplyPresetBranchesFilter(RevisionGridFilter.ShowAllBranches);
 
-        private void tsmiShowBranchesCurrent_Click(object sender, EventArgs e) => ApplyPresetBranchesFilter(RevisionGridFilter.ShowCurrentBranchOnly);
+        private void tsmiShowBranchesCurrent_Click(object sender, RoutedEventArgs e) => ApplyPresetBranchesFilter(RevisionGridFilter.ShowCurrentBranchOnly);
 
-        private void tsmiShowBranchesFiltered_Click(object sender, EventArgs e) => ApplyPresetBranchesFilter(RevisionGridFilter.ShowFilteredBranches);
+        private void tsmiShowBranchesFiltered_Click(object sender, RoutedEventArgs e) => ApplyPresetBranchesFilter(RevisionGridFilter.ShowFilteredBranches);
 
-        private void tsmiShowOnlyFirstParent_Click(object sender, EventArgs e) => RevisionGridFilter.ToggleShowOnlyFirstParent();
+        private void tsmiShowOnlyFirstParent_Click(object sender, RoutedEventArgs e) => RevisionGridFilter.ToggleShowOnlyFirstParent();
 
-        private void tsmiShowReflog_Click(object sender, EventArgs e) => RevisionGridFilter.ToggleShowReflogReferences();
+        private void tsmiShowReflog_Click(object sender, RoutedEventArgs e) => RevisionGridFilter.ToggleShowReflogReferences();
 
-        private void tssbtnShowBranches_Click(object sender, EventArgs e) => tssbtnShowBranches.ShowDropDown();
+        private void tssbtnShowBranches_Click(object sender, RoutedEventArgs e)
+            => tssbtnShowBranches.Flyout!.ShowAt(tssbtnShowBranches);
+
+        private void tsmiBranchLocal_OnClick(object? sender, RoutedEventArgs e)
+            => tsmiBranchLocal.IsChecked = !tsmiBranchLocal.IsChecked;
+
+        private void tsmiBranchRemote_OnClick(object? sender, RoutedEventArgs e)
+            => tsmiBranchRemote.IsChecked = !tsmiBranchRemote.IsChecked;
+
+        private void tsmiBranchTag_OnClick(object? sender, RoutedEventArgs e)
+            => tsmiBranchTag.IsChecked = !tsmiBranchTag.IsChecked;
+
+        private void tsmiCommitFilter_OnClick(object? sender, RoutedEventArgs e)
+            => tsmiCommitFilter.IsChecked = !tsmiCommitFilter.IsChecked;
+
+        private void tsmiCommitterFilter_OnClick(object? sender, RoutedEventArgs e)
+            => tsmiCommitterFilter.IsChecked = !tsmiCommitterFilter.IsChecked;
+
+        private void tsmiAuthorFilter_OnClick(object? sender, RoutedEventArgs e)
+            => tsmiAuthorFilter.IsChecked = !tsmiAuthorFilter.IsChecked;
+
+        private void tsmiDiffContainsFilter_OnClick(object? sender, RoutedEventArgs e)
+            => tsmiDiffContainsFilter.IsChecked = !tsmiDiffContainsFilter.IsChecked;
 
         internal TestAccessor GetTestAccessor()
             => new(this);
@@ -489,26 +545,26 @@ namespace GitUI.UserControls
                 _control = control;
             }
 
-            public ToolStripMenuItem tsmiBranchLocal => _control.tsmiBranchLocal;
-            public ToolStripMenuItem tsmiBranchRemote => _control.tsmiBranchRemote;
-            public ToolStripMenuItem tsmiBranchTag => _control.tsmiBranchTag;
-            public ToolStripMenuItem tsmiCommitFilter => _control.tsmiCommitFilter;
-            public ToolStripMenuItem tsmiCommitterFilter => _control.tsmiCommitterFilter;
-            public ToolStripMenuItem tsmiAuthorFilter => _control.tsmiAuthorFilter;
-            public ToolStripMenuItem tsmiDiffContainsFilter => _control.tsmiDiffContainsFilter;
-            public ToolStripButton tsmiShowOnlyFirstParent => _control.tsmiShowOnlyFirstParent;
-            public ToolStripButton tsbShowReflog => _control.tsbShowReflog;
-            public ToolStripComboBox tstxtRevisionFilter => _control.tstxtRevisionFilter;
-            public ToolStripLabel tslblRevisionFilter => _control.tslblRevisionFilter;
-            public ToolStripSplitButton tsbtnAdvancedFilter => _control.tsbtnAdvancedFilter;
-            public ToolStripSplitButton tssbtnShowBranches => _control.tssbtnShowBranches;
-            public ToolStripMenuItem tsmiShowBranchesAll => _control.tsmiShowBranchesAll;
-            public ToolStripMenuItem tsmiShowBranchesCurrent => _control.tsmiShowBranchesCurrent;
-            public ToolStripMenuItem tsmiShowBranchesFiltered => _control.tsmiShowBranchesFiltered;
-            public ToolStripComboBox tscboBranchFilter => _control.tscboBranchFilter;
+            public Avalonia.Controls.CheckBox tsmiBranchLocal => _control.tsmiBranchLocal;
+            public Avalonia.Controls.CheckBox tsmiBranchRemote => _control.tsmiBranchRemote;
+            public Avalonia.Controls.CheckBox tsmiBranchTag => _control.tsmiBranchTag;
+            public Avalonia.Controls.CheckBox tsmiCommitFilter => _control.tsmiCommitFilter;
+            public Avalonia.Controls.CheckBox tsmiCommitterFilter => _control.tsmiCommitterFilter;
+            public Avalonia.Controls.CheckBox tsmiAuthorFilter => _control.tsmiAuthorFilter;
+            public Avalonia.Controls.CheckBox tsmiDiffContainsFilter => _control.tsmiDiffContainsFilter;
+            public Avalonia.Controls.Primitives.ToggleButton tsmiShowOnlyFirstParent => _control.tsmiShowOnlyFirstParent;
+            public Avalonia.Controls.Button tsbShowReflog => _control.tsbShowReflog;
+            public Avalonia.Controls.ComboBox tstxtRevisionFilter => _control.tstxtRevisionFilter;
+            public Avalonia.Controls.Label tslblRevisionFilter => _control.tslblRevisionFilter;
+            public Avalonia.Controls.SplitButton tsbtnAdvancedFilter => _control.tsbtnAdvancedFilter;
+            public Avalonia.Controls.SplitButton tssbtnShowBranches => _control.tssbtnShowBranches;
+            public Avalonia.Controls.MenuItem tsmiShowBranchesAll => _control.tsmiShowBranchesAll;
+            public Avalonia.Controls.MenuItem tsmiShowBranchesCurrent => _control.tsmiShowBranchesCurrent;
+            public Avalonia.Controls.MenuItem tsmiShowBranchesFiltered => _control.tsmiShowBranchesFiltered;
+            public Avalonia.Controls.ComboBox tscboBranchFilter => _control.tscboBranchFilter;
             public void RefreshRevisionFunction(Func<RefsFilter, IReadOnlyList<IGitRef>> getRefs) => _control.RefreshRevisionFunction(getRefs);
-            public ToolStripDropDownButton tsddbtnBranchFilter => _control.tsddbtnBranchFilter;
-            public ToolStripDropDownButton tsddbtnRevisionFilter => _control.tsddbtnRevisionFilter;
+            public Avalonia.Controls.Button tsddbtnBranchFilter => _control.tsddbtnBranchFilter;
+            public Avalonia.Controls.Button tsddbtnRevisionFilter => _control.tsddbtnRevisionFilter;
             public bool _isApplyingFilter => _control._isApplyingFilter;
             public bool _filterBeingChanged => _control._filterBeingChanged;
 

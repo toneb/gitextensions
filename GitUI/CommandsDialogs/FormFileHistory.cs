@@ -1,3 +1,4 @@
+#if false // Avalonia
 using System.ComponentModel;
 using System.Text;
 using GitCommands;
@@ -699,3 +700,4 @@ namespace GitUI.CommandsDialogs
         }
     }
 }
+#endif

@@ -60,9 +60,6 @@
     <Compile Update="CommandsDialogs\Menus\StartToolStripMenuItem.axaml.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="UserControls\FilterToolBar.Designer.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Update="Properties\Images.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

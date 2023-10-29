@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Avalonia.VisualTree;
 using Microsoft.VisualStudio.Threading;
 
 namespace GitUI
@@ -56,6 +57,34 @@ namespace GitUI
             }
 
             CancellationToken disposedCancellationToken = ControlIsDisposedCancellationFactory.Instance.GetOrCreateCancellationToken(control);
+            CancellationTokenSource? cancellationTokenSource = null;
+            if (cancellationToken.CanBeCanceled)
+            {
+                cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(disposedCancellationToken, cancellationToken);
+                disposedCancellationToken = cancellationTokenSource.Token;
+            }
+
+            JoinableTaskFactory.MainThreadAwaitable mainThreadAwaiter = ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(disposedCancellationToken);
+            return new ControlMainThreadAwaitable(mainThreadAwaiter, cancellationTokenSource);
+        }
+
+        public static ControlMainThreadAwaitable SwitchToMainThreadAsync(this Avalonia.Controls.Control control, CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return new ControlMainThreadAwaitable(ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken), disposable: null);
+            }
+
+            if (!control.IsAttachedToVisualTree())
+            {
+                return new ControlMainThreadAwaitable(ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_preCancelledToken), disposable: null);
+            }
+
+#if false // TODO - avalonia - probably subscribe to DetachedFromLogicalTree?
+            CancellationToken disposedCancellationToken = ControlIsDisposedCancellationFactory.Instance.GetOrCreateCancellationToken(control);
+#else
+            CancellationToken disposedCancellationToken = default;
+#endif
             CancellationTokenSource? cancellationTokenSource = null;
             if (cancellationToken.CanBeCanceled)
             {

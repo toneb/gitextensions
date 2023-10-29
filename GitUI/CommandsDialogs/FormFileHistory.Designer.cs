@@ -1,4 +1,5 @@
-﻿using GitUI.Editor;
+﻿#if false // Avalonia
+using GitUI.Editor;
 
 namespace GitUI.CommandsDialogs
 {
@@ -580,3 +581,4 @@ namespace GitUI.CommandsDialogs
         private System.Windows.Forms.ToolStripButton gitcommandLogToolStripMenuItem;
     }
 }
+#endif
