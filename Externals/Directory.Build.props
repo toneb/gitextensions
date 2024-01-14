@@ -2,6 +2,7 @@
 <Project>
   <PropertyGroup>
     <UseWindowsForms Condition="'$(TargetFramework.EndsWith(&quot;-windows&quot;))' == 'true'">true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
 

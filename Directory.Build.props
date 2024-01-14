@@ -10,6 +10,7 @@
 
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWindowsForms Condition="'$(TargetFramework.EndsWith(&quot;-windows&quot;))' == 'true'">true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
