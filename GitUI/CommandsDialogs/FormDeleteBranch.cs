@@ -87,6 +87,7 @@ namespace GitUI.CommandsDialogs
                     || selectedBranches.Any(branch => !_mergedBranches.Contains(branch.Name));
                 if (hasUnmergedBranches)
                 {
+#if WINDOWS // TODO - mono
                     TaskDialogPage page = new()
                     {
                         Text = _deleteBranchQuestion.Text,
@@ -103,6 +104,7 @@ namespace GitUI.CommandsDialogs
                     {
                         return;
                     }
+#endif
                 }
             }
 

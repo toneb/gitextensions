@@ -87,6 +87,7 @@ namespace GitUI.UserControls
                         ObjectId oid = GetModule().RevParse(branch);
                         if (oid is null)
                         {
+#if WINDOWS // TODO - mono
                             TaskDialogPage page = new()
                             {
                                 Heading = string.Format(TranslatedStrings.IgnoringReference, branch),
@@ -97,6 +98,7 @@ namespace GitUI.UserControls
                             };
 
                             TaskDialog.ShowDialog(this, page);
+#endif
                             continue;
                         }
                     }

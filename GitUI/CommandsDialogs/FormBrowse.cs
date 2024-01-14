@@ -31,7 +31,9 @@ using GitUIPluginInterfaces;
 using GitUIPluginInterfaces.RepositoryHosts;
 using Microsoft;
 using Microsoft.Win32;
+#if WINDOWS
 using Microsoft.WindowsAPICodePack.Taskbar;
+#endif
 using ResourceManager;
 
 namespace GitUI.CommandsDialogs
@@ -209,7 +211,9 @@ namespace GitUI.CommandsDialogs
         private readonly ICommitDataManager _commitDataManager;
         private readonly IAppTitleGenerator _appTitleGenerator;
         private readonly IAheadBehindDataProvider? _aheadBehindDataProvider;
+#if WINDOWS
         private readonly IWindowsJumpListManager _windowsJumpListManager;
+#endif
         private readonly ISubmoduleStatusProvider _submoduleStatusProvider;
         private readonly IScriptsManager _scriptsManager;
         private List<ToolStripItem>? _currentSubmoduleMenuItems;
@@ -248,7 +252,9 @@ namespace GitUI.CommandsDialogs
         {
             _splitterManager = new(settingsSource);
 
+#if WINDOWS
             SystemEvents.SessionEnding += (sender, args) => SaveApplicationSettings();
+#endif
 
             _isFileHistoryMode = args.IsFileHistoryMode;
             InitializeComponent();
@@ -264,7 +270,9 @@ namespace GitUI.CommandsDialogs
             WorkaroundPaddingIncreaseBug();
 
             _appTitleGenerator = commands.GetRequiredService<IAppTitleGenerator>();
+#if WINDOWS
             _windowsJumpListManager = commands.GetRequiredService<IWindowsJumpListManager>();
+#endif
             _scriptsManager = commands.GetRequiredService<IScriptsManager>();
 
             _formBrowseDiagnosticsReporter = new FormBrowseDiagnosticsReporter(this);
@@ -345,7 +353,9 @@ namespace GitUI.CommandsDialogs
                         RevisionGrid.UpdateArtificialCommitCount(null);
                         if (EnvUtils.RunningOnWindowsWithMainWindow())
                         {
+#if WINDOWS
                             TaskbarManager.Instance.SetOverlayIcon(null, "");
+#endif
                         }
 
                         lastBrush = null;
@@ -397,7 +407,9 @@ namespace GitUI.CommandsDialogs
 
                         if (ReferenceEquals(brush, lastBrush))
                         {
+#if WINDOWS
                             TaskbarManager.Instance.SetOverlayIcon(_overlayIconByBrush[lastBrush], "");
+#endif
                             return;
                         }
 
@@ -418,9 +430,11 @@ namespace GitUI.CommandsDialogs
                             _overlayIconByBrush.Add(brush, overlay);
                         }
 
+#if WINDOWS
                         TaskbarManager.Instance.SetOverlayIcon(overlay, "");
 
                         _windowsJumpListManager.UpdateCommitIcon(toolStripButtonCommit.Image);
+#endif
                     }
                 };
             }
@@ -444,7 +458,9 @@ namespace GitUI.CommandsDialogs
                 _formBrowseMenus?.Dispose();
                 components?.Dispose();
                 _gitStatusMonitor?.Dispose();
+#if WINDOWS
                 _windowsJumpListManager?.Dispose();
+#endif
             }
 
             base.Dispose(disposing);
@@ -479,6 +495,7 @@ namespace GitUI.CommandsDialogs
         protected override void OnActivated(EventArgs e)
         {
             // wait for windows to really be displayed, which isn't necessarily the case in OnLoad()
+#if WINDOWS // TODO - mono
             if (_windowsJumpListManager.NeedsJumpListCreation)
             {
                 _windowsJumpListManager.CreateJumpList(
@@ -489,6 +506,7 @@ namespace GitUI.CommandsDialogs
                         new WindowsThumbnailToolbarButton(toolStripButtonPull.Text, toolStripButtonPull.Image, PullToolStripMenuItemClick),
                         new WindowsThumbnailToolbarButton(_closeAll.Text, Images.DeleteFile, (s, e) => NativeMethods.PostMessageW(NativeMethods.HWND_BROADCAST, _closeAllMessage))));
             }
+#endif
 
             this.InvokeAndForget(OnActivate);
             base.OnActivated(e);
@@ -944,7 +962,9 @@ namespace GitUI.CommandsDialogs
 
                 if (validBrowseDir)
                 {
+#if WINDOWS
                     _windowsJumpListManager.AddToRecent(Module.WorkingDir);
+#endif
 
                     // add Navigate and View menu
                     _formBrowseMenus.ResetMenuCommandSets();
@@ -974,7 +994,9 @@ namespace GitUI.CommandsDialogs
                 }
                 else
                 {
+#if WINDOWS // TODO - mono
                     _windowsJumpListManager.DisableThumbnailToolbar();
+#endif
                 }
 
                 UICommands.RaisePostBrowseInitialize(this);

@@ -14,7 +14,9 @@ public static class ServiceContainerRegistry
         ScriptsManager scriptsManager = new();
         HotkeySettingsManager hotkeySettingsManager = new(scriptsManager);
 
+#if WINDOWS
         serviceContainer.AddService<IWindowsJumpListManager>(new WindowsJumpListManager(serviceContainer.GetRequiredService<IRepositoryDescriptionProvider>()));
+#endif
         serviceContainer.AddService<IScriptsManager>(scriptsManager);
         serviceContainer.AddService<IScriptsRunner>(scriptsManager);
         serviceContainer.AddService<IHotkeySettingsManager>(hotkeySettingsManager);

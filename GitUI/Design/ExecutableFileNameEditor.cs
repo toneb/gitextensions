@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms.Design;
+﻿#if WINDOWS
+using System.Windows.Forms.Design;
 
 namespace GitUI.Design
 {
@@ -11,3 +12,4 @@ namespace GitUI.Design
         }
     }
 }
+#endif

@@ -623,6 +623,7 @@ namespace GitUI.CommandsDialogs
                         break;
                 }
 
+#if WINDOWS // TODO - mono
                 TaskDialogPage page = new()
                 {
                     Text = allOptions ? _pullRepositoryMergeInstruction.Text : _pullRepositoryForceInstruction.Text,
@@ -677,6 +678,7 @@ namespace GitUI.CommandsDialogs
                 {
                     AppSettings.AutoPullOnPushRejectedAction = onRejectedPullAction;
                 }
+#endif
             }
 
             return (onRejectedPullAction ?? AppSettings.PullAction.None, forcePush);

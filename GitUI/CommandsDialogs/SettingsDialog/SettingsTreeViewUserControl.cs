@@ -21,7 +21,9 @@ namespace GitUI.CommandsDialogs.SettingsDialog
 
             Font = AppSettings.Font;
 
+#if WINDOWS // TODO - mono
             textBoxFind.PlaceholderText = TranslatedStrings.SettingsTypeToFind;
+#endif
 
             treeView1.ImageList = new ImageList
             {

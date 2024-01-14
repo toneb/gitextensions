@@ -26,8 +26,10 @@ using GitUIPluginInterfaces;
 using Microsoft;
 using Microsoft.VisualStudio.Threading;
 using ResourceManager;
+#if WINDOWS
 using TaskDialog = System.Windows.Forms.TaskDialog;
 using TaskDialogButton = System.Windows.Forms.TaskDialogButton;
+#endif
 
 namespace GitUI
 {
@@ -2180,6 +2182,7 @@ namespace GitUI
                 return;
             }
 
+#if WINDOWS // TODO - mono
             TaskDialogPage page = new()
             {
                 Text = _areYouSureRebase.Text,
@@ -2205,6 +2208,7 @@ namespace GitUI
             {
                 UICommands.StartRebase(ParentForm, _rebaseOnTopOf);
             }
+#endif
         }
 
         private void OnRebaseInteractivelyClicked(object sender, EventArgs e)
@@ -2220,6 +2224,7 @@ namespace GitUI
                 return;
             }
 
+#if WINDOWS // TODO - mono
             TaskDialogPage page = new()
             {
                 Text = _areYouSureRebase.Text,
@@ -2245,6 +2250,7 @@ namespace GitUI
             {
                 UICommands.StartInteractiveRebase(ParentForm, _rebaseOnTopOf);
             }
+#endif
         }
 
         private void OnRebaseWithAdvOptionsClicked(object sender, EventArgs e)
@@ -2395,6 +2401,7 @@ namespace GitUI
 
             using (new WaitCursorScope())
             {
+#if WINDOWS
                 TaskDialogButton result;
                 if (AppSettings.DontConfirmStashDrop)
                 {
@@ -2429,6 +2436,7 @@ namespace GitUI
                     UICommands.StashDrop(this, stashName);
                     PerformRefreshRevisions();
                 }
+#endif
             }
         }
 

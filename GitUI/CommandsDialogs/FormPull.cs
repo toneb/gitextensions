@@ -379,6 +379,7 @@ namespace GitUI.CommandsDialogs
 
             if (!Fetch.Checked && string.IsNullOrWhiteSpace(Branches.Text) && Module.IsDetachedHead())
             {
+#if WINDOWS // TODO - mono
                 TaskDialogPage page = new()
                 {
                     Text = _notOnBranch.Text,
@@ -407,6 +408,7 @@ namespace GitUI.CommandsDialogs
                         return DialogResult.Cancel;
                     }
                 }
+#endif
             }
 
             if (PullFromUrl.Checked && Directory.Exists(comboBoxPullSource.Text))
@@ -570,6 +572,7 @@ namespace GitUI.CommandsDialogs
                 bool? messageBoxResult = AppSettings.AutoPopStashAfterPull;
                 if (messageBoxResult is null)
                 {
+#if WINDOWS // TODO - mono
                     TaskDialogPage page = new()
                     {
                         Text = _applyStashedItemsAgain.Text,
@@ -589,6 +592,7 @@ namespace GitUI.CommandsDialogs
                     {
                         AppSettings.AutoPopStashAfterPull = messageBoxResult;
                     }
+#endif
                 }
 
                 if ((bool)messageBoxResult)
@@ -701,6 +705,7 @@ namespace GitUI.CommandsDialogs
                 // auto pull only if current branch was rejected
                 if (IsRefRemoved().IsMatch(form.GetOutputString()))
                 {
+#if WINDOWS // TODO - mono
                     TaskDialogPage page = new()
                     {
                         Text = _pruneBranchesBranch.Text,
@@ -724,6 +729,7 @@ namespace GitUI.CommandsDialogs
                         };
                         formPrune.ShowDialog(form);
                     }
+#endif
                 }
 
                 return false;
@@ -768,6 +774,7 @@ namespace GitUI.CommandsDialogs
             if (string.IsNullOrEmpty(Branches.Text) && !string.IsNullOrEmpty(curLocalBranch)
                 && remote != currentBranchRemote.Value && !Fetch.Checked)
             {
+#if WINDOWS // TODO - mono
                 TaskDialogPage page = new()
                 {
                     Text = string.Format(_noRemoteBranchMainInstruction.Text, remote),
@@ -793,6 +800,7 @@ namespace GitUI.CommandsDialogs
                     curRemoteBranch = curLocalBranch;
                     return true;
                 }
+#endif
 
                 return false;
             }
@@ -807,6 +815,7 @@ namespace GitUI.CommandsDialogs
                     return true;
                 }
 
+#if WINDOWS // TODO - mono
                 TaskDialogPage page = new()
                 {
                     Text = string.Format(_noRemoteBranchForFetchMainInstruction.Text, remote),
@@ -832,6 +841,7 @@ namespace GitUI.CommandsDialogs
                     curRemoteBranch = curLocalBranch;
                     return true;
                 }
+#endif
             }
 
             return true;

@@ -117,8 +117,10 @@ namespace GitUI.CommitInfo
         {
             try
             {
+#if WINDOWS // TODO - mono
                 string? linkUri = rtbRevisionHeader.GetLink(e.LinkStart);
                 _linkFactory.ExecuteLink(linkUri, commandEventArgs => CommandClicked?.Invoke(sender, commandEventArgs));
+#endif
             }
             catch (Exception ex)
             {

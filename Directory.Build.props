@@ -9,8 +9,8 @@
     <Nullable>enable</Nullable>
 
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWindowsForms>true</UseWindowsForms>
-    <TargetFramework>$(SolutionTargetFramework)</TargetFramework>
+    <UseWindowsForms Condition="'$(TargetFramework.EndsWith(&quot;-windows&quot;))' == 'true'">true</UseWindowsForms>
+    <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)GitExtensions.ruleset</CodeAnalysisRuleSet>
@@ -34,6 +34,11 @@
     <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System.Drawing" />
+    <Using Include="System.Windows.Forms" />
+  </ItemGroup>
 
   <!-- https://learn.microsoft.com/nuget/consume-packages/Central-Package-Management -->
   <PropertyGroup>

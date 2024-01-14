@@ -1809,6 +1809,9 @@ namespace GitCommands
 
                     // The app's entry point is GitExtensions.exe
                     _applicationExecutablePath.EndsWith("GitExtensions.exe", StringComparison.InvariantCultureIgnoreCase) ||
+#if !WINDOWS
+                    _applicationExecutablePath.EndsWith("GitExtensions.dll", StringComparison.InvariantCultureIgnoreCase) ||
+#endif
 
                     // Tests are run by testhost.exe
                     _applicationExecutablePath.EndsWith("testhost.exe", StringComparison.InvariantCultureIgnoreCase) ||

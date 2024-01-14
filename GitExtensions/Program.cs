@@ -35,7 +35,9 @@ namespace GitExtensions
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+#if WINDOWS
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
+#endif
 
             bool checkForIllegalCrossThreadCalls = false;
 #if !DEBUG
@@ -334,6 +336,7 @@ namespace GitExtensions
 
         private static bool LocateMissingGit()
         {
+#if WINDOWS // TODO - mono
             TaskDialogPage page = new()
             {
                 Heading = ResourceManager.TranslatedStrings.GitExecutableNotFound,
@@ -364,6 +367,7 @@ namespace GitExtensions
                 OsShellUtil.OpenUrlInDefaultBrowser(@"https://github.com/gitextensions/gitextensions/wiki/Application-Dependencies#git");
                 return false;
             }
+#endif
 
             return false;
         }

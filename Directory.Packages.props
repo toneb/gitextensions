@@ -29,6 +29,7 @@
     <PackageVersion Include="System.Reactive" Version="5.0.0" />
     <PackageVersion Include="System.Reactive.Linq" Version="5.0.0" />
     <PackageVersion Include="System.Reactive.Interfaces" Version="5.0.0" />
+    <PackageVersion Include=" System.Resources.Extensions" Version="8.0.0" />
     <PackageVersion Include="System.ValueTuple" Version="4.5.0" /> <!-- Required by GitExtensions.Plugins.AutoCompileSubmodules -->
 
     <!-- Analyzers -->

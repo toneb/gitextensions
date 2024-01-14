@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <UseWindowsForms>true</UseWindowsForms>
+    <UseWindowsForms Condition="'$(TargetFramework.EndsWith(&quot;-windows&quot;))' == 'true'">true</UseWindowsForms>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
 

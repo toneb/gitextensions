@@ -1,4 +1,5 @@
-﻿namespace GitUI.UserControls
+﻿#if WINDOWS // TODO - mono
+namespace GitUI.UserControls
 {
     internal class WebBrowserControl : WebBrowser
     {
@@ -8,3 +9,4 @@
         }
     }
 }
+#endif

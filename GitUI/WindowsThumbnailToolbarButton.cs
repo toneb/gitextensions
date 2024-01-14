@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAPICodePack.Taskbar;
+﻿#if WINDOWS
+using Microsoft.WindowsAPICodePack.Taskbar;
 
 namespace GitUI
 {
@@ -16,3 +17,4 @@ namespace GitUI
         public string Text { get; }
     }
 }
+#endif

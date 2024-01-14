@@ -1239,6 +1239,7 @@ namespace GitUI.CommandsDialogs
 
                 bool ConfirmAndStageAllUnstaged()
                 {
+#if WINDOWS // TODO - mono
                     bool mustStageAll = false;
                     TaskDialogPage page = new()
                     {
@@ -1279,6 +1280,7 @@ namespace GitUI.CommandsDialogs
                             return false;
                         }
                     }
+#endif
 
                     return true;
                 }
@@ -1305,6 +1307,7 @@ namespace GitUI.CommandsDialogs
 
                 if (!AppSettings.DontConfirmCommitIfNoBranch && Module.IsDetachedHead() && !Module.InTheMiddleOfRebase())
                 {
+#if WINDOWS // TODO - mono
                     TaskDialogPage page = new()
                     {
                         Text = _notOnBranch.Text,
@@ -1343,6 +1346,7 @@ namespace GitUI.CommandsDialogs
                             return;
                         }
                     }
+#endif
                 }
 
                 try

@@ -7,6 +7,7 @@
     /// </summary>
     public class AccessibleDataGridViewTextBoxCell : DataGridViewTextBoxCell
     {
+#if WINDOWS
         protected class DataGridViewTextBoxCellUnnamedAccessibleObject : DataGridViewTextBoxCellAccessibleObject
         {
             public DataGridViewTextBoxCellUnnamedAccessibleObject(DataGridViewCell? owner) : base(owner)
@@ -21,5 +22,6 @@
         {
             return new DataGridViewTextBoxCellUnnamedAccessibleObject(this);
         }
+#endif
     }
 }

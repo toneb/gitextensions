@@ -328,6 +328,7 @@ namespace GitUI.CommandsDialogs
                 string stashName = GetStashName();
                 if (!AppSettings.DontConfirmStashDrop)
                 {
+#if WINDOWS // TODO - mono
                     TaskDialogPage page = new()
                     {
                         Text = TranslatedStrings.AreYouSure,
@@ -355,6 +356,7 @@ namespace GitUI.CommandsDialogs
                     {
                         AppSettings.DontConfirmStashDrop = true;
                     }
+#endif
                 }
                 else
                 {

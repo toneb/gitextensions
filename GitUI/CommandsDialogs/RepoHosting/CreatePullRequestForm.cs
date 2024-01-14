@@ -153,8 +153,13 @@ namespace GitUI.CommandsDialogs.RepoHosting
 
                             _createBtn.Enabled = true;
                         }
+#if WINDOWS
                         catch (Exception ex)
+#else
+                        catch
+#endif
                         {
+#if WINDOWS // TODO - mono
                             TaskDialog.ShowDialog(new TaskDialogPage
                                 {
                                     Icon = TaskDialogIcon.Error,
@@ -163,6 +168,7 @@ namespace GitUI.CommandsDialogs.RepoHosting
                                     Buttons = { TaskDialogButton.OK },
                                     SizeToContent = true
                                 });
+#endif
                         }
                     });
         }

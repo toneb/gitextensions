@@ -72,7 +72,9 @@ namespace GitUI.Editor
         private Func<Task>? _deferShowFunc;
         private readonly ContinuousScrollEventManager _continuousScrollEventManager;
         private FileStatusItem? _viewItem;
+#if WINDOWS // TODO - mono
         private readonly TaskDialogPage _NO_TRANSLATE_resetSelectedLinesConfirmationDialog;
+#endif
 
         [GeneratedRegex("warning: .*has type .* expected .*")]
         private static partial Regex FileModeWarningRegex();
@@ -191,6 +193,7 @@ namespace GitUI.Editor
             _fullPathResolver = new FullPathResolver(() => Module.WorkingDir);
             SupportLinePatching = false;
 
+#if WINDOWS // TODO - mono
             _NO_TRANSLATE_resetSelectedLinesConfirmationDialog = new()
             {
                 Text = TranslatedStrings.ResetSelectedLinesConfirmation,
@@ -200,6 +203,7 @@ namespace GitUI.Editor
                 DefaultButton = TaskDialogButton.Yes,
                 SizeToContent = true,
             };
+#endif
         }
 
         // Public properties
@@ -1461,10 +1465,12 @@ namespace GitUI.Editor
                 return;
             }
 
+#if WINDOWS // TODO - mono
             if (TaskDialog.ShowDialog(Handle, _NO_TRANSLATE_resetSelectedLinesConfirmationDialog) == TaskDialogButton.No)
             {
                 return;
             }
+#endif
 
             byte[]? patch;
             bool currentItemStaged = _viewItem.SecondRevision.ObjectId == ObjectId.IndexId;
@@ -1900,7 +1906,9 @@ namespace GitUI.Editor
                 set => _fileViewer.ShowSyntaxHighlightingInDiff = value;
             }
 
+#if WINDOWS // TODO - mono
             public TaskDialogPage ResetSelectedLinesConfirmationDialog => _fileViewer._NO_TRANSLATE_resetSelectedLinesConfirmationDialog;
+#endif
             public ToolStripButton IgnoreWhitespaceAtEolButton => _fileViewer.ignoreWhitespaceAtEol;
             public ToolStripMenuItem IgnoreWhitespaceAtEolMenuItem => _fileViewer.ignoreWhitespaceAtEolToolStripMenuItem;
 

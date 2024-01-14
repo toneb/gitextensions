@@ -34,12 +34,16 @@ namespace GitUI.CommandsDialogs.SettingsDialog.Pages
 
             [Category(ScriptCategory)]
             [PropertyOrder(2)]
+#if WINDOWS
             [Editor(typeof(ExecutableFileNameEditor), typeof(UITypeEditor))]
+#endif
             public string? Command { get; set; }
 
             [Category(ScriptCategory)]
             [PropertyOrder(3)]
+#if WINDOWS
             [Editor(typeof(MultilineStringEditor), typeof(UITypeEditor))]
+#endif
             public string? Arguments { get; set; }
 
             [Category(ScriptCategory)]

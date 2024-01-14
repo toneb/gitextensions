@@ -22,6 +22,7 @@ namespace GitUI.CommandsDialogs
             int invalidPathCount = ThreadHelper.JoinableTaskFactory.Run(RepositoryHistoryManager.Locals.LoadRecentHistoryAsync)
                                                                    .Count(repo => !GitModule.IsValidGitWorkingDir(repo.Path));
 
+#if WINDOWS // TODO - mono
             TaskDialogPage page = new()
             {
                 Heading = TranslatedStrings.DirectoryInvalidRepository,
@@ -53,6 +54,7 @@ namespace GitUI.CommandsDialogs
                 ThreadHelper.JoinableTaskFactory.Run(() => RepositoryHistoryManager.Locals.RemoveInvalidRepositoriesAsync(repoPath => GitModule.IsValidGitWorkingDir(repoPath)));
                 return true;
             }
+#endif
 
             return false;
         }

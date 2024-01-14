@@ -58,7 +58,9 @@ namespace GitUI.CommandsDialogs.RepoHosting
         private void ViewPullRequestsForm_Load(object sender, EventArgs e)
         {
             _fileStatusList.SelectedIndexChanged += _fileStatusList_SelectedIndexChanged;
+#if WINDOWS // TODO - mono
             _discussionWB.DocumentCompleted += _discussionWB_DocumentCompleted;
+#endif
 
             _isFirstLoad = true;
 
@@ -75,8 +77,13 @@ namespace GitUI.CommandsDialogs.RepoHosting
                         {
                             hostedRemote.GetHostedRepository(); // We do this now because we want to do it in the async part.
                         }
+#if WINDOWS
                         catch (Exception ex)
+#else
+                        catch
+#endif
                         {
+#if WINDOWS // TODO - mono
                             TaskDialog.ShowDialog(new TaskDialogPage
                             {
                                 Icon = TaskDialogIcon.Error,
@@ -85,6 +92,7 @@ namespace GitUI.CommandsDialogs.RepoHosting
                                 Buttons = { TaskDialogButton.OK },
                                 SizeToContent = true
                             });
+#endif
                         }
                     }
 
@@ -239,7 +247,9 @@ namespace GitUI.CommandsDialogs.RepoHosting
 
         private void ResetAllAndShowLoadingPullRequests()
         {
+#if WINDOWS // TODO - mono
             _discussionWB.DocumentText = "";
+#endif
             _diffViewer.Clear();
             _fileStatusList.ClearDiffs();
 
@@ -291,7 +301,9 @@ namespace GitUI.CommandsDialogs.RepoHosting
             if (_pullRequestsList.SelectedItems.Count != 1)
             {
                 _currentPullRequestInfo = null;
+#if WINDOWS // TODO - mono
                 _discussionWB.DocumentText = "";
+#endif
                 _diffViewer.Clear();
                 return;
             }
@@ -309,7 +321,9 @@ namespace GitUI.CommandsDialogs.RepoHosting
 
             _currentPullRequestInfo.HeadRepo.CloneProtocol = _cloneGitProtocol;
 
+#if WINDOWS // TODO - mono
             _discussionWB.DocumentText = DiscussionHtmlCreator.CreateFor(_currentPullRequestInfo);
+#endif
             _diffViewer.Clear();
             _fileStatusList.ClearDiffs();
 
@@ -343,9 +357,12 @@ namespace GitUI.CommandsDialogs.RepoHosting
         {
             Validates.NotNull(_currentPullRequestInfo);
             string t = DiscussionHtmlCreator.CreateFor(_currentPullRequestInfo, discussion?.Entries);
+#if WINDOWS // TODO - mono
             _discussionWB.DocumentText = t;
+#endif
         }
 
+#if WINDOWS // TODO - mono
         private void _discussionWB_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
             if (_discussionWB.Document?.Window is not null && _discussionWB.Document.Body is not null)
@@ -353,6 +370,7 @@ namespace GitUI.CommandsDialogs.RepoHosting
                 _discussionWB.Document.Window.ScrollTo(0, _discussionWB.Document.Body.ScrollRectangle.Height);
             }
         }
+#endif
 
         private void LoadDiffPatch()
         {

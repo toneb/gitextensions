@@ -106,6 +106,7 @@ namespace GitUI
 
         public static bool ConfirmUpdateSubmodules(IWin32Window? owner)
         {
+#if WINDOWS // TODO - mono
             TaskDialogPage page = new()
             {
                 Text = Instance._updateSubmodulesToo.Text,
@@ -128,6 +129,8 @@ namespace GitUI
             }
 
             return result;
+#endif
+            throw new NotImplementedException("TODO - mono");
         }
 
         public static bool ConfirmBranchCheckout(IWin32Window? owner, string branchName)

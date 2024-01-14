@@ -74,7 +74,9 @@ namespace GitUI.CommandsDialogs
 
             void InitToolStripStyles(Color toolForeColor, Color toolBackColor)
             {
+#if WINDOWS // TODO - mono
                 toolPanel.TopToolStripPanel.BackColor = toolBackColor;
+#endif
                 toolPanel.TopToolStripPanel.ForeColor = toolForeColor;
 
                 mainMenuStrip.BackColor = toolBackColor;

@@ -50,7 +50,9 @@ namespace GitUI
 
                 needsPositionSave = false;
                 _windowPositionManager.SavePosition(this);
+#if WINDOWS // TODO - mono
                 TaskbarProgress.Clear();
+#endif
             }
         }
 

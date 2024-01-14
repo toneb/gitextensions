@@ -201,9 +201,11 @@ namespace GitUI.CommitInfo
         {
             try
             {
+#if WINDOWS
                 string? linkUri = ((RichTextBox)sender).GetLink(e.LinkStart);
                 Validates.NotNull(_linkFactory);
                 _linkFactory?.ExecuteLink(linkUri, commandEventArgs => CommandClickedEvent?.Invoke(sender, commandEventArgs), ShowAll);
+#endif
             }
             catch (Exception ex)
             {

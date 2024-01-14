@@ -149,6 +149,7 @@ namespace GitUI.NBugReports
             StringBuilder text = GetExceptionInfo(exception);
             string rootError = GetRootError(exception);
 
+#if WINDOWS // TODO - mono
             TaskDialogPage page = new()
             {
                 Icon = isExternalOperation || isUserExternalOperation ? TaskDialogIcon.Warning : TaskDialogIcon.Error,
@@ -157,11 +158,14 @@ namespace GitUI.NBugReports
                 AllowCancel = true,
                 SizeToContent = true
             };
+#endif
 
             // prefer to ignore failed external operations
             if (isExternalOperation)
             {
+#if WINDOWS // TODO - mono
                 AddIgnoreOrCloseButton(TranslatedStrings.ExternalErrorDescription);
+#endif
             }
             else
             {
@@ -169,6 +173,7 @@ namespace GitUI.NBugReports
                 text.AppendLine().AppendLine(TranslatedStrings.ReportBug);
             }
 
+#if WINDOWS // TODO - mono
             // no bug reports for user configured operations
             TaskDialogCommandLinkButton taskDialogCommandLink
                 = isUserExternalOperation ? new(TranslatedStrings.ButtonViewDetails)
@@ -196,6 +201,7 @@ namespace GitUI.NBugReports
                 TaskDialogCommandLinkButton taskDialogCommandLink = new(buttonText, descriptionText);
                 page.Buttons.Add(taskDialogCommandLink);
             }
+#endif
         }
 
         private static void ReportFailedToLoadAnAssembly(FileNotFoundException exception, bool isTerminating)
@@ -207,6 +213,7 @@ namespace GitUI.NBugReports
                 fileName = fileName[..uninterestingIndex];
             }
 
+#if WINDOWS // TODO - mono
             TaskDialogPage page = new()
             {
                 Icon = TaskDialogIcon.Warning,
@@ -234,9 +241,11 @@ namespace GitUI.NBugReports
             };
 
             TaskDialog.ShowDialog(OwnerFormHandle, page);
+#endif
 
             return;
 
+#if WINDOWS // TODO - mono
             static void RestartGE()
             {
                 // Skipping the 1st parameter that, starting from .net core, contains the path to application dll (instead of exe)
@@ -246,10 +255,12 @@ namespace GitUI.NBugReports
                 Process.Start(pi);
                 Environment.Exit(0);
             }
+#endif
         }
 
         private static void ReportDubiousOwnership(Exception exception)
         {
+#if WINDOWS // TODO - mono
             string error = exception.Message;
             TaskDialogPage pageSecurity = new()
             {
@@ -352,6 +363,7 @@ namespace GitUI.NBugReports
                         });
                 }
             }
+#endif
         }
 
         private static void ShowNBug(IWin32Window? owner, Exception exception, bool isExternalOperation, bool isTerminating)

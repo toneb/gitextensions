@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" />
     <PackageReference Include="SmartFormat" />
+    <PackageReference Include="System.Resources.Extensions" />
   </ItemGroup>
 
   <ItemGroup>

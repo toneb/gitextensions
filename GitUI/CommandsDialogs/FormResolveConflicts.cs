@@ -108,7 +108,9 @@ namespace GitUI.CommandsDialogs
         }
 
         private readonly IFullPathResolver _fullPathResolver;
+#if WINDOWS // TODO - mono
         private ConflictResolutionPreference _solveMergeConflictDialogResult;
+#endif
         private bool _solveMergeConflictApplyToAll;
         private string? _solveMergeConflictDialogCheckboxText;
         private int _filesDeletedLocallyAndModifiedRemotelyCount;
@@ -902,6 +904,7 @@ namespace GitUI.CommandsDialogs
             }
         }
 
+#if WINDOWS // TODO - mono
         private TaskDialogPage CreateSolveMergeConflictTaskDialogPage(string text, string instructionText, string caption, string applyToAllCheckBoxText,
             string keepLocalButtonText, string keepRemoteButtonText, string keepBaseButtonText)
         {
@@ -947,11 +950,13 @@ namespace GitUI.CommandsDialogs
 
             return page;
         }
+#endif
 
         private void OpenSolveMergeConflictDialogAndExecuteSelectedMergeAction(Action<ConflictResolutionPreference> selectedMergeAction,
             string dialogText, string dialogInstructionText, string dialogCaption, string dialogFooterCheckboxText,
             string keepLocalButtonText, string keepRemoteButtonText, string keepBaseButtonText)
         {
+#if WINDOWS // TODO - mono
             if (!_solveMergeConflictApplyToAll)
             {
                 TaskDialogPage page = CreateSolveMergeConflictTaskDialogPage(dialogText, dialogInstructionText, dialogCaption, dialogFooterCheckboxText,
@@ -962,6 +967,7 @@ namespace GitUI.CommandsDialogs
             }
 
             selectedMergeAction(_solveMergeConflictDialogResult);
+#endif
         }
 
         private void BinaryFilesChooseLocalBaseRemote(ConflictData item)

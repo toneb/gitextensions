@@ -54,6 +54,7 @@ namespace GitUI.LeftPanel
         {
             using (new WaitCursorScope())
             {
+#if WINDOWS // TODO - mono
                 TaskDialogButton result;
                 if (AppSettings.DontConfirmStashDrop)
                 {
@@ -87,6 +88,7 @@ namespace GitUI.LeftPanel
                 {
                     UICommands.StashDrop(owner, ReflogSelector);
                 }
+#endif
             }
         }
 

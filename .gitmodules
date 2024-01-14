@@ -10,3 +10,6 @@
 [submodule "Externals/EasyHook"]
 	path = Externals/EasyHook
 	url = ../../gitextensions/EasyHook.git
+[submodule "Externals/mono"]
+	path = Externals/mono
+	url = https://github.com/toneb/mono.git

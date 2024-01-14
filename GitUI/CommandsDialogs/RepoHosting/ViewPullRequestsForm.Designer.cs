@@ -37,7 +37,9 @@ namespace GitUI.CommandsDialogs.RepoHosting
             _diffViewer = new GitUI.Editor.FileViewer();
             tabPage2 = new TabPage();
             tableLayoutPanel1 = new TableLayoutPanel();
+#if WINDOWS // TODO - mono
             _discussionWB = new GitUI.UserControls.WebBrowserControl();
+#endif
             _postCommentText = new GitUI.SpellChecker.EditNetSpell();
             flowLayoutPanel1 = new FlowLayoutPanel();
             _refreshCommentsBtn = new Button();
@@ -308,7 +310,9 @@ namespace GitUI.CommandsDialogs.RepoHosting
             // 
             tableLayoutPanel1.ColumnCount = 1;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+#if WINDOWS // TODO - mono
             tableLayoutPanel1.Controls.Add(_discussionWB, 0, 0);
+#endif
             tableLayoutPanel1.Controls.Add(_postCommentText, 0, 1);
             tableLayoutPanel1.Controls.Add(flowLayoutPanel1, 0, 2);
             tableLayoutPanel1.Dock = DockStyle.Fill;
@@ -324,6 +328,7 @@ namespace GitUI.CommandsDialogs.RepoHosting
             // 
             // _discussionWB
             // 
+#if WINDOWS // TODO - mono
             _discussionWB.Dock = DockStyle.Fill;
             _discussionWB.IsWebBrowserContextMenuEnabled = false;
             _discussionWB.Location = new Point(3, 3);
@@ -333,6 +338,7 @@ namespace GitUI.CommandsDialogs.RepoHosting
             _discussionWB.Size = new Size(736, 156);
             _discussionWB.TabIndex = 9;
             _discussionWB.WebBrowserShortcutsEnabled = false;
+#endif
             // 
             // _postCommentText
             // 
@@ -425,7 +431,9 @@ namespace GitUI.CommandsDialogs.RepoHosting
         private Editor.FileViewer _diffViewer;
         private TabPage tabPage2;
         private TableLayoutPanel tableLayoutPanel1;
+#if WINDOWS // TODO - mono
         private GitUI.UserControls.WebBrowserControl _discussionWB;
+#endif
         private SpellChecker.EditNetSpell _postCommentText;
         private FlowLayoutPanel flowLayoutPanel1;
         private Button _refreshCommentsBtn;

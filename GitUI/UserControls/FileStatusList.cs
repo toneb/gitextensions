@@ -837,10 +837,12 @@ namespace GitUI
                 SelectedIndex = idx;
 
                 ListViewGroup? group = FileStatusListView.SelectedItems.Cast<ListViewItem>().FirstOrDefault()?.Group;
+#if WINDOWS // TODO - mono
                 if (group?.CollapsedState is ListViewGroupCollapsedState.Collapsed)
                 {
                     group.CollapsedState = ListViewGroupCollapsedState.Expanded;
                 }
+#endif
             }
             finally
             {
@@ -1024,9 +1026,11 @@ namespace GitUI
                 ListViewGroup group = new(name)
                 {
                     // Collapse some groups for diffs with common BASE
+#if WINDOWS
                     CollapsedState = i.Statuses.Count <= 7 || GitItemStatusesWithDescription.Count < 3 || i == GitItemStatusesWithDescription[0]
                         ? ListViewGroupCollapsedState.Expanded
                         : ListViewGroupCollapsedState.Collapsed,
+#endif
                     Tag = i.FirstRev
                 };
                 FileStatusListView.Groups.Add(group);
@@ -1037,7 +1041,9 @@ namespace GitUI
                     itemStatuses = _noItemStatuses;
                     if (group is not null)
                     {
+#if WINDOWS // TODO - mono
                         group.CollapsedState = ListViewGroupCollapsedState.Collapsed;
+#endif
                     }
                 }
                 else

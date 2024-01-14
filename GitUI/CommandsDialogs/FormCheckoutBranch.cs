@@ -356,6 +356,7 @@ namespace GitUI.CommandsDialogs
                     bool? messageBoxResult = AppSettings.AutoPopStashAfterCheckoutBranch;
                     if (messageBoxResult is null)
                     {
+#if WINDOWS // TODO - mono
                         TaskDialogPage page = new()
                         {
                             Text = _applyStashedItemsAgain.Text,
@@ -375,6 +376,7 @@ namespace GitUI.CommandsDialogs
                         {
                             AppSettings.AutoPopStashAfterCheckoutBranch = messageBoxResult;
                         }
+#endif
                     }
 
                     if (messageBoxResult ?? false)

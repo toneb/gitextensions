@@ -1,3 +1,4 @@
+#if WINDOWS
 using GitCommands.Utils;
 using Microsoft.WindowsAPICodePack.Taskbar;
 
@@ -39,3 +40,4 @@ namespace GitUI
         }
     }
 }
+#endif

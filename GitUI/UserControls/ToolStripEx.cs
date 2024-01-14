@@ -8,14 +8,18 @@ namespace GitUI
     /// </summary>
     public class ToolStripEx : ToolStrip, IToolStripEx
     {
+#if WINDOWS // TODO - mono
         private readonly ToolStripButton _gripButton;
+#endif
 
         public ToolStripEx()
         {
             Renderer = new ToolStripExSystemRenderer();
 
+#if WINDOWS // TODO - mono
             PropertyInfo propGrip = GetType().GetProperty("Grip", BindingFlags.Instance | BindingFlags.NonPublic);
             _gripButton = propGrip.GetValue(this) as ToolStripButton;
+#endif
         }
 
         protected override void OnItemAdded(ToolStripItemEventArgs e)
@@ -80,8 +84,13 @@ namespace GitUI
         [DefaultValue(true)]
         public bool GripEnabled
         {
+#if WINDOWS // TODO - mono
             get => _gripButton.Enabled;
             set => _gripButton.Enabled = value;
+#else
+            get => false;
+            set { }
+#endif
         }
 
         protected override void WndProc(ref Message m)

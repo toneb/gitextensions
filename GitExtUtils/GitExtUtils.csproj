@@ -9,6 +9,8 @@
     <PackageReference Include="AdysTech.CredentialManager" />
     <PackageReference Include="Ben.Demystifier" />
     <PackageReference Include="JetBrains.Annotations" />
+
+    <ProjectReference Include="..\Externals\mono\mcs\class\System.Windows.Forms\System.Windows.Forms.csproj" Condition="'$(TargetFramework.EndsWith(&quot;-windows&quot;))' != 'true'" />
   </ItemGroup>
 
 </Project>

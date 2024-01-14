@@ -16,7 +16,9 @@ namespace GitUI.CommandsDialogs
         private readonly Func<IGitModule> _getModule;
 
         private TabPage? _buildReportTabPage;
+#if WINDOWS // TODO - mono
         private WebBrowserControl? _buildReportWebBrowser;
+#endif
         private GitRevision? _selectedGitRevision;
         private string? _url;
         private readonly LinkLabel _openReportLink = new() { AutoSize = false, Text = TranslatedStrings.OpenReport, TextAlign = ContentAlignment.MiddleCenter, Dock = DockStyle.Fill };
@@ -78,12 +80,14 @@ namespace GitUI.CommandsDialogs
                 }
                 else
                 {
+#if WINDOWS // TODO - mono
                     if (_buildReportTabPage is not null && _buildReportWebBrowser is not null && _tabControl.Controls.Contains(_buildReportTabPage))
                     {
                         _buildReportWebBrowser.Stop();
                         _buildReportWebBrowser.Document.Write(string.Empty);
                         _tabControl.Controls.Remove(_buildReportTabPage);
                     }
+#endif
                 }
             }
             finally
@@ -94,6 +98,7 @@ namespace GitUI.CommandsDialogs
 
         private void LoadReportContent(GitRevision revision, bool isFavIconMissing)
         {
+#if WINDOWS // TODO - mono
             Validates.NotNull(_buildReportWebBrowser);
 
             try
@@ -112,6 +117,7 @@ namespace GitUI.CommandsDialogs
             {
                 // No propagation to the user if the report fails
             }
+#endif
         }
 
         private void SetTabPageContent(GitRevision revision)
@@ -121,8 +127,10 @@ namespace GitUI.CommandsDialogs
             if (revision.BuildStatus?.ShowInBuildReportTab == true)
             {
                 _url = null;
+#if WINDOWS // TODO - mono
                 Control = _buildReportWebBrowser;
                 _buildReportTabPage.Controls.Add(_buildReportWebBrowser);
+#endif
             }
             else
             {
@@ -167,12 +175,15 @@ namespace GitUI.CommandsDialogs
                 UseVisualStyleBackColor = true
             };
 
+#if WINDOWS // TODO - mono
             _buildReportWebBrowser = new WebBrowserControl
             {
                 Dock = DockStyle.Fill
             };
+#endif
         }
 
+#if WINDOWS // TODO - mono
         private void BuildReportWebBrowserOnNavigated(object sender,
                                                       WebBrowserNavigatedEventArgs webBrowserNavigatedEventArgs)
         {
@@ -212,6 +223,7 @@ namespace GitUI.CommandsDialogs
                     });
             }
         }
+#endif
 
         private bool IsBuildResultPageEnabled()
         {
@@ -231,6 +243,7 @@ namespace GitUI.CommandsDialogs
             return module;
         }
 
+#if WINDOWS // TODO - mono
         private static string? DetermineFavIconUrl(HtmlDocument htmlDocument)
         {
             HtmlElementCollection links = htmlDocument.GetElementsByTagName("link");
@@ -256,6 +269,7 @@ namespace GitUI.CommandsDialogs
                 return new Uri(new Uri(htmlDocument.Url.AbsoluteUri), href).ToString();
             }
         }
+#endif
 
         private static async Task<Stream?> DownloadRemoteImageFileAsync(string uri)
         {

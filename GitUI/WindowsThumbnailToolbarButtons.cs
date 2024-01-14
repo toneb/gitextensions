@@ -1,4 +1,5 @@
-﻿namespace GitUI
+﻿#if WINDOWS
+namespace GitUI
 {
     public sealed class WindowsThumbnailToolbarButtons
     {
@@ -19,3 +20,4 @@
         public WindowsThumbnailToolbarButton Push { get; }
     }
 }
+#endif

@@ -249,6 +249,7 @@ namespace GitUI.CommandsDialogs
             }
             catch (SaveSettingsException ex) when (ex.InnerException is not null)
             {
+#if WINDOWS // TODO - mono
                 TaskDialogPage page = new()
                 {
                     Text = ex.InnerException.Message,
@@ -260,6 +261,7 @@ namespace GitUI.CommandsDialogs
                     SizeToContent = true
                 };
                 TaskDialog.ShowDialog(Handle, page);
+#endif
 
                 return false;
             }

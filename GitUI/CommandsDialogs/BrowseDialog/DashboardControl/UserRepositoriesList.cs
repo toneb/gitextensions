@@ -72,8 +72,10 @@ namespace GitUI.CommandsDialogs.BrowseDialog.DashboardControl
             _lvgRecentRepositories = new ListViewGroup(_groupRecentRepositories.Text, HorizontalAlignment.Left)
             {
                 Name = string.Empty,
+#if WINDOWS // TODO - mono
                 CollapsedState = ListViewGroupCollapsedState.Expanded,
                 TaskLink = _groupActions.Text
+#endif
             };
 
             _foreColorBrush = new SolidBrush(base.ForeColor);
@@ -81,7 +83,9 @@ namespace GitUI.CommandsDialogs.BrowseDialog.DashboardControl
             _secondaryFont = new Font(AppSettings.Font.FontFamily, AppSettings.Font.SizeInPoints - 1f);
             lblRecentRepositories.Font = new Font(AppSettings.Font.FontFamily, AppSettings.Font.SizeInPoints + 5.5f);
 
+#if WINDOWS // TODO - mono
             textBoxSearch.PlaceholderText = _repositorySearchPlaceholder.Text;
+#endif
 
             listView1.Items.Clear();
             listView1.Groups.Clear();
@@ -299,8 +303,10 @@ namespace GitUI.CommandsDialogs.BrowseDialog.DashboardControl
                         .OrderBy(c => c)
                         .Select(c => new ListViewGroup(c, c)
                         {
+#if WINDOWS // TODO - mono
                             CollapsedState = ListViewGroupCollapsedState.Expanded,
                             TaskLink = _groupActions.Text
+#endif
                         }))
                     .ToArray();
 
@@ -626,6 +632,7 @@ namespace GitUI.CommandsDialogs.BrowseDialog.DashboardControl
             }
         }
 
+#if WINDOWS // TODO - mono
         private void ListView1_GroupTaskLinkClick(object sender, ListViewGroupEventArgs e)
         {
             ListViewGroup group = listView1.Groups[e.GroupIndex];
@@ -637,6 +644,7 @@ namespace GitUI.CommandsDialogs.BrowseDialog.DashboardControl
             contextMenuStripCategory.Tag = group;
             contextMenuStripCategory.Show(listView1, listView1.PointToClient(Cursor.Position));
         }
+#endif
 
         private void listView1_MouseClick(object sender, MouseEventArgs e)
         {

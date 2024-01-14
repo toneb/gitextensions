@@ -1205,7 +1205,9 @@ namespace GitUI.CommandsDialogs
                 {
                     using FolderBrowserDialog dialog = new()
                     {
+#if WINDOWS // TODO - mono
                         InitialDirectory = baseSourceDirectory,
+#endif
                         ShowNewFolderButton = true,
                     };
 

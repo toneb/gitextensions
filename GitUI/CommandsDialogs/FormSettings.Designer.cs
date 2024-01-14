@@ -32,8 +32,10 @@ namespace GitUI.CommandsDialogs
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+#if WINDOWS // TODO - mono
             directorySearcher1 = new System.DirectoryServices.DirectorySearcher();
             directorySearcher2 = new System.DirectoryServices.DirectorySearcher();
+#endif
             label10 = new Label();
             pictureBox2 = new PictureBox();
             repositoryBindingSource = new BindingSource(components);
@@ -57,6 +59,7 @@ namespace GitUI.CommandsDialogs
             //
             // directorySearcher1
             //
+#if WINDOWS // TODO - mono
             directorySearcher1.ClientTimeout = System.TimeSpan.Parse("-00:00:01");
             directorySearcher1.ServerPageTimeLimit = System.TimeSpan.Parse("-00:00:01");
             directorySearcher1.ServerTimeLimit = System.TimeSpan.Parse("-00:00:01");
@@ -66,6 +69,7 @@ namespace GitUI.CommandsDialogs
             directorySearcher2.ClientTimeout = System.TimeSpan.Parse("-00:00:01");
             directorySearcher2.ServerPageTimeLimit = System.TimeSpan.Parse("-00:00:01");
             directorySearcher2.ServerTimeLimit = System.TimeSpan.Parse("-00:00:01");
+#endif
             //
             // label10
             //
@@ -237,8 +241,10 @@ namespace GitUI.CommandsDialogs
         #endregion
 
         private Button buttonOk;
+#if WINDOWS // TODO - mono
         private System.DirectoryServices.DirectorySearcher directorySearcher1;
         private System.DirectoryServices.DirectorySearcher directorySearcher2;
+#endif
         private Label label10;
         private PictureBox pictureBox2;
         private BindingSource repositoryBindingSource;

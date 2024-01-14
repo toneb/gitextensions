@@ -1,10 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
+    <UseWindowsForms Condition="'$(TargetFramework.EndsWith(&quot;-windows&quot;))' == 'true'">true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\mono\mcs\class\System.Windows.Forms\System.Windows.Forms.csproj" Condition="'$(TargetFramework.EndsWith(&quot;-windows&quot;))' != 'true'" />
+  </ItemGroup>
 </Project>
